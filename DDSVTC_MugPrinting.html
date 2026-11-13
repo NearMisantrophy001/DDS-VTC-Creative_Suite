@@ -262,11 +262,12 @@
         border-radius: 6px;
         border: 1px solid transparent;
         background: var(--bg-workspace);
-        cursor: pointer;
-        transition: background 0.15s, border-color 0.15s;
+        cursor: grab;
+        transition: background 0.15s, border-color 0.15s, opacity 0.2s;
         user-select: none;
     }
     .layer-item:hover { border-color: var(--border); }
+    .layer-item.dragging { opacity: 0.4; cursor: grabbing; border: 1px dashed var(--primary); }
     
     /* Subtle Selected State in Panel */
     .layer-item.selected {
@@ -288,8 +289,8 @@
         padding: 2px 1px;
         flex-shrink: 0;
         opacity: 0.6;
+        pointer-events: none;
     }
-    .layer-handle:active { cursor: grabbing; }
 
     .layer-thumb {
         width: 40px; height: 19px;
@@ -298,12 +299,14 @@
         background: var(--border);
         flex-shrink: 0;
         border: 1px solid var(--border);
+        pointer-events: none;
     }
     .layer-thumb img {
         width: 100%; height: 100%;
         object-fit: cover;
         display: block;
         -webkit-user-drag: none;
+        pointer-events: none;
     }
 
     .layer-name {
@@ -315,6 +318,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         color: var(--text-main);
+        pointer-events: none;
     }
 
     .layer-name-input {
@@ -1501,7 +1505,7 @@
     }
 
     /* =========================================================
-       DRAG TO REORDER
+       DRAG TO REORDER (Fixed & Smoother)
        ========================================================= */
     const layerListEl = document.getElementById('layerList');
     let draggingEl = null;
@@ -1510,7 +1514,10 @@
         const item = e.target.closest('.layer-item');
         if (!item) return;
         draggingEl = item;
-        item.classList.add('dragging');
+        
+        // Slight delay to allow the drag image to generate properly before styling
+        setTimeout(() => item.classList.add('dragging'), 0);
+        
         e.dataTransfer.effectAllowed = 'move';
         try { e.dataTransfer.setData('text/plain', item.dataset.id); } catch (err) {}
     });
@@ -1518,30 +1525,50 @@
     layerListEl.addEventListener('dragover', (e) => {
         if (!draggingEl) return;
         e.preventDefault();
-        const afterEl = getDragAfterElement(layerListEl, e.clientY, draggingEl);
-        if (afterEl == null) layerListEl.appendChild(draggingEl);
-        else if (afterEl !== draggingEl) layerListEl.insertBefore(afterEl, draggingEl);
+        e.dataTransfer.dropEffect = 'move';
+
+        const afterEl = getDragAfterElement(layerListEl, e.clientY);
+        
+        if (afterEl == null) {
+            layerListEl.appendChild(draggingEl);
+        } else if (afterEl !== draggingEl) {
+            layerListEl.insertBefore(draggingEl, afterEl);
+        }
     });
 
-    layerListEl.addEventListener('drop', (e) => e.preventDefault());
+    layerListEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+    });
 
     layerListEl.addEventListener('dragend', () => {
         if (!draggingEl) return;
         draggingEl.classList.remove('dragging');
         draggingEl = null;
 
-        const order = [...layerListEl.querySelectorAll('.layer-item')].map(el => el.dataset.id);
+        // Read the DOM order, ignoring dividers
+        const items = [...layerListEl.querySelectorAll('.layer-item')];
+        const order = items.map(el => el.dataset.id);
+        
+        // Sort the internal array to match the DOM
         layers.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+        
+        // CRITICAL FIX: Re-render the layer list immediately so the Page Dividers snap to the correct places!
+        renderLayerList();
         renderCanvas();
+        updateFrameControls();
         fitToViewport();
     });
 
-    function getDragAfterElement(container, y, dragged) {
+    function getDragAfterElement(container, y) {
+        // Only select .layer-item, ignore the page dividers completely
         const elements = [...container.querySelectorAll('.layer-item:not(.dragging)')];
+        
         return elements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
             const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            }
             return closest;
         }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
     }
