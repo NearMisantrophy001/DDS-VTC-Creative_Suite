@@ -1439,10 +1439,7 @@
         fitToViewport();
     }
 
-    async function deletePage(pageNum) {
-        const ok = await showConfirm('Delete Page', `Remove all layers on Page ${pageNum}?`);
-        if (!ok) return;
-
+    function deletePage(pageNum) {
         const startIdx = (pageNum - 1) * MAX_LAYERS_PER_PAGE;
         layers.splice(startIdx, MAX_LAYERS_PER_PAGE);
         
