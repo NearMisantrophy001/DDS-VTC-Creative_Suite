@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mug Printing</title>
+<link rel="icon" type="image/png" sizes="192x192" href="favicon_io/favicon_dark.ico">
+<style>
+    :root {
+        /* Light Theme */
+        --bg-workspace: #F3F4F6;
+        --bg-panel: #FFFFFF;
+        --text-main: #111827;
+        --text-muted: #6B7280;
+
+        --primary: #1D4ED8;
+        --primary-hover: #1E40AF;
+
+        --border: #E5E7EB;
+        --hover-bg: #F9FAFB;
+        --input-bg: #FFFFFF;
+
+        --danger: #DC2626;
+        --danger-bg: #FEF2F2;
+        --danger-border: #FECACA;
+
+        --paper-width: 210mm;
+        --paper-height: 297mm;
+        --preview-scale: 1;
+
+        --gap-v: 2.1mm;
+        --border-w: 0.1px;
+        --border-c: #E5E7EB;
+    }
+
+    [data-theme="dark"] {
+        --bg-workspace: #1E1E1E;
+        --bg-panel: #2C2C2C;
+        --text-main: #E5E5E5;
+        --text-muted: #A3A3A3;
+
+        --primary: #2563EB;
+        --primary-hover: #3B82F6;
+
+        --border: #444444;
+        --hover-bg: #3A3A3A;
+        --input-bg: #1E1E1E;
+
+        --danger: #FF8A80;
+        --danger-bg: #4A1C1C;
+        --danger-border: #6B2A2A;
+
+        --border-c: #D1D5DB;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; margin: 0; padding: 0; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-workspace);
+        color: var(--text-main);
+        display: flex;
+        overflow: hidden;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* ---------- SIDEBARS ---------- */
+    .sidebar {
+        width: 290px;
+        background: var(--bg-panel);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+        flex-shrink: 0;
+        height: 100vh;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .right-sidebar {
+        width: 300px;
+        background: var(--bg-panel);
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+        flex-shrink: 0;
+        height: 100vh;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .header {
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-panel);
+        z-index: 30;
+        flex-shrink: 0;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 8px; }
+
+    .back-btn {
+        background: transparent; border: none; cursor: pointer; color: var(--text-muted);
+        display: flex; align-items: center; justify-content: center;
+        padding: 4px; border-radius: 4px; transition: all 0.2s;
+        text-decoration: none;
+    }
+    .back-btn:hover { background: var(--hover-bg); color: var(--text-main); }
+    .back-btn svg { width: 18px; height: 18px; }
+
+    .logo-title h1 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.02em; }
+
+    .theme-toggle {
+        background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+        padding: 4px; border-radius: 4px; cursor: pointer; display: flex;
+        align-items: center; justify-content: center; transition: all 0.2s;
+        width: 26px; height: 26px;
+    }
+    .theme-toggle:hover { background: var(--hover-bg); color: var(--text-main); }
+    .theme-toggle svg { width: 14px; height: 14px; }
+
+    .sidebar-content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .sidebar-content::-webkit-scrollbar { width: 4px; }
+    .sidebar-content::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-content::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; }
+    [data-theme="dark"] .sidebar-content::-webkit-scrollbar-thumb { background: #555; }
+
+    .sidebar-footer {
+        padding: 12px 16px;
+        background: var(--bg-panel);
+        border-top: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 20;
+        flex-shrink: 0;
+    }
+
+    .section-title {
+        font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+        color: var(--text-muted); letter-spacing: 0.05em;
+    }
+
+    .section-head {
+        display: flex; justify-content: space-between; align-items: center;
+        border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 10px;
+    }
+
+    /* ---------- ACCORDIONS ---------- */
+    details { width: 100%; }
+    details > summary {
+        list-style: none; display: flex; justify-content: space-between; align-items: center;
+        cursor: pointer; user-select: none; outline: none;
+        padding-bottom: 6px; border-bottom: 1px solid var(--border);
+        transition: color 0.2s, border-color 0.2s;
+        font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+        color: var(--text-muted); letter-spacing: 0.05em;
+    }
+    details > summary::-webkit-details-marker { display: none; }
+    details > summary::after {
+        content: '▼'; font-size: 8px; color: var(--text-muted); transition: transform 0.2s;
+    }
+    details[open] > summary::after { transform: rotate(180deg); }
+    details > summary:hover { color: var(--text-main); }
+    details > summary:hover::after { color: var(--text-main); }
+
+    .details-content { padding-top: 12px; padding-bottom: 4px; }
+
+    /* ---------- DROP ZONE ---------- */
+    .drop-zone {
+        border: 2px dashed var(--border);
+        border-radius: 6px;
+        padding: 16px 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: var(--hover-bg);
+        color: var(--text-main);
+    }
+    [data-theme="dark"] .drop-zone { background: #3A3A3A; border-color: #666; }
+    .drop-zone.dragover { border-color: var(--primary); background: rgba(29, 78, 216, 0.08); }
+    .drop-zone input[type="file"] { display: none; }
+    .drop-zone strong { color: var(--primary); font-weight: 600; }
+    [data-theme="dark"] .drop-zone strong { color: var(--primary-hover); }
+    [data-theme="dark"] .drop-zone div { color: #E5E5E5; }
+    .upload-icon { color: var(--text-muted); margin-bottom: 6px; width: 20px; height: 20px; }
+
+    /* ---------- LAYER PANEL ---------- */
+    .layer-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-height: 70px;
+    }
+
+    .page-divider {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin: 16px 0 6px 0;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--border);
+        letter-spacing: 0.05em;
+        transition: opacity 0.2s;
+    }
+    .page-divider:first-child { margin-top: 0; }
+    .page-divider.hidden-page { opacity: 0.4; }
+    
+    .page-actions {
+        display: flex;
+        gap: 8px;
+    }
+    .page-actions button {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        padding: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 3px;
+        transition: all 0.15s;
+    }
+    .page-actions button:hover { background: var(--hover-bg); color: var(--text-main); }
+    .page-actions button.del:hover { background: var(--danger-bg); color: var(--danger); }
+    .page-actions svg { width: 12px; height: 12px; }
+
+    .empty-layers {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-align: center;
+        padding: 18px 8px;
+        line-height: 1.6;
+        border: 1px dashed var(--border);
+        border-radius: 6px;
+    }
+
+    .layer-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 6px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        background: var(--bg-workspace);
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+        user-select: none;
+    }
+    .layer-item:hover { border-color: var(--border); }
+    
+    /* Subtle Selected State in Panel */
+    .layer-item.selected {
+        background: var(--hover-bg) !important;
+        border-left: 3px solid var(--primary) !important;
+        border-radius: 0 6px 6px 0;
+        border-top-color: var(--border);
+        border-right-color: var(--border);
+        border-bottom-color: var(--border);
+    }
+    .layer-item.selected .layer-name { color: var(--primary) !important; font-weight: 700; }
+    [data-theme="dark"] .layer-item.selected .layer-name { color: var(--primary-hover) !important; }
+
+    .layer-handle {
+        cursor: grab;
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1;
+        padding: 2px 1px;
+        flex-shrink: 0;
+        opacity: 0.6;
+    }
+    .layer-handle:active { cursor: grabbing; }
+
+    .layer-thumb {
+        width: 40px; height: 19px;
+        border-radius: 3px;
+        overflow: hidden;
+        background: var(--border);
+        flex-shrink: 0;
+        border: 1px solid var(--border);
+    }
+    .layer-thumb img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        display: block;
+        -webkit-user-drag: none;
+    }
+
+    .layer-name {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.72rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--text-main);
+    }
+
+    .layer-name-input {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.72rem;
+        font-weight: 600;
+        font-family: inherit;
+        padding: 2px 4px;
+        border-radius: 3px;
+        border: 1px solid var(--primary);
+        background: var(--input-bg);
+        color: var(--text-main);
+        outline: none;
+    }
+
+    .icon-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 2px;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+    .icon-btn svg { width: 13px; height: 13px; }
+    .icon-btn:hover { background: var(--hover-bg); color: var(--text-main); }
+    .icon-btn.del:hover { background: var(--danger-bg); color: var(--danger); }
+
+    .layer-item.is-hidden .layer-name { opacity: 0.4; text-decoration: line-through; }
+    .layer-item.is-hidden .layer-thumb img { opacity: 0.25; }
+    .layer-item.is-hidden .layer-eye { color: var(--danger); opacity: 0.85; }
+
+    .layer-count-badge {
+        display: inline-block;
+        background: var(--bg-workspace);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        border-radius: 10px;
+        padding: 0 6px;
+        font-size: 0.6rem;
+        margin-left: 4px;
+    }
+
+    /* ---------- FORM ELEMENTS ---------- */
+    .text-btn {
+        background: none; border: none; padding: 0; cursor: pointer;
+        font-size: 0.65rem; font-weight: 600; transition: color 0.2s;
+    }
+    .text-muted { color: var(--text-muted); }
+    .text-muted:hover { color: var(--text-main); text-decoration: underline; }
+    .text-primary { color: var(--primary); }
+    .text-primary:hover { color: var(--primary-hover); text-decoration: underline; }
+
+    .btn {
+        padding: 6px; border: 1px solid var(--border); border-radius: 4px;
+        background: var(--bg-panel); color: var(--text-main);
+        font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .btn:hover { background: var(--hover-bg); }
+    .btn svg { width: 12px; height: 12px; }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+
+    .input-group {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 6px; margin-bottom: 12px;
+    }
+    .static-label {
+        font-size: 0.75rem; font-weight: 600; padding: 6px; flex-grow: 1;
+        display: flex; align-items: center; color: var(--text-main); user-select: none;
+    }
+    .input-wrapper { display: flex; align-items: center; gap: 6px; }
+    .input-wrapper input {
+        width: 42px; height: 30px; padding: 4px;
+        border: 1px solid var(--border); border-radius: 4px;
+        background: var(--input-bg); color: var(--text-main);
+        text-align: center; font-weight: 700; outline: none;
+        cursor: text; font-size: 0.9rem;
+    }
+    .input-wrapper input:focus { border-color: var(--primary); }
+    .input-wrapper input.wide { width: 64px; }
+
+    .segmented-control {
+        display: flex; background: var(--bg-workspace); border: 1px solid var(--border);
+        border-radius: 4px; padding: 2px; gap: 2px;
+    }
+    .segmented-control button {
+        flex: 1; padding: 4px 8px; border: none; background: transparent;
+        border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600;
+        color: var(--text-muted); transition: all 0.2s;
+    }
+    .segmented-control button:hover { color: var(--text-main); }
+    .segmented-control button.active {
+        background: var(--primary) !important; color: #FFFFFF !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .setting-row { margin-bottom: 16px; } 
+    .setting-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .setting-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+    .setting-value-wrapper { display: flex; align-items: center; gap: 4px; }
+    .setting-value-wrapper input {
+        width: 52px; height: 28px; padding: 2px 4px;
+        border: 1px solid var(--border); border-radius: 4px;
+        background: var(--bg-workspace); color: var(--text-main);
+        text-align: center; font-weight: 600; outline: none; font-size: 0.8rem;
+    }
+    .setting-value-wrapper span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; width: 16px; }
+
+    .setting-slider {
+        width: 100%; height: 6px; -webkit-appearance: none; background: var(--border);
+        border-radius: 3px; outline: none; cursor: pointer; accent-color: var(--primary);
+    }
+    .setting-slider::-webkit-slider-thumb {
+        -webkit-appearance: none; appearance: none; width: 20px; height: 20px;
+        border-radius: 50%; background: var(--primary); cursor: grab;
+        border: 2px solid var(--bg-panel); box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        transition: transform 0.1s;
+    }
+    .setting-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .toggle-label {
+        display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 600;
+        background: var(--bg-workspace); padding: 8px; border-radius: 4px;
+        border: 1px solid var(--border); cursor: pointer;
+    }
+    .toggle-label input[type="checkbox"] {
+        appearance: none; -webkit-appearance: none; width: 14px; height: 14px;
+        border: 1px solid var(--border); border-radius: 3px;
+        background-color: var(--input-bg); cursor: pointer; position: relative;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: all 0.2s; flex-shrink: 0;
+    }
+    .toggle-label input[type="checkbox"]:checked { background-color: var(--primary); border-color: var(--primary); }
+    .toggle-label input[type="checkbox"]:checked::after {
+        content: ''; width: 3px; height: 7px;
+        border: solid white; border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        position: absolute; top: 1px; left: 4px;
+    }
+
+    .select-wrapper { position: relative; flex-shrink: 0; width: 72px; }
+    .select-wrapper select {
+        width: 100%; padding: 6px 16px 6px 6px; border: 1px solid var(--border);
+        border-radius: 4px; background-color: var(--bg-panel); color: var(--text-main);
+        font-size: 0.75rem; font-weight: 600; appearance: none; -webkit-appearance: none;
+        cursor: pointer; outline: none;
+    }
+    .select-wrapper::after {
+        content: '▼'; font-size: 8px; color: var(--text-muted);
+        position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .hint-box {
+        font-size: 0.72rem; color: var(--text-muted); line-height: 1.5;
+        background: var(--bg-workspace); border: 1px dashed var(--border);
+        border-radius: 6px; padding: 12px; text-align: center;
+    }
+
+    /* ---------- WORKSPACE ---------- */
+    .workspace {
+        flex: 1; display: flex; justify-content: center; align-items: center;
+        overflow: hidden; padding: 20px; position: relative;
+        transition: background-color 0.3s;
+    }
+    .workspace.dragover-canvas {
+        background-color: rgba(29, 78, 216, 0.05);
+        outline: 2px dashed var(--primary); outline-offset: -10px;
+    }
+
+    #captureArea {
+        background: #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+        position: relative;
+        transform: scale(var(--preview-scale));
+        transform-origin: center center;
+        transition: transform 0.2s ease-out;
+        display: flex; justify-content: center; align-items: center;
+        border-radius: 2px;
+    }
+
+    .paper-page {
+        background: #fff;
+        width: var(--paper-width);
+        height: var(--paper-height);
+        position: relative;
+        overflow: hidden;
+        padding: 3mm;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        pointer-events: none;
+    }
+
+    .paper-label {
+        position: absolute; top: 2mm; right: 2mm;
+        background: #E5E7EB; color: #6B7280;
+        font-size: 10px; font-weight: 700; padding: 2px 6px;
+        border-radius: 4px; z-index: 50; text-transform: uppercase;
+        pointer-events: none;
+    }
+
+    .safe-zone-overlay {
+        position: absolute; top: 3mm; left: 3mm; right: 3mm; bottom: 3mm;
+        border: 1px dashed rgba(255, 0, 0, 0.35);
+        pointer-events: none; z-index: 100; display: none;
+    }
+    .safe-zone-active .safe-zone-overlay { display: block; }
+
+    /* ---------- MUG FRAMES ---------- */
+    .mug-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        pointer-events: none;
+    }
+
+    .mug-frame {
+        position: relative;
+        overflow: hidden;
+        background: #fff;
+        flex-shrink: 0;
+        border-width: var(--border-w);
+        border-style: solid;
+        border-color: var(--border-c);
+        pointer-events: auto;
+        cursor: pointer;
+        z-index: 1;
+        box-sizing: border-box;
+    }
+    
+    /* Simple Black Thick Stroke for Selection */
+    .mug-frame.is-selected {
+        outline: 5px solid #000000 !important;
+        outline-offset: -5px;
+        z-index: 50;
+    }
+
+    .mug-frame img {
+        width: 100%; height: 100%;
+        display: block;
+        transform-origin: center center;
+        pointer-events: none;
+        -webkit-user-drag: none;
+    }
+
+    /* Empty State */
+    .empty-state {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center; color: var(--text-muted);
+        font-size: 0.9rem; pointer-events: none; width: 100%;
+        display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .empty-state button { pointer-events: auto; cursor: pointer; }
+    .empty-state svg { color: #9CA3AF; margin-bottom: 8px; }
+
+    .warning-text {
+        font-size: 0.65rem; color: #D97706; text-align: center;
+        margin-top: 8px; display: none; font-weight: 600;
+    }
+
+    /* ---------- PAGE NAVIGATION ---------- */
+    .page-nav {
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none; /* Hidden by default */
+        align-items: center;
+        gap: 12px;
+        background: var(--bg-panel);
+        padding: 8px 16px;
+        border-radius: 24px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 0 0 1px var(--border);
+        z-index: 100;
+    }
+    .page-nav.show { display: flex; }
+
+    .page-nav button {
+        background: transparent;
+        border: none;
+        color: var(--text-main);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        border-radius: 50%;
+        transition: background 0.2s;
+    }
+    .page-nav button:hover { background: var(--hover-bg); }
+    .page-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+    .page-nav button svg { width: 16px; height: 16px; }
+
+    .page-nav-text {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-main);
+        min-width: 80px;
+        text-align: center;
+    }
+
+    /* ---------- MODALS ---------- */
+    .modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.6);
+        display: flex; justify-content: center; align-items: center;
+        z-index: 9999; opacity: 0; visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+        backdrop-filter: blur(2px);
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-box {
+        background: var(--bg-panel); color: var(--text-main);
+        border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        width: 90%; max-width: 360px; padding: 20px;
+        transform: translateY(20px); transition: transform 0.2s;
+        border: 1px solid var(--border);
+    }
+    .modal-overlay.active .modal-box { transform: translateY(0); }
+    .modal-header { font-size: 1rem; font-weight: 600; margin-bottom: 10px; }
+    .modal-body { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; white-space: pre-wrap; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; }
+    .modal-footer .btn { padding: 8px 16px; font-size: 0.85rem; }
+
+    /* ---------- PRINT ---------- */
+    @media print {
+        body { background: #fff; height: auto; overflow: visible; display: block; }
+        .sidebar, .right-sidebar, .page-nav { display: none !important; }
+        .workspace {
+            padding: 0 !important; background: #fff !important;
+            overflow: visible !important; display: block !important;
+        }
+        #captureArea {
+            transform: none !important; box-shadow: none !important;
+            width: auto !important; height: auto !important; margin: 0 !important;
+            border: none !important;
+        }
+        .paper-page {
+            width: 210mm !important; height: 297mm !important;
+            padding: 3mm !important; margin: 0 !important; box-shadow: none !important;
+            page-break-after: always;
+        }
+        .safe-zone-overlay, .paper-label, .empty-state, .modal-overlay { display: none !important; }
+        .mug-frame.is-selected { outline: none !important; }
+        @page { size: A4; margin: 0; }
+    }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body data-theme="dark">
+
+    <!-- ============ LEFT SIDEBAR : LAYERS ============ -->
+    <div class="sidebar">
+        <div class="header">
+            <div class="header-left">
+                <a class="back-btn" href="#" title="Back">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                </a>
+                <div class="logo-title"><h1>Mug Printing</h1></div>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"></button>
+        </div>
+
+        <div class="sidebar-content">
+            <!-- UPLOAD -->
+            <div>
+                <div class="section-title" style="margin-bottom: 8px;">Upload Image</div>
+                <div class="drop-zone" id="dropZone">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <div style="font-size: 0.75rem; font-weight: 600; margin-bottom: 2px;">Drag &amp; drop photo here</div>
+                    <div style="font-size: 0.65rem; color: #9CA3AF;">or <strong>click to browse</strong></div>
+                    <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/webp" multiple>
+                </div>
+            </div>
+
+            <!-- LAYERS -->
+            <div>
+                <div class="section-head">
+                    <div class="section-title">Layers <span class="layer-count-badge" id="layerCountBadge">0</span></div>
+                    <button class="text-btn text-muted" onclick="clearAllLayers()">Clear all</button>
+                </div>
+                <div class="layer-list" id="layerList"></div>
+                <div class="warning-text" id="overflowWarning">Warning: layout exceeds the A4 sheet!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ CENTER WORKSPACE ============ -->
+    <div class="workspace" id="workspaceArea">
+        <div id="captureArea">
+            <!-- Pages will be generated here -->
+        </div>
+        
+        <!-- PAGE NAVIGATION -->
+        <div class="page-nav" id="pageNav">
+            <button onclick="changePage(-1)" id="prevPageBtn" title="Previous Page">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <span class="page-nav-text" id="pageNavText">Page 1 of 1</span>
+            <button onclick="changePage(1)" id="nextPageBtn" title="Next Page">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============ RIGHT SIDEBAR : SETTINGS ============ -->
+    <div class="right-sidebar">
+        <div class="header">
+            <div class="logo-title"><h1>Settings</h1></div>
+            <button class="btn" onclick="triggerPrint()" style="border-radius: 6px; padding: 6px 12px; font-size: 0.8rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                Print
+            </button>
+        </div>
+
+        <div class="sidebar-content">
+            <!-- PRINTER SAFE ZONE -->
+            <details open id="acc-safezone">
+                <summary>Printer</summary>
+                <div class="details-content">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="safeZoneToggle" checked onchange="toggleSafeZone()">
+                        Show Printer Safe Zone
+                    </label>
+                </div>
+            </details>
+
+            <!-- FRAME -->
+            <details open id="acc-frame" style="display: none;">
+                <summary>Frame</summary>
+                <div class="details-content">
+                    <div class="hint-box" id="frameHint">Select a layer on the left to adjust its frame.</div>
+                    
+                    <div id="frameControls" style="display: none;">
+                        <div class="input-group" style="margin-bottom: 16px;">
+                            <div class="static-label">Fit</div>
+                            <div class="segmented-control" style="width: 132px;">
+                                <button id="fitCover" onclick="setFit('cover')">Cover</button>
+                                <button id="fitContain" onclick="setFit('contain')">Contain</button>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <div class="static-label">Width (in)</div>
+                            <div class="input-wrapper">
+                                <input type="number" id="frameW" class="wide" step="0.01" min="1" max="8.03" value="8" oninput="applyFrameInputs()">
+                            </div>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <div class="static-label">Height (in)</div>
+                            <div class="input-wrapper">
+                                <input type="number" id="frameH" class="wide" step="0.01" min="0.5" max="11.5" value="3.74" oninput="applyFrameInputs()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- TRANSFORM -->
+            <details open id="acc-transform" style="display: none;">
+                <summary>Transform</summary>
+                <div class="details-content">
+                    <div id="transformControls" style="display: none;">
+                        <div class="setting-row">
+                            <div class="setting-header">
+                                <span class="setting-label">Zoom</span>
+                                <div class="setting-value-wrapper">
+                                    <input type="number" id="numZoom" step="1" min="10" max="300" value="100" oninput="syncSlider('numZoom','sliderZoom'); applyFrameInputs()">
+                                    <span>%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="sliderZoom" class="setting-slider" step="1" min="10" max="300" value="100" oninput="syncNumber('sliderZoom','numZoom'); applyFrameInputs()">
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-header">
+                                <span class="setting-label">Offset X</span>
+                                <div class="setting-value-wrapper">
+                                    <input type="number" id="numOx" step="1" min="-50" max="50" value="0" oninput="syncSlider('numOx','sliderOx'); applyFrameInputs()">
+                                    <span>%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="sliderOx" class="setting-slider" step="1" min="-50" max="50" value="0" oninput="syncNumber('sliderOx','numOx'); applyFrameInputs()">
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-header">
+                                <span class="setting-label">Offset Y</span>
+                                <div class="setting-value-wrapper">
+                                    <input type="number" id="numOy" step="1" min="-50" max="50" value="0" oninput="syncSlider('numOy','sliderOy'); applyFrameInputs()">
+                                    <span>%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="sliderOy" class="setting-slider" step="1" min="-50" max="50" value="0" oninput="syncNumber('sliderOy','numOy'); applyFrameInputs()">
+                        </div>
+
+                        <button class="btn" style="width: 100%;" onclick="resetFrame()">Reset Frame</button>
+                    </div>
+                </div>
+            </details>
+
+            <!-- LAYOUT -->
+            <details open id="acc-layout">
+                <summary>Layout</summary>
+                <div class="details-content">
+                    <div class="setting-row">
+                        <div class="setting-header">
+                            <span class="setting-label">Vertical Gap</span>
+                            <div class="setting-value-wrapper">
+                                <input type="number" id="numGapV" step="0.1" min="0" max="10" value="2.1" oninput="syncSlider('numGapV','sliderGapV'); updateLayoutSettings()">
+                                <span>mm</span>
+                            </div>
+                        </div>
+                        <input type="range" id="sliderGapV" class="setting-slider" step="0.1" min="0" max="10" value="2.1" oninput="syncNumber('sliderGapV','numGapV'); updateLayoutSettings()">
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-header">
+                            <span class="setting-label">Border Width</span>
+                            <div class="setting-value-wrapper">
+                                <input type="number" id="numBorderW" step="0.1" min="0" max="5" value="0.1" oninput="syncSlider('numBorderW','sliderBorderW'); updateLayoutSettings()">
+                                <span>px</span>
+                            </div>
+                        </div>
+                        <input type="range" id="sliderBorderW" class="setting-slider" step="0.1" min="0" max="5" value="0.1" oninput="syncNumber('sliderBorderW','numBorderW'); updateLayoutSettings()">
+                    </div>
+
+                    <div class="setting-header" style="margin-bottom: 0;">
+                        <span class="setting-label">Border Color</span>
+                        <input type="color" id="setBorderC" value="#D1D5DB" oninput="updateLayoutSettings()"
+                            style="width: 36px; height: 28px; padding: 2px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg-workspace);">
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <!-- EXPORT FOOTER -->
+        <div class="sidebar-footer">
+            <div class="input-group" style="margin-bottom: 0; align-items: stretch;">
+                <button class="btn" onclick="exportFile()" style="flex-grow: 1; padding: 8px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export
+                </button>
+                <div class="select-wrapper">
+                    <select id="exportFormat">
+                        <option value="pdf" selected>PDF</option>
+                        <option value="png">PNG</option>
+                        <option value="jpg">JPG</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="resetAll()" style="width: 34px; padding: 0; flex-shrink: 0;" title="Reset Canvas & Clear Data">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                        <polyline points="3 3 3 8 8 8"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header" id="modalTitle">Alert</div>
+            <div class="modal-body" id="modalMessage">Message goes here.</div>
+            <div class="modal-footer">
+                <button id="modalCancelBtn" class="btn" onclick="closeModal(false)" style="display: none;">Cancel</button>
+                <button id="modalOkBtn" class="btn btn-primary" onclick="closeModal(true)">OK</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    /* =========================================================
+       STATE
+       ========================================================= */
+    const DEFAULT_FRAME = {
+        wIn: 8,
+        hIn: 3.74,
+        fit: 'cover',
+        zoom: 1,
+        ox: 0,
+        oy: 0
+    };
+
+    let layers = []; // Flat array of layer objects
+    let selectedIds = new Set();
+    let lastSelectedId = null;
+    let idCounter = 0;
+    let currentPageIndex = 0;
+    const MAX_LAYERS_PER_PAGE = 3;
+
+    const settings = {
+        gapV: 2.1,
+        borderW: 0.1,
+        borderC: '#D1D5DB',
+        safeZone: true,
+        theme: 'dark'
+    };
+
+    /* =========================================================
+       PERSISTENCE (Settings only)
+       ========================================================= */
+    function saveSettings() {
+        try { localStorage.setItem('mug_settings', JSON.stringify(settings)); } catch (e) {}
+    }
+
+    function loadSettings() {
+        try {
+            const raw = localStorage.getItem('mug_settings');
+            if (raw) Object.assign(settings, JSON.parse(raw));
+        } catch (e) {}
+
+        document.getElementById('numGapV').value = settings.gapV;
+        document.getElementById('sliderGapV').value = settings.gapV;
+        document.getElementById('numBorderW').value = settings.borderW;
+        document.getElementById('sliderBorderW').value = settings.borderW;
+        document.getElementById('setBorderC').value = settings.borderC;
+        document.getElementById('safeZoneToggle').checked = settings.safeZone;
+
+        applyTheme();
+        updateLayoutSettings();
+        toggleSafeZone();
+    }
+
+    /* =========================================================
+       MODAL HELPERS
+       ========================================================= */
+    let modalResolve = null;
+
+    function showAlert(title, message) {
+        return new Promise((resolve) => {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            document.getElementById('modalCancelBtn').style.display = 'none';
+            document.getElementById('modalOkBtn').innerText = 'OK';
+            document.getElementById('customModal').classList.add('active');
+            modalResolve = resolve;
+        });
+    }
+
+    function showConfirm(title, message) {
+        return new Promise((resolve) => {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            document.getElementById('modalCancelBtn').style.display = 'block';
+            document.getElementById('modalOkBtn').innerText = 'Confirm';
+            document.getElementById('customModal').classList.add('active');
+            modalResolve = resolve;
+        });
+    }
+
+    function closeModal(isConfirmed) {
+        document.getElementById('customModal').classList.remove('active');
+        if (modalResolve) { modalResolve(isConfirmed); modalResolve = null; }
+    }
+
+    /* =========================================================
+       THEME
+       ========================================================= */
+    const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+    const sunIcon  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+
+    function applyTheme() {
+        if (settings.theme === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+            document.getElementById('themeBtn').innerHTML = sunIcon;
+        } else {
+            document.body.removeAttribute('data-theme');
+            document.getElementById('themeBtn').innerHTML = moonIcon;
+        }
+    }
+
+    function toggleTheme() {
+        settings.theme = settings.theme === 'dark' ? 'light' : 'dark';
+        if (settings.theme === 'dark') {
+            settings.borderC = '#D1D5DB';
+        } else {
+            settings.borderC = '#E5E7EB';
+        }
+        document.getElementById('setBorderC').value = settings.borderC;
+        applyTheme();
+        saveSettings();
+        updateLayoutSettings();
+    }
+
+    /* =========================================================
+       ACCORDION PERSISTENCE
+       ========================================================= */
+    function initAccordions() {
+        document.querySelectorAll('details[id]').forEach(details => {
+            const saved = localStorage.getItem('mug_acc_' + details.id);
+            if (saved !== null) details.open = (saved === 'true');
+            details.addEventListener('toggle', (e) => {
+                localStorage.setItem('mug_acc_' + details.id, e.target.open);
+            });
+        });
+    }
+
+    /* =========================================================
+       SLIDER <-> NUMBER SYNC
+       ========================================================= */
+    function syncSlider(numId, sliderId) {
+        document.getElementById(sliderId).value = document.getElementById(numId).value;
+    }
+    function syncNumber(sliderId, numId) {
+        document.getElementById(numId).value = document.getElementById(sliderId).value;
+    }
+
+    /* =========================================================
+       LAYOUT SETTINGS (gap / border / safe zone)
+       ========================================================= */
+    function updateLayoutSettings() {
+        settings.gapV = Math.max(0, parseFloat(document.getElementById('numGapV').value) || 0);
+        settings.borderW = Math.max(0, parseFloat(document.getElementById('numBorderW').value) || 0);
+        settings.borderC = document.getElementById('setBorderC').value;
+
+        document.documentElement.style.setProperty('--gap-v', settings.gapV + 'mm');
+        document.documentElement.style.setProperty('--border-w', settings.borderW + 'px');
+        document.documentElement.style.setProperty('--border-c', settings.borderC);
+
+        saveSettings();
+        renderCanvas();
+    }
+
+    function toggleSafeZone() {
+        settings.safeZone = document.getElementById('safeZoneToggle').checked;
+        const page = document.querySelector('.paper-page');
+        if (page) page.classList.toggle('safe-zone-active', settings.safeZone);
+        saveSettings();
+    }
+
+    /* =========================================================
+       FILE HANDLING & COMPRESSION
+       ========================================================= */
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const workspaceArea = document.getElementById('workspaceArea');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length) handleFiles(e.target.files);
+        e.target.value = '';
+    });
+
+    workspaceArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        workspaceArea.classList.add('dragover-canvas');
+    });
+    workspaceArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        workspaceArea.classList.remove('dragover-canvas');
+    });
+    workspaceArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        workspaceArea.classList.remove('dragover-canvas');
+        if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+    });
+
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => e.preventDefault());
+
+    function compressImage(src, maxDim, callback) {
+        const img = new Image();
+        img.onload = () => {
+            let w = img.width;
+            let h = img.height;
+            
+            if (w > maxDim || h > maxDim) {
+                if (w > h) {
+                    h = Math.round(h * maxDim / w);
+                    w = maxDim;
+                } else {
+                    w = Math.round(w * maxDim / h);
+                    h = maxDim;
+                }
+            }
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            callback(canvas.toDataURL('image/jpeg', 0.9));
+        };
+        img.src = src;
+    }
+
+    function handleFiles(files) {
+        const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
+        if (valid.length === 0) return;
+
+        let remaining = valid.length;
+
+        valid.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                compressImage(ev.target.result, 2400, (compressedSrc) => {
+                    const cleanName = (file.name.replace(/\.[^.]+$/, '') || 'Mug').slice(0, 22);
+                    const layer = {
+                        id: 'L' + (++idCounter),
+                        name: cleanName,
+                        imgSrc: compressedSrc,
+                        visible: true,
+                        wIn: DEFAULT_FRAME.wIn,
+                        hIn: DEFAULT_FRAME.hIn,
+                        fit: DEFAULT_FRAME.fit,
+                        zoom: DEFAULT_FRAME.zoom,
+                        ox: DEFAULT_FRAME.ox,
+                        oy: DEFAULT_FRAME.oy
+                    };
+                    layers.push(layer);
+                    selectedIds.clear();
+                    selectedIds.add(layer.id);
+                    lastSelectedId = layer.id;
+
+                    if (--remaining === 0) {
+                        const totalVisible = layers.filter(l => l.visible).length;
+                        currentPageIndex = Math.ceil(totalVisible / MAX_LAYERS_PER_PAGE) - 1;
+                        if (currentPageIndex < 0) currentPageIndex = 0;
+
+                        renderLayerList();
+                        renderCanvas();
+                        updateFrameControls();
+                        fitToViewport();
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    /* =========================================================
+       LAYER LIST (FIGMA-STYLE PANEL)
+       ========================================================= */
+    const eyeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    const eyeOffIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+    const trashIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>`;
+
+    function renderLayerList() {
+        const list = document.getElementById('layerList');
+        list.innerHTML = '';
+
+        document.getElementById('layerCountBadge').innerText = layers.length;
+
+        if (layers.length === 0) {
+            list.innerHTML = '<div class="empty-layers">No layers yet.<br>Drop an image to create one.</div>';
+            return;
+        }
+
+        let currentVisualPage = 0;
+
+        layers.forEach((layer, index) => {
+            // Insert Page Divider
+            const pageNum = Math.floor(index / MAX_LAYERS_PER_PAGE) + 1;
+            if (pageNum !== currentVisualPage) {
+                currentVisualPage = pageNum;
+                
+                // Check if all layers on this page are visible
+                const pageLayers = layers.slice((pageNum - 1) * MAX_LAYERS_PER_PAGE, pageNum * MAX_LAYERS_PER_PAGE);
+                const allHidden = pageLayers.every(l => !l.visible);
+
+                const pageHeader = document.createElement('div');
+                pageHeader.className = 'page-divider' + (allHidden ? ' hidden-page' : '');
+                
+                const pageTitle = document.createElement('span');
+                pageTitle.innerText = 'Page ' + pageNum;
+                
+                const actions = document.createElement('div');
+                actions.className = 'page-actions';
+                
+                // Hide/Show Page Button
+                const btnHide = document.createElement('button');
+                btnHide.innerHTML = allHidden ? eyeOffIcon : eyeIcon;
+                btnHide.title = allHidden ? "Show Page" : "Hide Page";
+                btnHide.onclick = (e) => {
+                    e.stopPropagation();
+                    const targetState = allHidden; // If all hidden, show them. If some visible, hide all.
+                    pageLayers.forEach(l => l.visible = targetState);
+                    
+                    // If we just hid the current active page, adjust view
+                    if (!targetState) {
+                         const activePages = getActivePages();
+                         if (currentPageIndex >= activePages.length) currentPageIndex = Math.max(0, activePages.length - 1);
+                    }
+
+                    renderLayerList();
+                    renderCanvas();
+                    fitToViewport();
+                };
+                
+                // Delete Page Button
+                const btnDel = document.createElement('button');
+                btnDel.className = 'del';
+                btnDel.innerHTML = trashIcon;
+                btnDel.title = "Delete Page";
+                btnDel.onclick = (e) => {
+                    e.stopPropagation();
+                    deletePage(pageNum);
+                };
+
+                actions.appendChild(btnHide);
+                actions.appendChild(btnDel);
+                pageHeader.appendChild(pageTitle);
+                pageHeader.appendChild(actions);
+                
+                list.appendChild(pageHeader);
+            }
+
+            // Create Layer Row
+            const row = document.createElement('div');
+            row.className = 'layer-item'
+                + (selectedIds.has(layer.id) ? ' selected' : '')
+                + (layer.visible ? '' : ' is-hidden');
+            row.dataset.id = layer.id;
+            row.draggable = true;
+
+            const handle = document.createElement('div');
+            handle.className = 'layer-handle';
+            handle.textContent = '⠿';
+            
+            const thumb = document.createElement('div');
+            thumb.className = 'layer-thumb';
+            const timg = document.createElement('img');
+            timg.src = layer.imgSrc;
+            timg.draggable = false;
+            thumb.appendChild(timg);
+
+            const name = document.createElement('div');
+            name.className = 'layer-name';
+            name.textContent = layer.name;
+            name.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                startRename(layer.id, row);
+            });
+
+            const eye = document.createElement('button');
+            eye.className = 'icon-btn layer-eye';
+            eye.innerHTML = layer.visible ? eyeIcon : eyeOffIcon;
+            eye.onclick = (e) => {
+                e.stopPropagation();
+                layer.visible = !layer.visible;
+                renderLayerList();
+                renderCanvas();
+                fitToViewport();
+            };
+
+            const del = document.createElement('button');
+            del.className = 'icon-btn del';
+            del.innerHTML = trashIcon;
+            del.onclick = (e) => {
+                e.stopPropagation();
+                deleteLayer(layer.id);
+            };
+
+            row.appendChild(handle);
+            row.appendChild(thumb);
+            row.appendChild(name);
+            row.appendChild(eye);
+            row.appendChild(del);
+
+            row.addEventListener('click', (e) => selectLayer(layer.id, e));
+            list.appendChild(row);
+        });
+    }
+
+    function startRename(id, row) {
+        const layer = layers.find(l => l.id === id);
+        if (!layer) return;
+        const nameEl = row.querySelector('.layer-name');
+        if (!nameEl) return;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'layer-name-input';
+        input.value = layer.name;
+        input.maxLength = 30;
+        nameEl.replaceWith(input);
+        input.focus();
+        input.select();
+
+        let done = false;
+        const commit = () => {
+            if (done) return;
+            done = true;
+            const v = input.value.trim();
+            if (v) layer.name = v;
+            renderLayerList();
+        };
+
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+            if (e.key === 'Escape') { input.value = layer.name; input.blur(); }
+        });
+        input.addEventListener('click', (e) => e.stopPropagation());
+    }
+
+    function getActivePages() {
+        const activePages = [];
+        for (let i = 0; i < layers.length; i += MAX_LAYERS_PER_PAGE) {
+            const chunk = layers.slice(i, i + MAX_LAYERS_PER_PAGE);
+            if (chunk.some(l => l.visible)) {
+                activePages.push(chunk);
+            }
+        }
+        return activePages;
+    }
+
+    function selectLayer(id, e) {
+        if (e && (e.ctrlKey || e.metaKey)) {
+            if (selectedIds.has(id)) selectedIds.delete(id);
+            else selectedIds.add(id);
+            lastSelectedId = id;
+        } else if (e && e.shiftKey && lastSelectedId) {
+            const allRows = [...document.querySelectorAll('.layer-item')];
+            const ids = allRows.map(r => r.dataset.id);
+            const idx1 = ids.indexOf(lastSelectedId);
+            const idx2 = ids.indexOf(id);
+
+            if (idx1 !== -1 && idx2 !== -1) {
+                const start = Math.min(idx1, idx2);
+                const end = Math.max(idx1, idx2);
+                selectedIds.clear();
+                for (let i = start; i <= end; i++) {
+                    selectedIds.add(ids[i]);
+                }
+            } else {
+                selectedIds.clear();
+                selectedIds.add(id);
+                lastSelectedId = id;
+            }
+        } else {
+            selectedIds.clear();
+            selectedIds.add(id);
+            lastSelectedId = id;
+        }
+
+        // Auto-navigate to the page of the newly selected layer
+        const targetLayer = layers.find(l => l.id === id);
+        if (targetLayer && targetLayer.visible) {
+            const index = layers.findIndex(l => l.id === targetLayer.id);
+            
+            // Find which *active* page this corresponds to
+            const activePages = getActivePages();
+            let activePageIdx = -1;
+            let currentChunkIdx = 0;
+            
+            for (let i = 0; i < layers.length; i += MAX_LAYERS_PER_PAGE) {
+                const chunk = layers.slice(i, i + MAX_LAYERS_PER_PAGE);
+                if (chunk.some(l => l.visible)) {
+                    if (i <= index && index < i + MAX_LAYERS_PER_PAGE) {
+                        activePageIdx = currentChunkIdx;
+                        break;
+                    }
+                    currentChunkIdx++;
+                }
+            }
+
+            if (activePageIdx !== -1 && activePageIdx !== currentPageIndex) {
+                currentPageIndex = activePageIdx;
+                renderCanvas();
+                fitToViewport();
+            }
+        }
+
+        renderLayerList();
+        renderCanvas();
+        updateFrameControls();
+    }
+
+    function deleteLayer(id) {
+        layers = layers.filter(l => l.id !== id);
+        selectedIds.delete(id);
+        
+        const activePages = getActivePages();
+        if (currentPageIndex >= activePages.length) currentPageIndex = Math.max(0, activePages.length - 1);
+
+        renderLayerList();
+        renderCanvas();
+        updateFrameControls();
+        fitToViewport();
+    }
+
+    async function deletePage(pageNum) {
+        const ok = await showConfirm('Delete Page', `Remove all layers on Page ${pageNum}?`);
+        if (!ok) return;
+
+        const startIdx = (pageNum - 1) * MAX_LAYERS_PER_PAGE;
+        layers.splice(startIdx, MAX_LAYERS_PER_PAGE);
+        
+        const activePages = getActivePages();
+        if (currentPageIndex >= activePages.length) currentPageIndex = Math.max(0, activePages.length - 1);
+
+        renderLayerList();
+        renderCanvas();
+        updateFrameControls();
+        fitToViewport();
+    }
+
+    async function clearAllLayers() {
+        if (layers.length === 0) return;
+        const ok = await showConfirm('Clear Layers', 'Remove all layers from the canvas? This cannot be undone.');
+        if (!ok) return;
+        layers = [];
+        selectedIds.clear();
+        lastSelectedId = null;
+        currentPageIndex = 0;
+        renderLayerList();
+        renderCanvas();
+        updateFrameControls();
+        fitToViewport();
+    }
+
+    function duplicateSelected() {
+        if (selectedIds.size === 0) return;
+        
+        const duplicates = [];
+        const newIds = [];
+
+        layers.forEach(l => {
+            if (selectedIds.has(l.id)) {
+                const copy = JSON.parse(JSON.stringify(l));
+                copy.id = 'L' + (++idCounter);
+                copy.name = l.name + ' copy';
+                duplicates.push(copy);
+                newIds.push(copy.id);
+            }
+        });
+
+        layers = [...duplicates, ...layers];
+        
+        selectedIds.clear();
+        newIds.forEach(id => selectedIds.add(id));
+        lastSelectedId = newIds[0] || null;
+
+        currentPageIndex = Math.ceil(layers.length / MAX_LAYERS_PER_PAGE) - 1;
+        if (currentPageIndex < 0) currentPageIndex = 0;
+        
+        renderLayerList();
+        renderCanvas();
+        updateFrameControls();
+        fitToViewport();
+    }
+
+    function getSelectedImageLayers() {
+        return layers.filter(l => selectedIds.has(l.id));
+    }
+
+    /* =========================================================
+       DRAG TO REORDER
+       ========================================================= */
+    const layerListEl = document.getElementById('layerList');
+    let draggingEl = null;
+
+    layerListEl.addEventListener('dragstart', (e) => {
+        const item = e.target.closest('.layer-item');
+        if (!item) return;
+        draggingEl = item;
+        item.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', item.dataset.id); } catch (err) {}
+    });
+
+    layerListEl.addEventListener('dragover', (e) => {
+        if (!draggingEl) return;
+        e.preventDefault();
+        const afterEl = getDragAfterElement(layerListEl, e.clientY, draggingEl);
+        if (afterEl == null) layerListEl.appendChild(draggingEl);
+        else if (afterEl !== draggingEl) layerListEl.insertBefore(afterEl, draggingEl);
+    });
+
+    layerListEl.addEventListener('drop', (e) => e.preventDefault());
+
+    layerListEl.addEventListener('dragend', () => {
+        if (!draggingEl) return;
+        draggingEl.classList.remove('dragging');
+        draggingEl = null;
+
+        const order = [...layerListEl.querySelectorAll('.layer-item')].map(el => el.dataset.id);
+        layers.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+        renderCanvas();
+        fitToViewport();
+    });
+
+    function getDragAfterElement(container, y, dragged) {
+        const elements = [...container.querySelectorAll('.layer-item:not(.dragging)')];
+        return elements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+            return closest;
+        }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+    }
+
+    /* =========================================================
+       FRAME CONTROLS
+       ========================================================= */
+    function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+    function round2(n) { return Math.round(n * 100) / 100; }
+
+    function updateFrameControls() {
+        const selected = getSelectedImageLayers();
+        const frameSection = document.getElementById('acc-frame');
+        const transformSection = document.getElementById('acc-transform');
+
+        if (selected.length === 0 || layers.length === 0) {
+            frameSection.style.display = 'none';
+            transformSection.style.display = 'none';
+            return;
+        }
+
+        frameSection.style.display = 'block';
+        transformSection.style.display = 'block';
+
+        const hint = document.getElementById('frameHint');
+        const controls = document.getElementById('frameControls');
+        const transformControls = document.getElementById('transformControls');
+
+        hint.style.display = 'none';
+        controls.style.display = 'block';
+        transformControls.style.display = 'block';
+
+        const l = selected[0];
+        document.getElementById('frameW').value = round2(l.wIn);
+        document.getElementById('frameH').value = round2(l.hIn);
+
+        const zoomPct = Math.round(l.zoom * 100);
+        document.getElementById('numZoom').value = zoomPct;
+        document.getElementById('sliderZoom').value = zoomPct;
+
+        document.getElementById('numOx').value = Math.round(l.ox);
+        document.getElementById('sliderOx').value = Math.round(l.ox);
+        document.getElementById('numOy').value = Math.round(l.oy);
+        document.getElementById('sliderOy').value = Math.round(l.oy);
+
+        document.getElementById('fitCover').classList.toggle('active', l.fit === 'cover');
+        document.getElementById('fitContain').classList.toggle('active', l.fit === 'contain');
+    }
+
+    function updateSelectedFramesDOM() {
+        const selected = getSelectedImageLayers();
+        selected.forEach(layer => {
+            const frameEl = document.querySelector(`.mug-frame[data-id="${layer.id}"]`);
+            if (frameEl) {
+                frameEl.style.width = layer.wIn + 'in';
+                frameEl.style.height = layer.hIn + 'in';
+                const img = frameEl.querySelector('img');
+                if (img) {
+                    img.style.objectFit = layer.fit;
+                    img.style.transform = 'translate(' + layer.ox + '%, ' + layer.oy + '%) scale(' + layer.zoom + ')';
+                }
+            }
+        });
+    }
+
+    function applyFrameInputs() {
+        const selected = getSelectedImageLayers();
+        if (selected.length === 0) return;
+
+        const w = parseFloat(document.getElementById('frameW').value);
+        const h = parseFloat(document.getElementById('frameH').value);
+        const z = parseFloat(document.getElementById('numZoom').value);
+        const ox = parseFloat(document.getElementById('numOx').value);
+        const oy = parseFloat(document.getElementById('numOy').value);
+
+        selected.forEach(layer => {
+            if (!isNaN(w)) layer.wIn = clamp(w, 1, 8.03);
+            if (!isNaN(h)) layer.hIn = clamp(h, 0.5, 11.5);
+            if (!isNaN(z)) layer.zoom = clamp(z, 10, 300) / 100;
+            if (!isNaN(ox)) layer.ox = clamp(ox, -50, 50);
+            if (!isNaN(oy)) layer.oy = clamp(oy, -50, 50);
+        });
+
+        updateSelectedFramesDOM();
+    }
+
+    function setFit(mode) {
+        const selected = getSelectedImageLayers();
+        selected.forEach(layer => layer.fit = mode);
+        document.getElementById('fitCover').classList.toggle('active', mode === 'cover');
+        document.getElementById('fitContain').classList.toggle('active', mode === 'contain');
+        updateSelectedFramesDOM();
+    }
+
+    function resetFrame() {
+        const selected = getSelectedImageLayers();
+        selected.forEach(layer => {
+            Object.assign(layer, {
+                wIn: DEFAULT_FRAME.wIn,
+                hIn: DEFAULT_FRAME.hIn,
+                fit: DEFAULT_FRAME.fit,
+                zoom: DEFAULT_FRAME.zoom,
+                ox: DEFAULT_FRAME.ox,
+                oy: DEFAULT_FRAME.oy
+            });
+        });
+        updateFrameControls();
+        updateSelectedFramesDOM();
+    }
+
+    /* =========================================================
+       CANVAS RENDERING (SINGLE PAGE VIEW)
+       ========================================================= */
+    function renderCanvas() {
+        const captureArea = document.getElementById('captureArea');
+        captureArea.innerHTML = ''; 
+
+        const activePages = getActivePages();
+        const totalPages = activePages.length;
+        
+        if (currentPageIndex >= totalPages) currentPageIndex = totalPages - 1;
+        if (currentPageIndex < 0) currentPageIndex = 0;
+
+        const nav = document.getElementById('pageNav');
+        if (totalPages > 1) {
+            nav.classList.add('show');
+            document.getElementById('pageNavText').innerText = `Page ${currentPageIndex + 1} of ${totalPages}`;
+            document.getElementById('prevPageBtn').disabled = currentPageIndex === 0;
+            document.getElementById('nextPageBtn').disabled = currentPageIndex === totalPages - 1;
+        } else {
+            nav.classList.remove('show');
+        }
+
+        const createPage = (pageLayers = [], isEmptyState = false) => {
+            const page = document.createElement('div');
+            page.className = 'paper-page';
+            if (settings.safeZone) page.classList.add('safe-zone-active');
+            
+            const label = document.createElement('div');
+            label.className = 'paper-label';
+            label.innerText = `A4 - Page ${currentPageIndex + 1}`;
+            page.appendChild(label);
+
+            const safeZone = document.createElement('div');
+            safeZone.className = 'safe-zone-overlay';
+            page.appendChild(safeZone);
+
+            if (isEmptyState) {
+                page.innerHTML += `
+                    <div class="empty-state">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 8h12v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"></path>
+                            <path d="M16 10h2a3 3 0 0 1 0 6h-2"></path>
+                        </svg>
+                        <span>Drop an image to begin</span>
+                        <button class="btn btn-primary" style="margin-top: 15px; padding: 12px 24px; font-size: 0.9rem; border-radius: 6px;"
+                            onclick="document.getElementById('fileInput').click()">Upload Image</button>
+                    </div>`;
+            } else {
+                const stack = document.createElement('div');
+                stack.className = 'mug-stack';
+                stack.style.gap = settings.gapV + 'mm';
+
+                pageLayers.forEach(layer => {
+                    if (layer.visible) {
+                        stack.appendChild(buildFrame(layer));
+                    }
+                });
+                page.appendChild(stack);
+            }
+
+            return page;
+        };
+
+        if (totalPages === 0) {
+            captureArea.appendChild(createPage([], true));
+            document.getElementById('overflowWarning').style.display = 'none';
+            return;
+        }
+
+        const pageLayers = activePages[currentPageIndex];
+        captureArea.appendChild(createPage(pageLayers));
+        checkOverflow();
+    }
+
+    function changePage(delta) {
+        currentPageIndex += delta;
+        renderCanvas();
+        fitToViewport();
+    }
+
+    function buildFrame(layer) {
+        const el = document.createElement('div');
+        el.className = 'mug-frame' + (selectedIds.has(layer.id) ? ' is-selected' : '');
+        el.style.width = layer.wIn + 'in';
+        el.style.height = layer.hIn + 'in';
+        el.dataset.id = layer.id;
+
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectLayer(layer.id, e);
+        });
+
+        const img = document.createElement('img');
+        img.src = layer.imgSrc;
+        img.draggable = false;
+        img.style.objectFit = layer.fit;
+        img.style.transform = 'translate(' + layer.ox + '%, ' + layer.oy + '%) scale(' + layer.zoom + ')';
+
+        el.appendChild(img);
+        return el;
+    }
+
+    function checkOverflow() {
+        const page = document.querySelector('.paper-page');
+        const warn = document.getElementById('overflowWarning');
+        if (!page) return;
+
+        setTimeout(() => {
+            const overflow = page.scrollHeight > page.clientHeight + 5 || page.scrollWidth > page.clientWidth + 5;
+            warn.style.display = overflow ? 'block' : 'none';
+        }, 40);
+    }
+
+    /* =========================================================
+       VIEWPORT SCALING
+       ========================================================= */
+    function fitToViewport() {
+        const workspace = document.querySelector('.workspace');
+        const availW = workspace.clientWidth - 80; 
+        const availH = workspace.clientHeight - 120; 
+
+        const paperW_px = 210 * 3.7795;
+        const paperH_px = 297 * 3.7795;
+
+        const scaleW = availW / paperW_px;
+        const scaleH = availH / paperH_px;
+        
+        const scale = Math.min(scaleW, scaleH, 1.2);
+
+        document.documentElement.style.setProperty('--preview-scale', scale);
+    }
+
+    window.addEventListener('resize', fitToViewport);
+
+    /* =========================================================
+       PRINT & EXPORT
+       ========================================================= */
+    function triggerPrint() {
+        if (layers.length === 0) {
+            showAlert('Empty Canvas', 'Please add at least one layer before printing.');
+            return;
+        }
+        window.print();
+    }
+
+    function generateFilename(ext) {
+        const now = new Date();
+        const p = n => String(n).padStart(2, '0');
+        const stamp = `${p(now.getDate())}${p(now.getMonth() + 1)}${now.getFullYear()}${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`;
+        const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+        return `MugPrint_${stamp}_${rand}.${ext}`;
+    }
+
+    async function exportFile() {
+        const format = document.getElementById('exportFormat').value;
+        
+        if (layers.length === 0) {
+            showAlert('Empty Canvas', 'Please add at least one layer before exporting.');
+            return;
+        }
+
+        const exportBtn = document.querySelector('button[onclick="exportFile()"]');
+        const originalBtnHTML = exportBtn.innerHTML;
+        exportBtn.innerHTML = 'Exporting...';
+        exportBtn.disabled = true;
+
+        try {
+            const activePages = getActivePages();
+            const totalPages = activePages.length;
+
+            if (totalPages === 0) {
+                showAlert('Empty Canvas', 'All pages are hidden. Nothing to export.');
+                return;
+            }
+
+            if (format === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4'); // Strict A4
+
+                const exportContainer = document.createElement('div');
+                exportContainer.style.position = 'absolute';
+                exportContainer.style.left = '-9999px';
+                exportContainer.style.top = '0';
+                exportContainer.style.zIndex = '-1';
+                document.body.appendChild(exportContainer);
+
+                for (let i = 0; i < totalPages; i++) {
+                    const pageLayers = activePages[i];
+                    
+                    const pageEl = document.createElement('div');
+                    pageEl.className = 'paper-page';
+                    pageEl.style.boxShadow = 'none';
+                    pageEl.style.margin = '0';
+                    
+                    const stack = document.createElement('div');
+                    stack.className = 'mug-stack';
+                    stack.style.gap = settings.gapV + 'mm';
+
+                    pageLayers.forEach(layer => {
+                        if (layer.visible) {
+                            stack.appendChild(buildFrame(layer));
+                        }
+                    });
+                    pageEl.appendChild(stack);
+                    exportContainer.appendChild(pageEl);
+
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const canvas = await html2canvas(pageEl, {
+                        scale: 4,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        onclone: (clonedDoc) => {
+                            clonedDoc.querySelectorAll('.mug-frame.is-selected').forEach(el => el.classList.remove('is-selected'));
+                        }
+                    });
+
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    
+                    if (i > 0) pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+                }
+
+                document.body.removeChild(exportContainer);
+                pdf.save(generateFilename('pdf'));
+
+            } else {
+                const captureArea = document.getElementById('captureArea');
+                const prevScale = document.documentElement.style.getPropertyValue('--preview-scale');
+                document.documentElement.style.setProperty('--preview-scale', 1);
+                await new Promise(r => setTimeout(r, 100));
+
+                const canvas = await html2canvas(captureArea, {
+                    scale: 4,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    onclone: (clonedDoc) => {
+                        clonedDoc.querySelectorAll('.mug-frame.is-selected').forEach(el => el.classList.remove('is-selected'));
+                        clonedDoc.querySelectorAll('.safe-zone-overlay, .paper-label, .empty-state').forEach(el => {
+                            el.style.display = 'none';
+                        });
+                    }
+                });
+
+                document.documentElement.style.setProperty('--preview-scale', prevScale);
+                fitToViewport();
+
+                const fileName = generateFilename(format === 'jpeg' ? 'jpg' : format);
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = canvas.toDataURL('image/' + format, 1.0);
+                link.click();
+            }
+
+        } catch (err) {
+            console.error('Export failed:', err);
+            showAlert('Export Failed', 'Failed to export the file. Please try again.');
+        } finally {
+            exportBtn.innerHTML = originalBtnHTML;
+            exportBtn.disabled = false;
+        }
+    }
+
+    /* =========================================================
+       RESET
+       ========================================================= */
+    async function resetAll() {
+        const ok = await showConfirm('Reset Canvas', 'Remove all layers, reset settings, and clear all saved data?');
+        if (!ok) return;
+
+        localStorage.removeItem('mug_settings');
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('mug_acc_')) {
+                localStorage.removeItem(key);
+            }
+        });
+
+        window.location.reload();
+    }
+
+    /* =========================================================
+       KEYBOARD SHORTCUTS
+       ========================================================= */
+    document.addEventListener('keydown', (e) => {
+        const tag = (e.target.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+            e.preventDefault();
+            selectedIds.clear();
+            layers.forEach(l => selectedIds.add(l.id));
+            lastSelectedId = layers.length > 0 ? layers[0].id : null;
+            renderLayerList();
+            renderCanvas();
+            updateFrameControls();
+            return;
+        }
+
+        if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'd' || e.key.toLowerCase() === 'j')) {
+            e.preventDefault();
+            duplicateSelected();
+            return;
+        }
+
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            e.preventDefault();
+            if (selectedIds.size > 0) {
+                const selArr = Array.from(selectedIds);
+                selArr.forEach(id => deleteLayer(id));
+            }
+        }
+    });
+
+    /* =========================================================
+       BOOT
+       ========================================================= */
+    loadSettings();
+    initAccordions();
+    renderLayerList();
+    updateFrameControls();
+
+    window.addEventListener('load', () => {
+        fitToViewport();
+        renderCanvas();
+    });
+</script>
+</body>
+</html>
