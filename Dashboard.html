@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Dashboard</title>
 <link rel="icon" type="image/png" sizes="192x192" href="favicon_io/favicon_dark.ico">
+<script>
+    // Prevent flash of wrong theme by setting it immediately before page renders
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
 <style>
     :root {
         --bg-workspace: #F3F4F6;
@@ -16,9 +21,6 @@
         --border: #E5E7EB;
         --hover-bg: #F9FAFB;
         --input-bg: #FFFFFF;
-        --danger: #DC2626;
-        --danger-bg: #FEF2F2;
-        --danger-border: #FECACA;
     }
 
     [data-theme="dark"] {
@@ -31,9 +33,6 @@
         --border: #444444;
         --hover-bg: #3A3A3A;
         --input-bg: #1E1E1E;
-        --danger: #FF8A80;
-        --danger-bg: #4A1C1C;
-        --danger-border: #6B2A2A;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -60,15 +59,23 @@
         height: 100vh;
         padding: 12px;
         gap: 20px;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .sidebar-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 6px;
+        border-radius: 8px;
     }
 
     .workspace-header {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 6px 8px;
-        border-radius: 8px;
-        min-height: 46px;
+        min-width: 0;
+        flex: 1;
     }
 
     .workspace-icon {
@@ -98,7 +105,6 @@
         flex-direction: column;
         gap: 3px;
         min-width: 0;
-        flex: 1;
     }
 
     .workspace-name {
@@ -121,6 +127,26 @@
         text-overflow: ellipsis;
     }
 
+    .theme-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text-muted);
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+    .theme-toggle-btn:hover {
+        background: var(--hover-bg);
+        color: var(--text-main);
+    }
+    .theme-toggle-btn svg { width: 16px; height: 16px; }
+
     .search-bar {
         display: flex;
         align-items: center;
@@ -130,6 +156,7 @@
         padding: 6px 10px;
         gap: 8px;
         color: var(--text-muted);
+        transition: background-color 0.3s, border-color 0.3s;
     }
     .search-bar input {
         border: none; background: transparent; outline: none; color: var(--text-main);
@@ -142,6 +169,7 @@
         padding: 8px 10px; border-radius: 6px;
         color: var(--text-muted); font-size: 0.85rem; font-weight: 500;
         text-decoration: none; cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
     }
     .nav-item:hover { background: var(--hover-bg); color: var(--text-main); }
     .nav-item.active { background: var(--hover-bg); color: var(--text-main); font-weight: 600; }
@@ -153,39 +181,10 @@
         padding: 0 10px; margin-top: 10px;
     }
 
-    .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
-    .upgrade-btn {
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-        background: #0D99FF; color: white; border: none;
-        padding: 10px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;
-        cursor: pointer; width: 100%;
-    }
-    .upgrade-btn:hover { background: #0b85e0; }
-
     /* ---------- MAIN CONTENT ---------- */
     .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-    .top-header {
-        height: 50px;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 24px;
-        flex-shrink: 0;
-    }
-    .top-header-left { font-weight: 600; font-size: 1rem; }
-    .top-header-right { display: flex; gap: 8px; }
-    .header-btn {
-        display: flex; align-items: center; gap: 6px;
-        background: transparent; border: 1px solid var(--border);
-        color: var(--text-main); padding: 6px 12px; border-radius: 6px;
-        font-size: 0.8rem; font-weight: 500; cursor: pointer;
-    }
-    .header-btn:hover { background: var(--hover-bg); }
-    .header-btn svg { width: 14px; height: 14px; }
-
-    /* Tabs & Filters (prompt area removed) */
+    /* Tabs & Filters */
     .tabs-bar {
         display: flex;
         justify-content: space-between;
@@ -193,28 +192,57 @@
         padding: 16px 24px;
         border-bottom: 1px solid var(--border);
         flex-shrink: 0;
+        transition: border-color 0.3s;
     }
     .tabs { display: flex; gap: 24px; }
     .tab {
         font-size: 0.85rem; font-weight: 500; color: var(--text-muted);
         cursor: pointer; padding-bottom: 12px; margin-bottom: -17px;
         border-bottom: 2px solid transparent;
+        transition: color 0.2s, border-color 0.2s;
     }
     .tab:hover { color: var(--text-main); }
     .tab.active { color: var(--text-main); border-bottom-color: var(--primary); font-weight: 600; }
 
     .filters { display: flex; gap: 8px; align-items: center; }
-    .filter-select {
-        background: transparent; border: 1px solid var(--border);
-        color: var(--text-main); padding: 4px 8px; border-radius: 4px;
-        font-size: 0.75rem; cursor: pointer; outline: none;
+    
+    /* Modern Sort Toggle Button */
+    .sort-toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
     }
+    .sort-toggle-btn:hover {
+        background: var(--hover-bg);
+        border-color: var(--text-muted);
+    }
+    .sort-toggle-btn svg {
+        width: 14px;
+        height: 14px;
+        transition: transform 0.3s ease;
+    }
+    .sort-toggle-btn.za svg {
+        transform: rotate(180deg);
+    }
+
     .icon-btn-group { display: flex; gap: 4px; margin-left: 8px; }
     .icon-toggle {
-        background: transparent; border: 1px solid var(--border); border-radius: 4px;
-        padding: 4px; color: var(--text-muted); cursor: pointer; display: flex;
+        background: transparent; border: 1px solid var(--border); border-radius: 6px;
+        padding: 6px; color: var(--text-muted); cursor: pointer; display: flex;
+        transition: all 0.2s ease;
     }
     .icon-toggle:hover { background: var(--hover-bg); color: var(--text-main); }
+    .icon-toggle.active { background: var(--hover-bg); color: var(--text-main); border-color: var(--text-muted); }
 
     /* Grid & cards */
     .grid-container {
@@ -225,6 +253,33 @@
         grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
         gap: 16px;
         align-content: start;
+        transition: all 0.2s ease;
+    }
+
+    /* List View Override */
+    .grid-container.list-view {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .grid-container.list-view .card {
+        flex-direction: row;
+        align-items: center;
+        padding: 8px 16px;
+    }
+    .grid-container.list-view .card-thumb {
+        width: 80px;
+        height: 50px;
+        flex-shrink: 0;
+    }
+    .grid-container.list-view .card-thumb::after {
+        display: none;
+    }
+    .grid-container.list-view .card-info {
+        flex: 1;
+    }
+    .grid-container.list-view .card-icon {
+        display: none;
     }
 
     .card {
@@ -244,7 +299,9 @@
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
     }
     .card.clickable:hover .card-thumb { border-color: var(--primary); }
-    .card.hidden { display: none; }
+    
+    /* Force hidden cards to completely disappear */
+    .card.hidden { display: none !important; }
 
     .card-thumb {
         width: 100%;
@@ -254,8 +311,10 @@
         background: #111;
         position: relative;
         overflow: hidden;
+        transition: border-color 0.2s;
     }
 
+    /* Make images fill the cover */
     .card-thumb img {
         position: absolute;
         top: 0; left: 0;
@@ -303,6 +362,7 @@
         color: #E5E5E5; font-size: 0.9rem; font-weight: 600;
         flex-shrink: 0;
         border: 1px solid var(--border);
+        transition: border-color 0.3s;
     }
     .card-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
     .card-title {
@@ -318,18 +378,29 @@
     ::-webkit-scrollbar-thumb:hover { background: #555; }
 </style>
 </head>
-<body data-theme="dark">
+<body>
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-        <div class="workspace-header">
-            <div class="workspace-icon">
-                <img src="favicon_io/favicon_dark.ico" alt="Digital Design" />
+        <div class="sidebar-top">
+            <div class="workspace-header">
+                <div class="workspace-icon">
+                    <img src="favicon_io/favicon_dark.ico" alt="Digital Design" />
+                </div>
+                <div class="workspace-meta">
+                    <div class="workspace-name">Digital Design</div>
+                    <div class="workspace-role">VTC Gogon Sirangan</div>
+                </div>
             </div>
-            <div class="workspace-meta">
-                <div class="workspace-name">Digital Design</div>
-                <div class="workspace-role">VTC Gogon Sirangan</div>
-            </div>
+            
+            <button class="theme-toggle-btn" id="themeToggle" title="Toggle Theme">
+                <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+                <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
         </div>
 
         <div class="search-bar">
@@ -339,16 +410,12 @@
 
         <div class="nav-group">
             <a href="#" class="nav-item active">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Recents
-            </a>
-            <a href="#" class="nav-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                Community
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Dashboard
             </a>
         </div>
 
-        <div class="section-title">Drafts</div>
+        <div class="section-title">Shortcut</div>
         <div class="nav-group">
             <a href="#" class="nav-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -363,55 +430,32 @@
                 Trash
             </a>
         </div>
-
-        <div class="sidebar-footer">
-            <button class="upgrade-btn">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                Upgrade your team
-            </button>
-        </div>
     </aside>
 
     <!-- MAIN -->
     <main class="main-content">
-        <header class="top-header">
-            <div class="top-header-left">Recents</div>
-            <div class="top-header-right">
-                <button class="header-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-                    Design
-                </button>
-                <button class="header-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                    FigJam
-                </button>
-                <button class="header-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-                    Slides
-                </button>
-                <button class="header-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-                    Make
-                </button>
-                <button class="header-btn">More</button>
-            </div>
-        </header>
-
-        <!-- Tabs & Filters -->
         <div class="tabs-bar">
             <div class="tabs">
-                <div class="tab active">Tools</div>
-                <div class="tab">Bookmarks</div>
-                <div class="tab">Folders</div>
+                <div class="tab active" data-tab="tools">Tools</div>
+                <div class="tab" data-tab="files">Files</div>
+                <div class="tab" data-tab="bookmarks">Bookmarks</div>
+                <div class="tab" data-tab="all">All</div>
             </div>
             <div class="filters">
-                <select class="filter-select"><option>All organizations</option></select>
-                <select class="filter-select"><option>All files</option></select>
+                
+                <!-- Modern Toggle Sort Button -->
+                <button class="sort-toggle-btn" id="sortToggleBtn" title="Toggle Sort Order">
+                    <svg id="sortArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M7 15l5 5 5-5M7 9l5-5 5 5"/>
+                    </svg>
+                    <span id="sortText">A-Z</span>
+                </button>
+
                 <div class="icon-btn-group">
-                    <button class="icon-toggle">
+                    <button class="icon-toggle active" id="gridViewBtn" title="Grid View">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                     </button>
-                    <button class="icon-toggle">
+                    <button class="icon-toggle" id="listViewBtn" title="List View">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                     </button>
                 </div>
@@ -419,7 +463,9 @@
         </div>
 
         <div class="grid-container" id="cardGrid">
-            <a href="Rush_ID.html" class="card clickable">
+            
+            <!-- ================= TOOLS TAB ================= -->
+            <a href="Rush_ID.html" class="card clickable" data-category="tools">
                 <div class="card-thumb">
                     <img src="Assets/g1.PNG" alt="Rush ID Cover">
                     <div class="card-tags"><span class="tag tag-gray">Tools</span></div>
@@ -433,7 +479,7 @@
                 </div>
             </a>
 
-            <a href="Mug_Printing.html" class="card clickable">
+            <a href="Mug_Printing.html" class="card clickable" data-category="tools">
                 <div class="card-thumb">
                     <img src="Assets/g2.jpg" alt="Mug Printing Cover">
                     <div class="card-tags"><span class="tag tag-gray">Tools</span></div>
@@ -446,21 +492,263 @@
                     </div>
                 </div>
             </a>
+
+            <!-- ================= FILES TAB ================= -->
+            <a href="#" class="card clickable" data-category="files">
+                <div class="card-thumb">
+                    <img src="Assets/g1.PNG" alt="File Cover">
+                    <div class="card-tags"><span class="tag tag-gray">File</span></div>
+                </div>
+                <div class="card-info">
+                    <div class="card-icon">P</div>
+                    <div class="card-text">
+                        <div class="card-title">Project Brief 2026</div>
+                        <div class="card-subtitle">PDF Document</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="#" class="card clickable" data-category="files">
+                <div class="card-thumb">
+                    <img src="Assets/g2.jpg" alt="File Cover">
+                    <div class="card-tags"><span class="tag tag-gray">File</span></div>
+                </div>
+                <div class="card-info">
+                    <div class="card-icon">D</div>
+                    <div class="card-text">
+                        <div class="card-title">Client Contract Draft</div>
+                        <div class="card-subtitle">Word Document</div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- ================= BOOKMARKS TAB ================= -->
+            <a href="#" class="card clickable" data-category="bookmarks">
+                <div class="card-thumb">
+                    <img src="Assets/g1.PNG" alt="Bookmark Cover">
+                    <div class="card-tags"><span class="tag tag-gray">Bookmark</span></div>
+                </div>
+                <div class="card-info">
+                    <div class="card-icon">1</div>
+                    <div class="card-text">
+                        <div class="card-title">Logo Design Inspiration</div>
+                        <div class="card-subtitle">Saved Nov 10, 2026</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="#" class="card clickable" data-category="bookmarks">
+                <div class="card-thumb">
+                    <img src="Assets/g2.jpg" alt="Bookmark Cover">
+                    <div class="card-tags"><span class="tag tag-gray">Bookmark</span></div>
+                </div>
+                <div class="card-info">
+                    <div class="card-icon">2</div>
+                    <div class="card-text">
+                        <div class="card-title">Color Palette Guide</div>
+                        <div class="card-subtitle">Saved Nov 12, 2026</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="#" class="card clickable" data-category="bookmarks">
+                <div class="card-thumb">
+                    <img src="Assets/g1.PNG" alt="Bookmark Cover">
+                    <div class="card-tags"><span class="tag tag-gray">Bookmark</span></div>
+                </div>
+                <div class="card-info">
+                    <div class="card-icon">3</div>
+                    <div class="card-text">
+                        <div class="card-title">Typography Rules</div>
+                        <div class="card-subtitle">Saved Nov 15, 2026</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="#" class="card clickable" data-category="bookmarks">
+                <div class="card-thumb">
+                    <img src="Assets/g2.jpg" alt="Bookmark Cover">
+                    <div class="card-tags"><span class="tag tag-gray">Bookmark</span></div>
+                </div>
+                <div class="card-info">
+                    <div class="card-icon">4</div>
+                    <div class="card-text">
+                        <div class="card-title">UI/UX Wireframes</div>
+                        <div class="card-subtitle">Saved Nov 18, 2026</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="#" class="card clickable" data-category="bookmarks">
+                <div class="card-thumb">
+                    <img src="Assets/g1.PNG" alt="Bookmark Cover">
+                    <div class="card-tags"><span class="tag tag-gray">Bookmark</span></div>
+                </div>
+                <div class="card-info">
+                    <div class="card-icon">5</div>
+                    <div class="card-text">
+                        <div class="card-title">Printing Dimensions</div>
+                        <div class="card-subtitle">Saved Nov 20, 2026</div>
+                    </div>
+                </div>
+            </a>
+
         </div>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('searchInput');
-            const cards = document.querySelectorAll('.grid-container .card');
+            
+            /* ---------------- THEME TOGGLE LOGIC ---------------- */
+            const themeToggle = document.getElementById('themeToggle');
+            const iconSun = document.getElementById('iconSun');
+            const iconMoon = document.getElementById('iconMoon');
+            const htmlEl = document.documentElement;
 
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase().trim();
+            function updateThemeUI(theme) {
+                if (theme === 'dark') {
+                    iconSun.style.display = 'block';
+                    iconMoon.style.display = 'none';
+                } else {
+                    iconSun.style.display = 'none';
+                    iconMoon.style.display = 'block';
+                }
+            }
+
+            let currentTheme = localStorage.getItem('theme') || 'dark';
+            htmlEl.setAttribute('data-theme', currentTheme);
+            updateThemeUI(currentTheme);
+
+            themeToggle.addEventListener('click', () => {
+                currentTheme = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                htmlEl.setAttribute('data-theme', currentTheme);
+                localStorage.setItem('theme', currentTheme);
+                updateThemeUI(currentTheme);
+            });
+
+            /* ---------------- TAB FILTERING & SEARCH ---------------- */
+            const tabs = document.querySelectorAll('.tab');
+            const searchInput = document.getElementById('searchInput');
+            const cardGrid = document.getElementById('cardGrid');
+            
+            let activeTab = localStorage.getItem('activeTab') || 'tools'; 
+            if (activeTab === 'essential') activeTab = 'tools';
+
+            function filterCards() {
+                const query = searchInput.value.toLowerCase().trim();
+                const cards = cardGrid.querySelectorAll('.card');
+
                 cards.forEach(card => {
                     const title = card.querySelector('.card-title').textContent.toLowerCase();
-                    card.classList.toggle('hidden', !title.includes(query));
+                    const category = card.getAttribute('data-category');
+                    
+                    const matchesTab = (activeTab === 'all' || category === activeTab);
+                    const matchesSearch = title.includes(query);
+
+                    if (matchesTab && matchesSearch) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            }
+
+            tabs.forEach(tab => {
+                const tabId = tab.getAttribute('data-tab');
+                if (tabId === activeTab) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    activeTab = tab.getAttribute('data-tab');
+                    localStorage.setItem('activeTab', activeTab);
+                    
+                    filterCards();
                 });
             });
+
+            searchInput.addEventListener('input', filterCards);
+
+            /* ---------------- SORTING TOGGLE LOGIC ---------------- */
+            const sortToggleBtn = document.getElementById('sortToggleBtn');
+            const sortText = document.getElementById('sortText');
+            
+            // Load saved sort state or default to A-Z
+            let currentSort = localStorage.getItem('sortOrder') || 'az';
+
+            // Update UI based on sort state
+            function updateSortUI() {
+                if (currentSort === 'az') {
+                    sortText.textContent = 'A-Z';
+                    sortToggleBtn.classList.remove('za');
+                } else {
+                    sortText.textContent = 'Z-A';
+                    sortToggleBtn.classList.add('za');
+                }
+            }
+
+            function sortCards() {
+                const cardsToSort = Array.from(cardGrid.querySelectorAll('.card'));
+                
+                cardsToSort.sort((a, b) => {
+                    const titleA = a.querySelector('.card-title').textContent.trim().toLowerCase();
+                    const titleB = b.querySelector('.card-title').textContent.trim().toLowerCase();
+                    return currentSort === 'az' ? titleA.localeCompare(titleB) : titleB.localeCompare(titleA);
+                });
+
+                cardsToSort.forEach(card => cardGrid.appendChild(card));
+                filterCards(); // Re-apply filter after sorting moves DOM elements
+            }
+
+            // Initialize sort UI and list
+            updateSortUI();
+            sortCards();
+
+            // Handle button click
+            sortToggleBtn.addEventListener('click', () => {
+                currentSort = currentSort === 'az' ? 'za' : 'az';
+                localStorage.setItem('sortOrder', currentSort);
+                updateSortUI();
+                sortCards();
+            });
+
+            /* ---------------- VIEW TOGGLES ---------------- */
+            const gridViewBtn = document.getElementById('gridViewBtn');
+            const listViewBtn = document.getElementById('listViewBtn');
+
+            function setGridView() {
+                cardGrid.classList.remove('list-view');
+                gridViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+                localStorage.setItem('viewMode', 'grid');
+            }
+
+            function setListView() {
+                cardGrid.classList.add('list-view');
+                listViewBtn.classList.add('active');
+                gridViewBtn.classList.remove('active');
+                localStorage.setItem('viewMode', 'list');
+            }
+
+            const savedView = localStorage.getItem('viewMode') || 'grid';
+            if (savedView === 'list') {
+                setListView();
+            } else {
+                setGridView();
+            }
+
+            gridViewBtn.addEventListener('click', setGridView);
+            listViewBtn.addEventListener('click', setListView);
+
+            // Initialize filter on page load
+            filterCards();
         });
     </script>
 </body>
