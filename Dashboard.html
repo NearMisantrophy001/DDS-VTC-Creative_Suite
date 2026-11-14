@@ -6,7 +6,6 @@
 <title>Dashboard</title>
 <link rel="icon" type="image/png" sizes="192x192" href="favicon_io/favicon_dark.ico">
 <script>
-    // Prevent flash of wrong theme by setting it immediately before page renders
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
 </script>
@@ -256,32 +255,84 @@
         transition: all 0.2s ease;
     }
 
-    /* List View Override */
+    /* =========================================
+       LIST VIEW LAYOUT (Badge below name)
+       ========================================= */
     .grid-container.list-view {
         display: flex;
         flex-direction: column;
         gap: 8px;
     }
+    
     .grid-container.list-view .card {
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: 80px 1fr;
+        grid-template-rows: auto auto;
+        column-gap: 16px;
+        row-gap: 4px;
         align-items: center;
         padding: 8px 16px;
+        border-radius: 10px;
     }
-    .grid-container.list-view .card-thumb {
+
+    .grid-container.list-view .card-thumb,
+    .grid-container.list-view .card-info {
+        display: contents;
+    }
+
+    .grid-container.list-view .card-thumb img {
+        grid-column: 1;
+        grid-row: 1 / span 2;
         width: 80px;
-        height: 50px;
-        flex-shrink: 0;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        position: static;
     }
+
     .grid-container.list-view .card-thumb::after {
         display: none;
     }
-    .grid-container.list-view .card-info {
-        flex: 1;
-    }
+
     .grid-container.list-view .card-icon {
         display: none;
     }
 
+    .grid-container.list-view .card-text {
+        grid-column: 2;
+        grid-row: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .grid-container.list-view .card-tags {
+        grid-column: 2;
+        grid-row: 2;
+        position: static;
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .grid-container.list-view .tag-gray {
+        background: var(--hover-bg);
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        padding: 2px 8px;
+        font-size: 0.6rem;
+        border-radius: 4px;
+    }
+
+    /* =========================================
+       CARD DEFAULT STYLES (Grid View)
+       ========================================= */
     .card {
         display: flex;
         flex-direction: column;
@@ -300,7 +351,6 @@
     }
     .card.clickable:hover .card-thumb { border-color: var(--primary); }
     
-    /* Force hidden cards to completely disappear */
     .card.hidden { display: none !important; }
 
     .card-thumb {
@@ -314,7 +364,6 @@
         transition: border-color 0.2s;
     }
 
-    /* Make images fill the cover */
     .card-thumb img {
         position: absolute;
         top: 0; left: 0;
@@ -443,7 +492,6 @@
             </div>
             <div class="filters">
                 
-                <!-- Modern Toggle Sort Button -->
                 <button class="sort-toggle-btn" id="sortToggleBtn" title="Toggle Sort Order">
                     <svg id="sortArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M7 15l5 5 5-5M7 9l5-5 5 5"/>
@@ -626,13 +674,24 @@
                 updateThemeUI(currentTheme);
             });
 
-            /* ---------------- TAB FILTERING & SEARCH ---------------- */
+            /* ---------------- TAB FILTERING & SMART SEARCH ---------------- */
             const tabs = document.querySelectorAll('.tab');
             const searchInput = document.getElementById('searchInput');
             const cardGrid = document.getElementById('cardGrid');
             
             let activeTab = localStorage.getItem('activeTab') || 'tools'; 
             if (activeTab === 'essential') activeTab = 'tools';
+            let previousTab = activeTab; // Remembers tab before search
+
+            function updateTabUI(tabId) {
+                tabs.forEach(t => {
+                    if (t.getAttribute('data-tab') === tabId) {
+                        t.classList.add('active');
+                    } else {
+                        t.classList.remove('active');
+                    }
+                });
+            }
 
             function filterCards() {
                 const query = searchInput.value.toLowerCase().trim();
@@ -653,37 +712,45 @@
                 });
             }
 
-            tabs.forEach(tab => {
-                const tabId = tab.getAttribute('data-tab');
-                if (tabId === activeTab) {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
-                }
-            });
+            // Initial setup
+            updateTabUI(activeTab);
 
+            // Tab click events
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
                     activeTab = tab.getAttribute('data-tab');
+                    previousTab = activeTab; 
                     localStorage.setItem('activeTab', activeTab);
                     
+                    updateTabUI(activeTab);
                     filterCards();
                 });
             });
 
-            searchInput.addEventListener('input', filterCards);
+            // Smart Search input event (Auto-switches to 'All')
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.trim();
+                
+                if (query.length > 0 && activeTab !== 'all') {
+                    // User is typing, switch to 'All' tab
+                    previousTab = activeTab; // Save current tab
+                    activeTab = 'all';
+                    updateTabUI('all');
+                } else if (query.length === 0 && activeTab === 'all' && previousTab !== 'all') {
+                    // User cleared search, go back to previous tab
+                    activeTab = previousTab;
+                    updateTabUI(activeTab);
+                }
+                
+                filterCards();
+            });
 
             /* ---------------- SORTING TOGGLE LOGIC ---------------- */
             const sortToggleBtn = document.getElementById('sortToggleBtn');
             const sortText = document.getElementById('sortText');
             
-            // Load saved sort state or default to A-Z
             let currentSort = localStorage.getItem('sortOrder') || 'az';
 
-            // Update UI based on sort state
             function updateSortUI() {
                 if (currentSort === 'az') {
                     sortText.textContent = 'A-Z';
@@ -704,14 +771,12 @@
                 });
 
                 cardsToSort.forEach(card => cardGrid.appendChild(card));
-                filterCards(); // Re-apply filter after sorting moves DOM elements
+                filterCards();
             }
 
-            // Initialize sort UI and list
             updateSortUI();
             sortCards();
 
-            // Handle button click
             sortToggleBtn.addEventListener('click', () => {
                 currentSort = currentSort === 'az' ? 'za' : 'az';
                 localStorage.setItem('sortOrder', currentSort);
@@ -747,7 +812,6 @@
             gridViewBtn.addEventListener('click', setGridView);
             listViewBtn.addEventListener('click', setListView);
 
-            // Initialize filter on page load
             filterCards();
         });
     </script>
