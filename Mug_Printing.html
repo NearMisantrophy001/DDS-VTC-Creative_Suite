@@ -1690,6 +1690,26 @@
         fitToViewport();
     }
 
+    function getNextCopyName(originalName) {
+        // Check if the name already ends with " copy X" (e.g., "image 5 copy 1")
+        const copyNumMatch = originalName.match(/^(.*) copy (\d+)$/);
+        if (copyNumMatch) {
+            const baseName = copyNumMatch[1];
+            const currentNum = parseInt(copyNumMatch[2], 10);
+            return `${baseName} copy ${currentNum + 1}`;
+        }
+        
+        // Check if the name ends with " copy" but no number (e.g., "image 5 copy")
+        const copyMatch = originalName.match(/^(.*) copy$/);
+        if (copyMatch) {
+            const baseName = copyMatch[1];
+            return `${baseName} copy 1`;
+        }
+        
+        // If it's a fresh duplicate (e.g., "image 5"), add " copy 1"
+        return `${originalName} copy 1`;
+    }
+
     function duplicateSelected() {
         if (selectedIds.size === 0) return;
         
@@ -1700,7 +1720,7 @@
             if (selectedIds.has(l.id)) {
                 const copy = JSON.parse(JSON.stringify(l));
                 copy.id = 'L' + (++idCounter);
-                copy.name = l.name + ' copy';
+                copy.name = getNextCopyName(l.name);
                 duplicates.push(copy);
                 newIds.push(copy.id);
             }
