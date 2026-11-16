@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dashboard</title>
+<title>Digital Design</title>
 <link rel="icon" type="image/png" sizes="192x192" href="favicon_io/favicon_dark.ico">
 <script>
     const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -20,12 +20,10 @@
         --border: #E5E7EB;
         --hover-bg: #F9FAFB;
         --input-bg: #FFFFFF;
-
-        /* Brand */
+        --star: #FACC15;
         --brand-green: #9FCC3A;
         --brand-blue: #00A5E2;
     }
-
     [data-theme="dark"] {
         --bg-workspace: #1E1E1E;
         --bg-panel: #2C2C2C;
@@ -37,10 +35,8 @@
         --hover-bg: #3A3A3A;
         --input-bg: #1E1E1E;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; margin: 0; padding: 0; }
-
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: var(--bg-workspace);
@@ -49,7 +45,7 @@
         overflow: hidden;
         transition: background-color 0.3s, color 0.3s;
     }
-
+    
     /* ---------- SIDEBAR ---------- */
     .sidebar {
         width: 250px;
@@ -64,7 +60,6 @@
         gap: 20px;
         transition: background-color 0.3s, border-color 0.3s;
     }
-
     .sidebar-top {
         display: flex;
         align-items: center;
@@ -72,7 +67,6 @@
         padding: 4px 6px;
         border-radius: 8px;
     }
-
     .workspace-header {
         display: flex;
         align-items: center;
@@ -80,7 +74,6 @@
         min-width: 0;
         flex: 1;
     }
-
     .workspace-icon {
         width: 32px;
         height: 32px;
@@ -96,76 +89,36 @@
         font-size: 0.85rem;
         font-weight: 700;
     }
-    .workspace-icon img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-    .workspace-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        min-width: 0;
-    }
-
+    .workspace-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .workspace-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
     .workspace-name {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--text-main);
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 0.9rem; font-weight: 600; color: var(--text-main);
+        line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-
     .workspace-role {
-        font-size: 0.7rem;
-        font-weight: 500;
-        color: var(--text-muted);
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 0.7rem; font-weight: 500; color: var(--text-muted);
+        line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-
     .theme-toggle-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        background: transparent;
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        color: var(--text-muted);
-        cursor: pointer;
-        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        width: 32px; height: 32px; background: transparent;
+        border: 1px solid var(--border); border-radius: 6px;
+        color: var(--text-muted); cursor: pointer; flex-shrink: 0;
         transition: all 0.2s ease;
     }
-    .theme-toggle-btn:hover {
-        background: var(--hover-bg);
-        color: var(--text-main);
-    }
+    .theme-toggle-btn:hover { background: var(--hover-bg); color: var(--text-main); }
     .theme-toggle-btn svg { width: 16px; height: 16px; }
-
     .search-bar {
-        display: flex;
-        align-items: center;
-        background: var(--bg-workspace);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 6px 10px;
-        gap: 8px;
-        color: var(--text-muted);
+        display: flex; align-items: center; background: var(--bg-workspace);
+        border: 1px solid var(--border); border-radius: 6px;
+        padding: 6px 10px; gap: 8px; color: var(--text-muted);
         transition: background-color 0.3s, border-color 0.3s;
     }
     .search-bar input {
-        border: none; background: transparent; outline: none; color: var(--text-main);
-        font-size: 0.8rem; width: 100%;
+        border: none; background: transparent; outline: none;
+        color: var(--text-main); font-size: 0.8rem; width: 100%;
     }
-
+    
     .nav-group { display: flex; flex-direction: column; gap: 2px; }
     .nav-item {
         display: flex; align-items: center; gap: 10px;
@@ -177,25 +130,65 @@
     .nav-item:hover { background: var(--hover-bg); color: var(--text-main); }
     .nav-item.active { background: var(--hover-bg); color: var(--text-main); font-weight: 600; }
     .nav-item svg { width: 16px; height: 16px; }
-
+    
     .section-title {
         font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
         color: var(--text-muted); letter-spacing: 0.05em;
         padding: 0 10px; margin-top: 10px;
+        display: none; /* Hidden until favorites exist */
+    }
+    
+    /* Sidebar favorite items */
+    .sidebar-fav-item {
+        justify-content: space-between; 
+        padding-right: 6px;
+    }
+    .fav-sidebar-icon {
+        width: 22px; height: 22px;
+        background: var(--hover-bg);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.65rem; font-weight: 700;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    .fav-sidebar-icon img {
+        width: 100%; height: 100%; object-fit: cover;
+    }
+    
+    /* Unstar button in sidebar */
+    .sidebar-unstar-btn {
+        background: transparent;
+        border: none;
+        color: var(--star);
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        opacity: 0; /* Hidden by default */
+        transition: opacity 0.2s ease, transform 0.1s ease, background 0.2s ease;
+    }
+    .sidebar-fav-item:hover .sidebar-unstar-btn {
+        opacity: 1; /* Show on hover */
+    }
+    .sidebar-unstar-btn:hover {
+        background: rgba(250, 204, 21, 0.15);
+        transform: scale(1.1);
+    }
+    .sidebar-unstar-btn svg {
+        width: 14px;
+        height: 14px;
     }
 
     /* ---------- MAIN CONTENT ---------- */
     .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-    /* Tabs & Filters */
     .tabs-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 24px;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-        transition: border-color 0.3s;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 16px 24px; border-bottom: 1px solid var(--border);
+        flex-shrink: 0; transition: border-color 0.3s;
     }
     .tabs { display: flex; gap: 24px; }
     .tab {
@@ -206,38 +199,19 @@
     }
     .tab:hover { color: var(--text-main); }
     .tab.active { color: var(--text-main); border-bottom-color: var(--primary); font-weight: 600; }
-
-    .filters { display: flex; gap: 8px; align-items: center; }
     
-    /* Modern Sort Toggle Button */
+    .filters { display: flex; gap: 8px; align-items: center; }
     .sort-toggle-btn {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--text-main);
-        padding: 6px 10px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        user-select: none;
+        display: flex; align-items: center; gap: 6px;
+        background: transparent; border: 1px solid var(--border);
+        color: var(--text-main); padding: 6px 10px; border-radius: 6px;
+        font-size: 0.75rem; font-weight: 500; cursor: pointer;
+        transition: all 0.2s ease; user-select: none;
     }
-    .sort-toggle-btn:hover {
-        background: var(--hover-bg);
-        border-color: var(--text-muted);
-    }
-    .sort-toggle-btn svg {
-        width: 14px;
-        height: 14px;
-        transition: transform 0.3s ease;
-    }
-    .sort-toggle-btn.za svg {
-        transform: rotate(180deg);
-    }
-
+    .sort-toggle-btn:hover { background: var(--hover-bg); border-color: var(--text-muted); }
+    .sort-toggle-btn svg { width: 14px; height: 14px; transition: transform 0.3s ease; }
+    .sort-toggle-btn.za svg { transform: rotate(180deg); }
+    
     .icon-btn-group { display: flex; gap: 4px; margin-left: 8px; }
     .icon-toggle {
         background: transparent; border: 1px solid var(--border); border-radius: 6px;
@@ -246,185 +220,91 @@
     }
     .icon-toggle:hover { background: var(--hover-bg); color: var(--text-main); }
     .icon-toggle.active { background: var(--hover-bg); color: var(--text-main); border-color: var(--text-muted); }
-
-    /* Grid & cards */
+    
     .grid-container {
-        flex: 1;
-        overflow-y: auto;
-        padding: 24px;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 16px;
-        align-content: start;
-        transition: all 0.2s ease;
+        flex: 1; overflow-y: auto; padding: 24px;
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px; align-content: start; transition: all 0.2s ease;
     }
-
-    /* =========================================
-       LIST VIEW LAYOUT (Badge below name)
-       ========================================= */
-    .grid-container.list-view {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+    .grid-container.list-view { display: flex; flex-direction: column; gap: 8px; }
+    .grid-container.list-view .card {
+        display: grid; grid-template-columns: 80px 1fr;
+        grid-template-rows: auto auto; column-gap: 16px; row-gap: 4px;
+        align-items: center; padding: 8px 56px 8px 16px; border-radius: 10px;
+    }
+    .grid-container.list-view .card-thumb,
+    .grid-container.list-view .card-info { display: contents; }
+    .grid-container.list-view .card-thumb img {
+        grid-column: 1; grid-row: 1 / span 2;
+        width: 80px; height: 48px; object-fit: cover;
+        border-radius: 6px; border: 1px solid var(--border); position: static;
+    }
+    .grid-container.list-view .card-thumb::after { display: none; }
+    .grid-container.list-view .card-icon { display: none; }
+    .grid-container.list-view .card-text {
+        grid-column: 2; grid-row: 1; display: flex; flex-direction: column;
+        justify-content: center; gap: 2px; min-width: 0;
+    }
+    .grid-container.list-view .card-tags {
+        grid-column: 2; grid-row: 2; position: static;
+        display: flex; gap: 4px; align-items: center;
+    }
+    .grid-container.list-view .tag-gray {
+        background: var(--hover-bg); color: var(--text-muted);
+        border: 1px solid var(--border); box-shadow: none;
+        backdrop-filter: none; -webkit-backdrop-filter: none;
+        padding: 2px 8px; font-size: 0.6rem; border-radius: 4px;
     }
     
-    .grid-container.list-view .card {
-        display: grid;
-        grid-template-columns: 80px 1fr;
-        grid-template-rows: auto auto;
-        column-gap: 16px;
-        row-gap: 4px;
-        align-items: center;
-        padding: 8px 16px;
-        border-radius: 10px;
-    }
-
-    .grid-container.list-view .card-thumb,
-    .grid-container.list-view .card-info {
-        display: contents;
-    }
-
-    .grid-container.list-view .card-thumb img {
-        grid-column: 1;
-        grid-row: 1 / span 2;
-        width: 80px;
-        height: 48px;
-        object-fit: cover;
-        border-radius: 6px;
-        border: 1px solid var(--border);
-        position: static;
-    }
-
-    .grid-container.list-view .card-thumb::after {
-        display: none;
-    }
-
-    .grid-container.list-view .card-icon {
-        display: none;
-    }
-
-    .grid-container.list-view .card-text {
-        grid-column: 2;
-        grid-row: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 2px;
-        min-width: 0;
-    }
-
-    .grid-container.list-view .card-tags {
-        grid-column: 2;
-        grid-row: 2;
-        position: static;
-        display: flex;
-        gap: 4px;
-        align-items: center;
-    }
-
-    .grid-container.list-view .tag-gray {
-        background: var(--hover-bg);
-        color: var(--text-muted);
-        border: 1px solid var(--border);
-        box-shadow: none;
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-        padding: 2px 8px;
-        font-size: 0.6rem;
-        border-radius: 4px;
-    }
-
-    /* =========================================
-       CARD DEFAULT STYLES (Grid View)
-       ========================================= */
     .card {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 8px;
-        border-radius: 10px;
-        text-decoration: none;
+        position: relative;
+        display: flex; flex-direction: column; gap: 10px;
+        padding: 8px; border-radius: 10px; text-decoration: none;
         color: inherit;
         transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
     }
     .card.clickable { cursor: pointer; }
     .card.clickable:hover {
-        background: var(--bg-panel);
-        transform: translateY(-2px);
+        background: var(--bg-panel); transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
     }
     .card.clickable:hover .card-thumb { border-color: var(--primary); }
-    
     .card.hidden { display: none !important; }
-
     .card-thumb {
-        width: 100%;
-        height: 160px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        background: #111;
-        position: relative;
-        overflow: hidden;
-        transition: border-color 0.2s;
+        width: 100%; height: 160px; border-radius: 8px;
+        border: 1px solid var(--border); background: #111;
+        position: relative; overflow: hidden; transition: border-color 0.2s;
     }
-
     .card-thumb img {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        object-fit: cover;
-        z-index: 1;
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%; object-fit: cover; z-index: 1;
     }
-
     .card-thumb::after {
-        content: '';
-        position: absolute;
-        bottom: 0; left: 0;
+        content: ''; position: absolute; bottom: 0; left: 0;
         width: 100%; height: 50%;
         background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-        z-index: 1;
-        pointer-events: none;
+        z-index: 1; pointer-events: none;
     }
-
-    .card-tags {
-        position: absolute;
-        bottom: 10px; left: 10px;
-        display: flex; gap: 4px;
-        z-index: 2;
-    }
+    .card-tags { position: absolute; bottom: 10px; left: 10px; display: flex; gap: 4px; z-index: 2; }
     .tag {
-        font-size: 0.65rem; font-weight: 600;
-        padding: 4px 10px; border-radius: 20px;
-        text-transform: uppercase; letter-spacing: 0.5px;
+        font-size: 0.65rem; font-weight: 600; padding: 4px 10px;
+        border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
     }
     .tag-gray {
         background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #FFFFFF;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        color: #FFFFFF; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-
     .card-info { display: flex; gap: 12px; align-items: center; }
     .card-icon {
-        width: 36px; height: 36px;
-        background: #3A3A3A;
-        border-radius: 8px;
+        width: 36px; height: 36px; background: #3A3A3A; border-radius: 8px;
         display: flex; align-items: center; justify-content: center;
         color: #E5E5E5; font-size: 0.9rem; font-weight: 600;
-        flex-shrink: 0;
-        border: 1px solid var(--border);
-        overflow: hidden;
-        transition: border-color 0.3s;
+        flex-shrink: 0; border: 1px solid var(--border);
+        overflow: hidden; transition: border-color 0.3s;
     }
-    /* Logo image variant (icon can be a picture instead of a letter) */
-    .card-icon img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
+    .card-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .card-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
     .card-title {
         font-size: 0.85rem; font-weight: 600;
@@ -433,73 +313,66 @@
     }
     .card-subtitle { font-size: 0.75rem; color: var(--text-muted); }
 
+    /* ---------- FAVORITE STAR BUTTON ---------- */
+    .card-fav {
+        position: absolute; top: 16px; right: 16px; z-index: 4;
+        width: 28px; height: 28px; padding: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%; color: rgba(255, 255, 255, 0.9);
+        cursor: pointer;
+        transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .card-fav svg { width: 15px; height: 15px; transition: fill 0.2s ease, transform 0.2s ease; }
+    .card-fav:hover { background: rgba(0, 0, 0, 0.55); color: #FFFFFF; transform: scale(1.1); }
+    .card-fav.active { color: var(--star); border-color: rgba(250, 204, 21, 0.6); background: rgba(0, 0, 0, 0.45); }
+    .card-fav.active svg { fill: var(--star); }
+    .card-fav:active svg { transform: scale(0.85); }
+    
+    .grid-container.list-view .card-fav { top: 50%; right: 16px; transform: translateY(-50%); }
+    .grid-container.list-view .card-fav:hover { transform: translateY(-50%) scale(1.1); }
+
+    /* ---------- EMPTY STATE ---------- */
+    .empty-state {
+        display: none; grid-column: 1 / -1; text-align: center; padding: 72px 20px; color: var(--text-muted);
+    }
+    .empty-state.visible { display: block; }
+    .empty-state .empty-title { font-size: 1rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
+    .empty-state .empty-sub { font-size: 0.8rem; }
+
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-    /* =========================================================
-       LOADING OVERLAY  (logo + brand text)
-       ========================================================= */
+    /* Loading Overlay */
     .loading-overlay {
-        position: fixed; inset: 0;
-        background: #050505;
+        position: fixed; inset: 0; background: #050505;
         display: flex; justify-content: center; align-items: center;
-        z-index: 10000;
-        opacity: 1; visibility: visible;
+        z-index: 10000; opacity: 1; visibility: visible;
         transition: opacity 0.5s ease, visibility 0.5s ease;
     }
     .loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-
-    .loading-box {
-        display: flex; flex-direction: column; align-items: center;
-        gap: 24px;                    /* increased from 14px to add more space */
-        position: relative;
-    }
-
+    .loading-box { display: flex; flex-direction: column; align-items: center; gap: 24px; position: relative; }
     .loading-box::before {
-        content: '';
-        position: absolute; top: 50%; left: 50%;
-        width: 200px; height: 200px;
-        transform: translate(-50%, -50%);
+        content: ''; position: absolute; top: 50%; left: 50%;
+        width: 200px; height: 200px; transform: translate(-50%, -50%);
         background: radial-gradient(circle, rgba(0,165,226,0.2), rgba(159,204,58,0.1) 50%, transparent 70%);
-        filter: blur(14px);
-        pointer-events: none;
-        animation: rush-glow 2.4s ease-in-out infinite;
+        filter: blur(14px); pointer-events: none; animation: rush-glow 2.4s ease-in-out infinite;
     }
     @keyframes rush-glow {
         0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
         50%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.1); }
     }
-
-    .loading-logo {
-        width: 100px;
-        height: auto;
-        overflow: visible;
-        position: relative;
-        z-index: 1;
-    }
-
+    .loading-logo { width: 100px; height: auto; overflow: visible; position: relative; z-index: 1; }
     .loading-brand {
-        font-size: 1.4rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        color: #FFFFFF;
-        position: relative;
-        z-index: 1;
-        text-align: center;
-        /* margin-top removed; spacing handled by the flex gap */
+        font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em;
+        color: #FFFFFF; position: relative; z-index: 1; text-align: center;
     }
-
-    .logo-left {
-        animation: spin-hourglass 2.4s ease-in-out infinite, glow-blue 2.4s ease-in-out infinite;
-        transform-origin: 50px 30px;
-    }
-    .logo-right {
-        animation: spin-hourglass 2.4s ease-in-out infinite, glow-green 2.4s ease-in-out infinite;
-        transform-origin: 50px 30px;
-    }
-
+    .logo-left { animation: spin-hourglass 2.4s ease-in-out infinite, glow-blue 2.4s ease-in-out infinite; transform-origin: 50px 30px; }
+    .logo-right { animation: spin-hourglass 2.4s ease-in-out infinite, glow-green 2.4s ease-in-out infinite; transform-origin: 50px 30px; }
     @keyframes spin-hourglass {
         0%   { transform: rotate(0deg); }
         35%  { transform: rotate(180deg); }
@@ -507,23 +380,20 @@
         85%  { transform: rotate(360deg); }
         100% { transform: rotate(360deg); }
     }
-    
     @keyframes glow-blue {
         0%, 100% { filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 4px rgba(0, 165, 226, 0.4)); }
-        50% { filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 16px rgba(0, 165, 226, 0.8)); }
+        50%      { filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 16px rgba(0, 165, 226, 0.8)); }
     }
     @keyframes glow-green {
         0%, 100% { filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 4px rgba(159, 204, 58, 0.4)); }
-        50% { filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 16px rgba(159, 204, 58, 0.8)); }
+        50%      { filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 16px rgba(159, 204, 58, 0.8)); }
     }
 </style>
 </head>
 <body>
 
-    <!-- LOADING OVERLAY (logo + brand text) -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-box">
-            <!-- Animated Logo -->
             <svg class="loading-logo" viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
                 <g class="logo-left">
                     <path fill-rule="evenodd" d="M 10 10 L 40 10 L 50 30 L 40 50 L 10 50 Z M 18 42 L 34 42 L 41 30 L 34 18 L 18 18 Z" fill="#00A5E2" />
@@ -532,12 +402,10 @@
                     <path fill-rule="evenodd" d="M 60 10 L 90 10 L 90 50 L 60 50 L 50 30 Z M 66 42 L 82 42 L 82 18 L 66 18 L 59 30 Z" fill="#9FCC3A" />
                 </g>
             </svg>
-            <!-- Brand name -->
             <div class="loading-brand">Digital Design</div>
         </div>
     </div>
 
-    <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="sidebar-top">
             <div class="workspace-header">
@@ -549,7 +417,6 @@
                     <div class="workspace-role">VTC Gogon Sirangan</div>
                 </div>
             </div>
-            
             <button class="theme-toggle-btn" id="themeToggle" title="Toggle Theme">
                 <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
                     <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
@@ -565,44 +432,27 @@
             <input type="text" id="searchInput" placeholder="Search" />
         </div>
 
-        <div class="nav-group">
-            <a href="#" class="nav-item active">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                Dashboard
-            </a>
-        </div>
-
-        <div class="section-title">Shortcut</div>
-        <div class="nav-group">
-            <a href="#" class="nav-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                All folders
-            </a>
-            <a href="#" class="nav-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                Resources
-            </a>
-        </div>
+        <!-- Sidebar Favorites Section -->
+        <div class="section-title" id="sidebarFavTitle">Favorites</div>
+        <div class="nav-group" id="sidebarFavorites"></div>
     </aside>
 
-    <!-- MAIN -->
     <main class="main-content">
         <div class="tabs-bar">
             <div class="tabs">
-                <div class="tab active" data-tab="tools">Tools</div>
+                <div class="tab fav-tab active" data-tab="favorites">Favorites</div>
+                <div class="tab" data-tab="tools">Tools</div>
                 <div class="tab" data-tab="files">Files</div>
                 <div class="tab" data-tab="bookmarks">Bookmarks</div>
                 <div class="tab" data-tab="all">All</div>
             </div>
             <div class="filters">
-                
                 <button class="sort-toggle-btn" id="sortToggleBtn" title="Toggle Sort Order">
                     <svg id="sortArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M7 15l5 5 5-5M7 9l5-5 5 5"/>
                     </svg>
                     <span id="sortText">A-Z</span>
                 </button>
-
                 <div class="icon-btn-group">
                     <button class="icon-toggle active" id="gridViewBtn" title="Grid View">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -616,20 +466,18 @@
 
         <div class="grid-container" id="cardGrid">
             <!-- Cards are injected here by cards.js -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-title">No items found</div>
+                <div class="empty-sub">Try a different search or category.</div>
+            </div>
         </div>
     </main>
 
-    <!-- =========================================================
-         LOADING OVERLAY CONTROLLER (runs before other scripts)
-         ========================================================= -->
     <script>
         (function () {
             const overlay = document.getElementById('loadingOverlay');
-
-            // Kept as no-ops so any external script calling them won't break
             window.setLoadingProgress = function () {};
             window.setLoadingText = function () {};
-
             window.hideLoading = function () {
                 if (!overlay) return;
                 overlay.classList.add('hidden');
@@ -637,15 +485,13 @@
         })();
     </script>
 
-    <!-- 1. DATA -->
     <script src="cards.js"></script>
 
-    <!-- 2. APP LOGIC -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const _bootStart = performance.now();
 
-            /* ---------------- THEME TOGGLE LOGIC ---------------- */
+            /* ---------------- THEME TOGGLE ---------------- */
             const themeToggle = document.getElementById('themeToggle');
             const iconSun = document.getElementById('iconSun');
             const iconMoon = document.getElementById('iconMoon');
@@ -672,12 +518,99 @@
                 updateThemeUI(currentTheme);
             });
 
-            /* ---------------- TAB FILTERING & SMART SEARCH ---------------- */
+            /* ---------------- FAVORITES (localStorage) ---------------- */
+            const FAV_KEY = 'favorites';
+            let favorites = [];
+            try {
+                favorites = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
+                if (!Array.isArray(favorites)) favorites = [];
+            } catch (e) {
+                favorites = [];
+            }
+
+            function saveFavorites() {
+                localStorage.setItem(FAV_KEY, JSON.stringify(favorites));
+            }
+
+            function isFavorite(title) {
+                return favorites.indexOf(title) !== -1;
+            }
+
+            function toggleFavorite(title) {
+                const idx = favorites.indexOf(title);
+                if (idx > -1) {
+                    favorites.splice(idx, 1);
+                } else {
+                    favorites.push(title);
+                }
+                saveFavorites();
+                refreshFavButtons();
+                renderSidebarFavorites();
+                filterCards();
+            }
+
+            function refreshFavButtons() {
+                cardGrid.querySelectorAll('.card-fav').forEach(btn => {
+                    const key = btn.getAttribute('data-fav-key');
+                    btn.classList.toggle('active', isFavorite(key));
+                });
+            }
+
+            /* ---------------- SIDEBAR FAVORITES RENDERING ---------------- */
+            const sidebarFavorites = document.getElementById('sidebarFavorites');
+            const sidebarFavTitle = document.getElementById('sidebarFavTitle');
+
+            function renderSidebarFavorites() {
+                sidebarFavorites.innerHTML = '';
+                
+                if (favorites.length === 0) {
+                    sidebarFavTitle.style.display = 'none';
+                    return;
+                }
+
+                sidebarFavTitle.style.display = 'block';
+
+                favorites.forEach(titleKey => {
+                    // Find the card in the global cardsData array
+                    const card = cardsData.find(c => c.title === titleKey);
+                    if (!card) return; // Failsafe if data was removed
+
+                    const logo = card.logo || '?';
+                    const href = card.href || '#';
+                    
+                    // Determine if logo is an image or text
+                    const isImg = typeof logo === 'string' && (logo.includes('/') || logo.startsWith('http') || /\.(png|jpg|jpeg|gif|svg|webp|ico)$/i.test(logo));
+                    
+                    const iconHTML = isImg 
+                        ? `<img src="${logo}" alt="icon">`
+                        : `<span>${logo}</span>`;
+
+                    const a = document.createElement('a');
+                    a.href = href;
+                    a.className = 'nav-item sidebar-fav-item';
+                    a.innerHTML = `
+                        <div class="fav-sidebar-icon">${iconHTML}</div>
+                        <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${card.title}</span>
+                        <button class="sidebar-unstar-btn" data-fav-key="${card.title}" title="Remove from favorites">
+                            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                        </button>
+                    `;
+                    sidebarFavorites.appendChild(a);
+                });
+            }
+
+            /* ---------------- ELEMENTS ---------------- */
             const tabs = document.querySelectorAll('.tab');
             const searchInput = document.getElementById('searchInput');
             const cardGrid = document.getElementById('cardGrid');
-            
-            let activeTab = localStorage.getItem('activeTab') || 'tools'; 
+            const emptyState = document.getElementById('emptyState');
+            const emptyTitle = emptyState ? emptyState.querySelector('.empty-title') : null;
+            const emptySub = emptyState ? emptyState.querySelector('.empty-sub') : null;
+
+            /* ---------------- TAB FILTERING & SMART SEARCH ---------------- */
+            let activeTab = (localStorage.getItem('activeTab') || 'favorites').toLowerCase();
             if (activeTab === 'essential') activeTab = 'tools';
             let previousTab = activeTab;
 
@@ -694,30 +627,61 @@
             function filterCards() {
                 const query = searchInput.value.toLowerCase().trim();
                 const cards = cardGrid.querySelectorAll('.card');
+                const tab = activeTab.toLowerCase();
+                let visibleCount = 0;
 
                 cards.forEach(card => {
                     const title = card.querySelector('.card-title').textContent.toLowerCase();
-                    const category = card.getAttribute('data-category');
-                    
-                    const matchesTab = (activeTab === 'all' || category === activeTab);
+                    const cardTitle = card.getAttribute('data-title') || '';
+                    const category = (card.getAttribute('data-category') || '').toLowerCase();
+
+                    let matchesTab;
+                    if (tab === 'all') {
+                        matchesTab = true;
+                    } else if (tab === 'favorites') {
+                        matchesTab = isFavorite(cardTitle);
+                    } else {
+                        matchesTab = category === tab;
+                    }
+
                     const matchesSearch = title.includes(query);
 
                     if (matchesTab && matchesSearch) {
                         card.classList.remove('hidden');
+                        visibleCount++;
                     } else {
                         card.classList.add('hidden');
                     }
                 });
+
+                // Empty state
+                if (emptyState) {
+                    if (visibleCount === 0) {
+                        emptyState.classList.add('visible');
+                        if (tab === 'favorites' && !query) {
+                            emptyTitle.textContent = 'No favorites yet';
+                            emptySub.textContent = 'Tap the star on any card to save it here.';
+                        } else if (query) {
+                            emptyTitle.textContent = 'No results';
+                            emptySub.textContent = 'Nothing matches "' + searchInput.value.trim() + '".';
+                        } else {
+                            emptyTitle.textContent = 'No items found';
+                            emptySub.textContent = 'This category is empty.';
+                        }
+                    } else {
+                        emptyState.classList.remove('visible');
+                    }
+                }
             }
 
             updateTabUI(activeTab);
 
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    activeTab = tab.getAttribute('data-tab');
-                    previousTab = activeTab; 
+                    activeTab = tab.getAttribute('data-tab').toLowerCase();
+                    previousTab = activeTab;
                     localStorage.setItem('activeTab', activeTab);
-                    
+
                     updateTabUI(activeTab);
                     filterCards();
                 });
@@ -725,7 +689,7 @@
 
             searchInput.addEventListener('input', () => {
                 const query = searchInput.value.trim();
-                
+
                 if (query.length > 0 && activeTab !== 'all') {
                     previousTab = activeTab;
                     activeTab = 'all';
@@ -734,14 +698,39 @@
                     activeTab = previousTab;
                     updateTabUI(activeTab);
                 }
-                
+
                 filterCards();
             });
 
-            /* ---------------- SORTING TOGGLE LOGIC ---------------- */
+            /* ---------------- STAR TOGGLE (Main Grid) ---------------- */
+            cardGrid.addEventListener('click', (e) => {
+                const btn = e.target.closest('.card-fav');
+                if (!btn) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const key = btn.getAttribute('data-fav-key');
+                toggleFavorite(key);
+            });
+
+            /* ---------------- STAR TOGGLE (Sidebar) ---------------- */
+            sidebarFavorites.addEventListener('click', (e) => {
+                const btn = e.target.closest('.sidebar-unstar-btn');
+                if (!btn) return;
+
+                // Prevent link navigation
+                e.preventDefault();
+                e.stopPropagation();
+
+                const key = btn.getAttribute('data-fav-key');
+                toggleFavorite(key);
+            });
+
+            /* ---------------- SORTING TOGGLE ---------------- */
             const sortToggleBtn = document.getElementById('sortToggleBtn');
             const sortText = document.getElementById('sortText');
-            
+
             let currentSort = localStorage.getItem('sortOrder') || 'az';
 
             function updateSortUI() {
@@ -756,7 +745,7 @@
 
             function sortCards() {
                 const cardsToSort = Array.from(cardGrid.querySelectorAll('.card'));
-                
+
                 cardsToSort.sort((a, b) => {
                     const titleA = a.querySelector('.card-title').textContent.trim().toLowerCase();
                     const titleB = b.querySelector('.card-title').textContent.trim().toLowerCase();
@@ -764,6 +753,7 @@
                 });
 
                 cardsToSort.forEach(card => cardGrid.appendChild(card));
+                if (emptyState) cardGrid.appendChild(emptyState);
                 filterCards();
             }
 
@@ -805,6 +795,9 @@
             gridViewBtn.addEventListener('click', setGridView);
             listViewBtn.addEventListener('click', setListView);
 
+            /* ---------------- INITIAL STATE ---------------- */
+            refreshFavButtons();
+            renderSidebarFavorites(); // Initialize sidebar
             filterCards();
 
             /* ---------------- HIDE LOADING OVERLAY ---------------- */
@@ -821,7 +814,6 @@
             });
         });
 
-        /* Safety net: if scripts above fail, still hide the overlay */
         window.addEventListener('load', () => {
             setTimeout(() => {
                 if (typeof window.hideLoading === 'function') {

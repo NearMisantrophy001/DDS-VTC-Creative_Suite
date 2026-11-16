@@ -1,18 +1,3 @@
-/* cards.js
- * ------------------------------------------------------------
- * All card data for the dashboard.
- * Each object supports:
- *   - title     : string (required)
- *   - subtitle  : string (required)
- *   - category  : "tools" | "files" | "bookmarks" (required)
- *   - cover     : string (URL or path to cover image)
- *   - logo      : string (either a letter/emoji OR an image URL/path)
- *                 If the string contains a slash (/) or starts with
- *                 "http", it is treated as an image source.
- *   - href      : string (link target, optional – defaults to "#")
- * ------------------------------------------------------------
- */
-
 const cardsData = [
     // ================= TOOLS =================
     {
@@ -20,7 +5,7 @@ const cardsData = [
         subtitle: "Created Nov 05, 2026",
         category: "tools",
         cover: "Assets/g1.PNG",
-        logo: "R",                // can also be an image path like "logos/rush.png"
+        logo: "R",
         href: "Rush_ID.html"
     },
     {
@@ -31,7 +16,6 @@ const cardsData = [
         logo: "M",
         href: "Mug_Printing.html"
     },
-
     // ================= FILES =================
     {
         title: "Project Brief 2026",
@@ -49,7 +33,6 @@ const cardsData = [
         logo: "D",
         href: "#"
     },
-
     // ================= BOOKMARKS =================
     {
         title: "Logo Design Inspiration",
@@ -93,30 +76,24 @@ const cardsData = [
     }
 ];
 
-/* ------------------------------------------------------------
- * Renders the card data into the #cardGrid container.
- * This runs immediately after the script is loaded (the script
- * tag is placed at the end of <body>, so the DOM is ready).
- * ------------------------------------------------------------ */
 (function renderCards() {
     const grid = document.getElementById('cardGrid');
-    if (!grid) {
-        console.error('cards.js: #cardGrid container not found.');
-        return;
-    }
+    if (!grid) return;
 
-    // Helper: decide if logo is an image path/URL or just text
     function isImageSource(str) {
         return typeof str === 'string' && (str.includes('/') || str.startsWith('http') || /\.(png|jpg|jpeg|gif|svg|webp|ico)$/i.test(str));
     }
 
-    // Build HTML for each card
+    function esc(str) {
+        return String(str).replace(/"/g, '&quot;');
+    }
+
     const cardsHTML = cardsData.map(card => {
         const href = card.href || '#';
-        const cover = card.cover || 'Assets/placeholder.png'; // fallback
+        const cover = card.cover || 'Assets/placeholder.png';
         const logo = card.logo || '?';
+        const safeTitle = esc(card.title);
 
-        // Build the logo element (text or image)
         let logoHTML;
         if (isImageSource(logo)) {
             logoHTML = `<img src="${logo}" alt="logo" />`;
@@ -124,15 +101,24 @@ const cardsData = [
             logoHTML = `<span>${logo}</span>`;
         }
 
-        // Category tag label (capitalize first letter)
         const tagLabel = card.category.charAt(0).toUpperCase() + card.category.slice(1);
 
         return `
-            <a href="${href}" class="card clickable" data-category="${card.category}">
+            <a href="${href}" class="card clickable" data-category="${card.category}" data-title="${safeTitle}">
                 <div class="card-thumb">
-                    <img src="${cover}" alt="${card.title} Cover">
+                    <img src="${cover}" alt="${safeTitle} Cover">
                     <div class="card-tags"><span class="tag tag-gray">${tagLabel}</span></div>
                 </div>
+                <button type="button"
+                        class="card-fav"
+                        data-fav-key="${safeTitle}"
+                        title="Add to favorites"
+                        aria-label="Add to favorites">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </button>
                 <div class="card-info">
                     <div class="card-icon">${logoHTML}</div>
                     <div class="card-text">
@@ -144,5 +130,7 @@ const cardsData = [
         `;
     }).join('');
 
+    const emptyState = document.getElementById('emptyState');
     grid.innerHTML = cardsHTML;
+    if (emptyState) grid.appendChild(emptyState);
 })();
