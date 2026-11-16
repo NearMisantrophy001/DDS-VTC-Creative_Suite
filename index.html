@@ -470,14 +470,14 @@
     /* ---------- CUSTOM ICON STYLES ---------- */
     /* Using *= to match the full title "Mug Printing" and "Rush ID" */
     
-    /* MUG and RUSH → White text, theme-aware background */
+    /* MUG and RUSH → Theme-aware background AND text */
     .card[data-title*="mug" i] .card-icon,
     .sidebar-fav-item[data-title*="mug" i] .fav-sidebar-icon,
     .card[data-title*="rush" i] .card-icon,
     .sidebar-fav-item[data-title*="rush" i] .fav-sidebar-icon {
         background: var(--hover-bg) !important; 
         border-color: var(--border);
-        color: #FFFFFF !important; /* Text back to white */
+        color: var(--text-main) !important; /* Dark in light mode, light in dark mode */
     }
 </style>
 </head>

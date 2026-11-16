@@ -4,7 +4,7 @@ const cardsData = [
         title: "Rush ID",
         subtitle: "Created Nov 05, 2026",
         category: "tools",
-        cover: "Assets/1.jpg",
+        cover: "Assets/Rush_Cover.jpg",
         logo: "R",
         href: "Rush_ID.html"
     },
@@ -12,7 +12,7 @@ const cardsData = [
         title: "Mug Printing",
         subtitle: "Created Nov 07, 2026",
         category: "tools",
-        cover: "Assets/2.jpg",
+        cover: "Assets/Mug_Cover.jpg",
         logo: "M",
         href: "Mug_Printing.html"
     },
