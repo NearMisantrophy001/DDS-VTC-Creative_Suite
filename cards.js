@@ -4,7 +4,7 @@ const cardsData = [
         title: "Rush ID",
         subtitle: "Created Nov 05, 2026",
         category: "tools",
-        cover: "Assets/g1.png",
+        cover: "Assets/g2.jpg",
         logo: "R",
         href: "Rush_ID.html"
     },
@@ -21,7 +21,7 @@ const cardsData = [
         title: "Project Brief 2026",
         subtitle: "PDF Document",
         category: "files",
-        cover: "Assets/g1.png",
+        cover: "Assets/g2.jpg",
         logo: "P",
         href: "#"
     },
@@ -38,7 +38,7 @@ const cardsData = [
         title: "Logo Design Inspiration",
         subtitle: "Saved Nov 10, 2026",
         category: "bookmarks",
-        cover: "Assets/g1.png",
+        cover: "Assets/g2.jpg",
         logo: "1",
         href: "#"
     },
@@ -54,7 +54,7 @@ const cardsData = [
         title: "Typography Rules",
         subtitle: "Saved Nov 15, 2026",
         category: "bookmarks",
-        cover: "Assets/g1.png",
+        cover: "Assets/g2.jpg",
         logo: "3",
         href: "#"
     },
@@ -70,7 +70,7 @@ const cardsData = [
         title: "Printing Dimensions",
         subtitle: "Saved Nov 20, 2026",
         category: "bookmarks",
-        cover: "Assets/g1.png",
+        cover: "Assets/g2.jpg",
         logo: "5",
         href: "#"
     }
