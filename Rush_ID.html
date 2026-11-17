@@ -1381,7 +1381,7 @@
             }
 
             localStorage.setItem('rushid_config', JSON.stringify(appConfig));
-            renderCanvas();
+            renderCanvas(false);
         }
 
         function loadSizesToInputs() {
@@ -1422,7 +1422,7 @@
             document.getElementById('sizeAsaW').value = imgObj.sizeAsaW;
             document.getElementById('sizeAsaH').value = imgObj.sizeAsaH;
 
-            renderCanvas();
+            renderCanvas(false);
         }
 
         function updateSettings() {
@@ -1543,7 +1543,7 @@
                     }
                     renderImageQueue();
                     syncInputsToCanvas();
-                    renderCanvas();
+                    renderCanvas(false);
                     hideLoading();
                 }
             }
@@ -1605,7 +1605,7 @@
             renderImageQueue();
             loadSizesToInputs();
             syncInputsToCanvas();
-            renderCanvas();
+            renderCanvas(false);
         }
 
         function resetCanvas() {
@@ -1634,7 +1634,7 @@
             }
 
             syncInputsToCanvas();
-            renderCanvas();
+            renderCanvas(false);
         }
 
         function clearAll() {
@@ -1643,7 +1643,7 @@
             activeImageId = null;
             syncInputsToCanvas();
             document.getElementById('imageQueue').innerHTML = '<div style="font-size: 0.7rem; color: #9CA3AF; width: 100%; text-align: center;">No images uploaded</div>';
-            renderCanvas();
+            renderCanvas(false);
         }
 
         function addDefaultSize(inputId, amount) {
@@ -1684,7 +1684,7 @@
             document.getElementById('btnClearPassport').classList.toggle('active', qPassport > 0);
             document.getElementById('btnClearAsa').classList.toggle('active', qAsa > 0);
 
-            renderCanvas();
+            renderCanvas(true);
         }
 
         function syncInputsToCanvas() {
@@ -1755,7 +1755,7 @@
             }
 
             fitToViewport();
-            if (canvasItems.length > 0) renderCanvas();
+            if (canvasItems.length > 0) renderCanvas(false);
         }
 
         function applyPreset(preset) {
@@ -1790,17 +1790,16 @@
                 for (let i = 0; i < 4; i++) canvasItems.push({ id: newId + i, imgId: activeImageId, size: '2x2', type: 'normal' });
                 for (let i = 0; i < 12; i++) canvasItems.push({ id: newId + i + 10, imgId: activeImageId, size: '1x1', type: 'normal' });
                 for (let i = 0; i < 5; i++) canvasItems.push({ id: newId + i + 30, imgId: activeImageId, size: 'passport', type: 'normal' });
-                for (let i = 0; i < 2; i++) canvasItems.push({ id: newId + i + 50, imgId: activeImageId, size: 'asa', type: 'normal' });
             }
             
             syncInputsToCanvas();
-            renderCanvas();
+            renderCanvas(true); // Added true here
         }
 
         function removePackage() {
             canvasItems = canvasItems.filter(item => !item.type.startsWith('pkg'));
             syncInputsToCanvas();
-            renderCanvas();
+            renderCanvas(false);
         }
 
         function createPhotoElement(item) {
@@ -1901,9 +1900,11 @@
             }
         }
 
-        function renderCanvas() {
+        function renderCanvas(autoJump = false) {
             const pagesWrapper = document.getElementById('pagesWrapper');
             const warning = document.getElementById('overflowWarning');
+            
+            const oldPageCount = pagesWrapper.querySelectorAll('.paper-page').length;
             
             if (warning) warning.style.display = 'none';
             pagesWrapper.innerHTML = '';
@@ -1926,6 +1927,7 @@
                 pagesWrapper.appendChild(currentPage);
                 pagesObserver.disconnect();
                 pagesObserver.observe(pagesWrapper);
+                currentPageIndex = 0;
                 updatePaginationUI();
                 return;
             }
@@ -1946,6 +1948,7 @@
                 pagesWrapper.appendChild(currentPage);
                 pagesObserver.disconnect();
                 pagesObserver.observe(pagesWrapper);
+                currentPageIndex = 0;
                 updatePaginationUI();
                 return;
             }
@@ -2164,6 +2167,11 @@
             pagesObserver.disconnect();
             pagesObserver.observe(pagesWrapper);
 
+            const newPageCount = pagesWrapper.querySelectorAll('.paper-page').length;
+            if (autoJump && newPageCount > oldPageCount) {
+                currentPageIndex = newPageCount - 1;
+            }
+
             updatePaginationUI();
             
             let hasOverflow = false;
@@ -2305,7 +2313,7 @@
             setPaperSize('A4');
             syncInputsToCanvas();
             fitToViewport();
-            renderCanvas();
+            renderCanvas(false);
         }
 
         if (document.readyState === 'loading') {
