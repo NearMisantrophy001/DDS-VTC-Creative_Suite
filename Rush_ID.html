@@ -39,7 +39,7 @@
         }
 
         [data-theme="dark"] {
-            /* Dark Theme - softened to match Mug Printing palette */
+            /* Dark Theme */
             --bg-workspace: #1E1E1E;
             --bg-panel: #2C2C2C;
             --text-main: #E5E5E5;
@@ -307,13 +307,21 @@
         }
         
         .input-wrapper { display: flex; align-items: center; gap: 8px; }
+        
         .input-wrapper input {
-            width: 42px; height: 30px; padding: 4px; border: 1px solid var(--border); border-radius: 4px;
+            width: 50px; height: 30px; padding: 4px; border: 1px solid var(--border); border-radius: 4px;
             background: var(--input-bg); color: var(--text-main); text-align: center; font-weight: 700; outline: none;
             cursor: text; font-size: 0.9rem;
         }
         .input-wrapper input:focus { border-color: var(--brand-blue); }
         
+        .dim-tag {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            user-select: none;
+        }
+
         .btn-mini {
             width: 30px; height: 30px; padding: 0; display: flex; justify-content: center; align-items: center;
             background: var(--bg-workspace); border: 1px solid var(--border); border-radius: 4px;
@@ -389,26 +397,105 @@
 
         .workspace {
             flex: 1; display: flex; justify-content: center; align-items: center; 
-            overflow: hidden; padding: 20px; position: relative; transition: background-color 0.3s;
+            overflow: hidden; padding: 40px; position: relative; transition: background-color 0.3s;
         }
         .workspace.dragover-canvas {
             background-color: rgba(37, 99, 235, 0.06); outline: 2px dashed var(--brand-blue); outline-offset: -10px;
         }
 
-        #captureArea {
-            background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.1);
-            position: relative; transform: scale(var(--preview-scale)); transform-origin: center center;
-            transition: transform 0.2s ease-out; display: flex; justify-content: center; align-items: center; border-radius: 2px;
+        /* Pagination Controls */
+        .pagination-controls {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            padding: 4px;
+            z-index: 100;
+            color: var(--text-main);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
         }
-        [data-theme="dark"] #captureArea {
-            box-shadow: 0 10px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+        .pagination-controls.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .pagination-controls button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            color: var(--text-muted);
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .pagination-controls button:hover:not(:disabled) {
+            background: var(--hover-bg);
+            color: var(--text-main);
+        }
+        .pagination-controls button:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+        .pagination-controls button svg {
+            width: 16px; height: 16px;
+        }
+        .pagination-controls span {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0 12px;
+            user-select: none;
+            min-width: 90px;
+            text-align: center;
+        }
+
+        #previewWrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        #captureArea {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(var(--preview-scale)); 
+            transform-origin: center center;
+            transition: transform 0.2s ease-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pages-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         .paper-page {
             background: white; width: var(--paper-width); height: var(--paper-height);
-            position: relative; overflow: hidden; 
+            position: absolute; top: 0; left: 0;
+            visibility: hidden;
+            overflow: hidden; 
             padding: 3mm; box-sizing: border-box;
             display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; pointer-events: none; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        .paper-page.active-page {
+            position: relative;
+            visibility: visible;
+        }
+        [data-theme="dark"] .paper-page {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
         }
 
         .paper-label {
@@ -503,7 +590,6 @@
             position: relative;
         }
 
-        /* blended brand glow behind the logo */
         .loading-box::before {
             content: '';
             position: absolute; top: 50%; left: 50%;
@@ -519,7 +605,6 @@
             50%      { opacity: 1;    transform: translate(-50%, -60%) scale(1.1); }
         }
 
-        /* --- Hourglass SVG Logo --- */
         .loading-logo {
             width: 100px;
             height: auto;
@@ -531,11 +616,11 @@
 
         .logo-left {
             animation: spin-hourglass 2.4s ease-in-out infinite, glow-blue 2.4s ease-in-out infinite;
-            transform-origin: 50px 30px; /* Center of the SVG viewBox */
+            transform-origin: 50px 30px;
         }
         .logo-right {
             animation: spin-hourglass 2.4s ease-in-out infinite, glow-green 2.4s ease-in-out infinite;
-            transform-origin: 50px 30px; /* Center of the SVG viewBox */
+            transform-origin: 50px 30px;
         }
 
         @keyframes spin-hourglass {
@@ -564,7 +649,6 @@
         }
         .loading-brand span { color: #FFFFFF; }
 
-        /* ---- Loading progress bar ---- */
         .loading-progress {
             width: 190px;
             height: 4px;
@@ -617,10 +701,21 @@
 
         @media print {
             body { background: white; height: auto; overflow: visible; }
-            .sidebar, .right-sidebar { display: none !important; }
+            .sidebar, .right-sidebar, .pagination-controls { display: none !important; }
             .workspace { padding: 0 !important; background: white !important; overflow: visible !important; display: block !important; }
-            #captureArea { transform: scale(1) !important; transform-origin: top left !important; box-shadow: none !important; width: auto !important; height: auto !important; margin: 0 !important; border: none !important; }
-            .paper-page { width: 100% !important; height: 100% !important; padding: 3mm !important; margin: 0 !important; box-shadow: none !important; }
+            #previewWrapper { width: auto !important; height: auto !important; position: static !important; display: block !important; }
+            #captureArea { transform: scale(1) !important; transform-origin: top left !important; position: static !important; display: block !important; gap: 0 !important; }
+            .pages-wrapper { gap: 0 !important; display: block !important; }
+            .paper-page { 
+                display: flex !important; /* Force display for printing */
+                position: relative !important;
+                visibility: visible !important;
+                width: 100% !important; height: 100% !important; 
+                padding: 3mm !important; margin: 0 !important; 
+                box-shadow: none !important; 
+                page-break-after: always; break-after: page;
+            }
+            .paper-page:last-child { page-break-after: auto; break-after: auto; }
             .safe-zone-overlay, .paper-label, .modal-overlay, .loading-overlay { display: none !important; }
             .photo-item, .landscape-passport { border-color: var(--border-c) !important; }
             .layout-container { gap: var(--gap-v) !important; }
@@ -639,13 +734,10 @@
     <!-- LOADING / SPLASH OVERLAY -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-box">
-            <!-- Animated Hourglass Logo -->
             <svg class="loading-logo" viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
-                <!-- Left Blue Shape -->
                 <g class="logo-left">
                     <path fill-rule="evenodd" d="M 10 10 L 40 10 L 50 30 L 40 50 L 10 50 Z M 18 42 L 34 42 L 41 30 L 34 18 L 18 18 Z" fill="#00A5E2" />
                 </g>
-                <!-- Right Green Shape -->
                 <g class="logo-right">
                     <path fill-rule="evenodd" d="M 60 10 L 90 10 L 90 50 L 60 50 L 50 30 Z M 66 42 L 82 42 L 82 18 L 66 18 L 59 30 Z" fill="#9FCC3A" />
                 </g>
@@ -698,6 +790,7 @@
                         <button class="btn" onclick="applyPreset('Max2x2')">Max 2x2</button>
                         <button class="btn" onclick="applyPreset('Max1x1')">Max 1x1</button>
                         <button class="btn" onclick="applyPreset('MaxPassport')">Max Passport</button>
+                        <button class="btn" onclick="applyPreset('MaxAsa')">Max ASA</button>
                         <button class="btn" onclick="applyPreset('MixAll')">All Sets</button>
                     </div>
                 </div>
@@ -708,7 +801,7 @@
                 <div class="details-content">
                     <div class="input-group">
                         <div class="click-label" onclick="applyPreset('Package')">Package (2pcs 2x2, 4pcs 1x1)</div>
-                        <button class="btn-mini" onclick="removePackage()" title="Remove Packages">×</button>
+                        <button class="btn-mini" id="btnClearPkg" onclick="removePackage()" title="Remove Packages">×</button>
                     </div>
 
                     <hr class="divider">
@@ -737,6 +830,14 @@
                         </div>
                     </div>
 
+                    <div class="input-group">
+                        <div class="click-label" onclick="addDefaultSize('qtyAsa', 2)">ASA</div>
+                        <div class="input-wrapper">
+                            <input type="number" id="qtyAsa" min="0" value="0" oninput="updateLayoutFromInputs()">
+                            <button class="btn-mini" id="btnClearAsa" onclick="clearSize('qtyAsa')" title="Remove all ASA">×</button>
+                        </div>
+                    </div>
+
                     <div class="warning-text" id="overflowWarning">Warning: Layout exceeds paper size!</div>
                 </div>
             </details>
@@ -762,17 +863,31 @@
                             <input type="number" id="colPassport" min="1" max="5" value="5" onchange="changeCols('passport', this.value)">
                         </div>
                     </div>
+                    <div class="input-group">
+                        <div class="static-label">ASA</div>
+                        <div class="input-wrapper">
+                            <input type="number" id="colAsa" min="1" max="2" value="2" onchange="changeCols('asa', this.value)">
+                        </div>
+                    </div>
                 </div>
             </details>
         </div>
     </div>
 
     <div class="workspace" id="workspaceArea">
-        <div id="captureArea">
-            <div class="paper-page" id="paperPage">
-                <div class="paper-label" id="paperLabel">A4</div>
-                <div class="safe-zone-overlay"></div>
+        <div id="previewWrapper">
+            <div id="captureArea">
+                <div class="pages-wrapper" id="pagesWrapper"></div>
             </div>
+        </div>
+        <div class="pagination-controls" id="paginationControls">
+            <button onclick="changePage(-1)" id="prevPageBtn" title="Previous Page">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <span id="pageText">Page 1 of 1</span>
+            <button onclick="changePage(1)" id="nextPageBtn" title="Next Page">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
         </div>
     </div>
 
@@ -850,26 +965,42 @@
                 <div class="details-content">
                     <div class="input-group">
                         <div class="static-label">2x2 (in)</div>
-                        <div class="input-wrapper">
+                        <div class="input-wrapper" style="gap: 4px;">
                             <input type="number" id="size2x2W" step="0.1" min="0.5" max="5" value="2" onchange="updateCustomSizes()">
+                            <span class="dim-tag">W</span>
                             <span style="font-size:12px; color:var(--text-muted); font-weight:600;">×</span>
                             <input type="number" id="size2x2H" step="0.1" min="0.5" max="5" value="2" onchange="updateCustomSizes()">
+                            <span class="dim-tag">H</span>
                         </div>
                     </div>
                     <div class="input-group">
                         <div class="static-label">1x1 (in)</div>
-                        <div class="input-wrapper">
+                        <div class="input-wrapper" style="gap: 4px;">
                             <input type="number" id="size1x1W" step="0.1" min="0.5" max="5" value="1" onchange="updateCustomSizes()">
+                            <span class="dim-tag">W</span>
                             <span style="font-size:12px; color:var(--text-muted); font-weight:600;">×</span>
                             <input type="number" id="size1x1H" step="0.1" min="0.5" max="5" value="1" onchange="updateCustomSizes()">
+                            <span class="dim-tag">H</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <div class="static-label">Passport (mm)</div>
+                        <div class="input-wrapper" style="gap: 4px;">
+                            <input type="number" id="sizePassW" step="1" min="10" max="100" value="35" onchange="updateCustomSizes()">
+                            <span class="dim-tag">W</span>
+                            <span style="font-size:12px; color:var(--text-muted); font-weight:600;">×</span>
+                            <input type="number" id="sizePassH" step="1" min="10" max="100" value="45" onchange="updateCustomSizes()">
+                            <span class="dim-tag">H</span>
                         </div>
                     </div>
                     <div class="input-group" style="margin-bottom: 0;">
-                        <div class="static-label">Passport (mm)</div>
-                        <div class="input-wrapper">
-                            <input type="number" id="sizePassW" step="1" min="10" max="100" value="35" onchange="updateCustomSizes()">
+                        <div class="static-label">ASA</div>
+                        <div class="input-wrapper" style="gap: 4px;">
+                            <input type="number" id="sizeAsaW" step="0.1" min="0.5" max="6" value="3" onchange="updateCustomSizes()">
+                            <span class="dim-tag">W</span>
                             <span style="font-size:12px; color:var(--text-muted); font-weight:600;">×</span>
-                            <input type="number" id="sizePassH" step="1" min="10" max="100" value="45" onchange="updateCustomSizes()">
+                            <input type="number" id="sizeAsaH" step="0.1" min="0.5" max="6" value="1.5" onchange="updateCustomSizes()">
+                            <span class="dim-tag">H</span>
                         </div>
                     </div>
                 </div>
@@ -890,6 +1021,10 @@
                         <div class="stat-item">
                             <span class="stat-label">Passport</span>
                             <input type="number" class="stat-input" id="stat-passport" min="0" step="1" value="0" oninput="updateManualStat('passport', this.value)" onclick="this.select()">
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ASA</span>
+                            <input type="number" class="stat-input" id="stat-asa" min="0" step="1" value="0" oninput="updateManualStat('asa', this.value)" onclick="this.select()">
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Packages</span>
@@ -941,9 +1076,9 @@
 
     <script>
         const defaultConfig = {
-            cols2x2: 4, cols1x1: 6, colsPassport: 5,
-            set2x2: 4, set1x1: 12, setPassport: 5,
-            def2x2: 4, def1x1: 12, defPassport: 5,
+            cols2x2: 4, cols1x1: 6, colsPassport: 5, colsAsa: 2,
+            set2x2: 4, set1x1: 12, setPassport: 5, setAsa: 2,
+            def2x2: 4, def1x1: 12, defPassport: 5, defAsa: 2,
             gapV: 0, gapH: 0, borderW: 0.1, borderC: '#E5E7EB'
         };
         let appConfig = { ...defaultConfig };
@@ -1019,7 +1154,6 @@
             if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
             if (text) setLoadingText(text);
 
-            // reset the bar instantly while overlay is hidden
             if (loadingBarFill) {
                 loadingBarFill.style.transition = 'none';
                 loadingBarFill.style.width = '0%';
@@ -1045,7 +1179,6 @@
             }, 320);
         }
 
-        // Kick off the initial loading animation
         paintProgress(0);
         startCreep();
 
@@ -1057,6 +1190,7 @@
         let currentPaper = 'A4';
         let canvasItems = []; 
         let isDarkMode = true; 
+        let currentPageIndex = 0;
 
         const paperSizes = {
             'A4': { w: 210, h: 297, name: 'A4' },  
@@ -1083,6 +1217,7 @@
             document.getElementById('col2x2').value = appConfig.cols2x2;
             document.getElementById('col1x1').value = appConfig.cols1x1;
             document.getElementById('colPassport').value = appConfig.colsPassport;
+            document.getElementById('colAsa').value = appConfig.colsAsa;
             document.getElementById('numGapV').value = appConfig.gapV;
             document.getElementById('sliderGapV').value = appConfig.gapV;
             document.getElementById('numGapH').value = appConfig.gapH;
@@ -1098,11 +1233,13 @@
             const s2x2 = parseInt(localStorage.getItem('rushid_2x2') || 0);
             const s1x1 = parseInt(localStorage.getItem('rushid_1x1') || 0);
             const sPass = parseInt(localStorage.getItem('rushid_passport') || 0);
+            const sAsa  = parseInt(localStorage.getItem('rushid_asa') || 0);
             const sPkg  = parseInt(localStorage.getItem('rushid_pkg') || 0);
 
             document.getElementById('stat-2x2').value = s2x2;
             document.getElementById('stat-1x1').value = s1x1;
             document.getElementById('stat-passport').value = sPass;
+            document.getElementById('stat-asa').value = sAsa;
             document.getElementById('stat-pkg').value = sPkg;
 
             updateTotalStats();
@@ -1112,10 +1249,11 @@
             const s2x2 = parseInt(document.getElementById('stat-2x2').value) || 0;
             const s1x1 = parseInt(document.getElementById('stat-1x1').value) || 0;
             const sPass = parseInt(document.getElementById('stat-passport').value) || 0;
+            const sAsa  = parseInt(document.getElementById('stat-asa').value) || 0;
             const sPkg  = parseInt(document.getElementById('stat-pkg').value) || 0;
             
             const totalEl = document.getElementById('stat-total');
-            if (totalEl) totalEl.innerText = `Total: ${s2x2 + s1x1 + sPass + sPkg} sets`;
+            if (totalEl) totalEl.innerText = `Total: ${s2x2 + s1x1 + sPass + sAsa + sPkg} sets`;
         }
 
         function updateManualStat(type, val) {
@@ -1123,6 +1261,7 @@
             if (type === '2x2') key = 'rushid_2x2';
             else if (type === '1x1') key = 'rushid_1x1';
             else if (type === 'passport') key = 'rushid_passport';
+            else if (type === 'asa') key = 'rushid_asa';
             else if (type === 'pkg') key = 'rushid_pkg';
             
             let num = parseInt(val);
@@ -1138,7 +1277,7 @@
         }
 
         function recordPrint() {
-            let c2x2 = 0, c1x1 = 0, cPass = 0, cPkg = 0;
+            let c2x2 = 0, c1x1 = 0, cPass = 0, cAsa = 0, cPkg = 0;
             const countedGroups = new Set();
 
             canvasItems.forEach(item => {
@@ -1151,23 +1290,27 @@
                     if (item.size === '2x2') c2x2++;
                     if (item.size === '1x1') c1x1++;
                     if (item.size === 'passport') cPass++;
+                    if (item.size === 'asa') cAsa++;
                 }
             });
 
-            if (c2x2 === 0 && c1x1 === 0 && cPass === 0 && cPkg === 0) return;
+            if (c2x2 === 0 && c1x1 === 0 && cPass === 0 && cAsa === 0 && cPkg === 0) return;
 
             const set2x2 = Math.ceil(c2x2 / appConfig.set2x2);
             const set1x1 = Math.ceil(c1x1 / appConfig.set1x1);
             const setPass = Math.ceil(cPass / appConfig.setPassport);
+            const setAsa  = Math.ceil(cAsa / appConfig.setAsa);
 
             const total2x2 = parseInt(localStorage.getItem('rushid_2x2') || 0) + set2x2;
             const total1x1 = parseInt(localStorage.getItem('rushid_1x1') || 0) + set1x1;
             const totalPass = parseInt(localStorage.getItem('rushid_passport') || 0) + setPass;
+            const totalAsa  = parseInt(localStorage.getItem('rushid_asa') || 0) + setAsa;
             const totalPkg = parseInt(localStorage.getItem('rushid_pkg') || 0) + cPkg;
 
             localStorage.setItem('rushid_2x2', total2x2);
             localStorage.setItem('rushid_1x1', total1x1);
             localStorage.setItem('rushid_passport', totalPass);
+            localStorage.setItem('rushid_asa', totalAsa);
             localStorage.setItem('rushid_pkg', totalPkg);
 
             loadStats();
@@ -1180,6 +1323,7 @@
             localStorage.setItem('rushid_2x2', 0);
             localStorage.setItem('rushid_1x1', 0);
             localStorage.setItem('rushid_passport', 0);
+            localStorage.setItem('rushid_asa', 0);
             localStorage.setItem('rushid_pkg', 0);
             loadStats();
         }
@@ -1216,6 +1360,7 @@
             let max = 8;
             if (sizeType === '2x2') max = 4;
             if (sizeType === 'passport') max = 5;
+            if (sizeType === 'asa') max = 2;
 
             let num = parseInt(val);
             if (isNaN(num) || num < 1) num = 1;
@@ -1230,6 +1375,9 @@
             } else if (sizeType === 'passport') {
                 appConfig.colsPassport = num;
                 document.getElementById('colPassport').value = num;
+            } else if (sizeType === 'asa') {
+                appConfig.colsAsa = num;
+                document.getElementById('colAsa').value = num;
             }
 
             localStorage.setItem('rushid_config', JSON.stringify(appConfig));
@@ -1247,6 +1395,8 @@
             document.getElementById('size1x1H').value = imgObj.size1x1H;
             document.getElementById('sizePassW').value = imgObj.sizePassW;
             document.getElementById('sizePassH').value = imgObj.sizePassH;
+            document.getElementById('sizeAsaW').value = imgObj.sizeAsaW;
+            document.getElementById('sizeAsaH').value = imgObj.sizeAsaH;
         }
 
         function updateCustomSizes() {
@@ -1260,6 +1410,8 @@
             imgObj.size1x1H = parseFloat(document.getElementById('size1x1H').value) || 1;
             imgObj.sizePassW = parseFloat(document.getElementById('sizePassW').value) || 35;
             imgObj.sizePassH = parseFloat(document.getElementById('sizePassH').value) || 45;
+            imgObj.sizeAsaW = parseFloat(document.getElementById('sizeAsaW').value) || 3;
+            imgObj.sizeAsaH = parseFloat(document.getElementById('sizeAsaH').value) || 1.5;
 
             document.getElementById('size2x2W').value = imgObj.size2x2W;
             document.getElementById('size2x2H').value = imgObj.size2x2H;
@@ -1267,6 +1419,8 @@
             document.getElementById('size1x1H').value = imgObj.size1x1H;
             document.getElementById('sizePassW').value = imgObj.sizePassW;
             document.getElementById('sizePassH').value = imgObj.sizePassH;
+            document.getElementById('sizeAsaW').value = imgObj.sizeAsaW;
+            document.getElementById('sizeAsaH').value = imgObj.sizeAsaH;
 
             renderCanvas();
         }
@@ -1303,8 +1457,8 @@
             const workspace = document.querySelector('.workspace');
             const paper = paperSizes[currentPaper];
             
-            const availW = workspace.clientWidth - 60; 
-            const availH = workspace.clientHeight - 60;
+            const availW = workspace.clientWidth - 80; 
+            const availH = workspace.clientHeight - 80;
             
             const paperW_px = paper.w * 3.7795;
             const paperH_px = paper.h * 3.7795;
@@ -1312,16 +1466,37 @@
             const scaleW = availW / paperW_px;
             const scaleH = availH / paperH_px;
             
-            const scale = Math.min(scaleW, scaleH, 1.5); 
+            const scale = Math.min(scaleW, scaleH, 1.0); 
+            
             document.documentElement.style.setProperty('--preview-scale', scale);
+            
+            const pagesWrapper = document.getElementById('pagesWrapper');
+            if (pagesWrapper) {
+                const unscaledW = pagesWrapper.offsetWidth;
+                const unscaledH = pagesWrapper.offsetHeight;
+                const previewWrapper = document.getElementById('previewWrapper');
+                if (previewWrapper) {
+                    previewWrapper.style.width = (unscaledW * scale) + 'px';
+                    previewWrapper.style.height = (unscaledH * scale) + 'px';
+                }
+            }
         }
-        window.addEventListener('resize', fitToViewport);
+
+        const resizeObserver = new ResizeObserver(() => {
+            fitToViewport();
+        });
+        resizeObserver.observe(document.querySelector('.workspace'));
+
+        const pagesObserver = new ResizeObserver(() => {
+            fitToViewport();
+        });
 
         function toggleSafeZone() {
             const isChecked = document.getElementById('safeZoneToggle').checked;
-            const page = document.getElementById('paperPage');
-            if (isChecked) page.classList.add('safe-zone-active');
-            else page.classList.remove('safe-zone-active');
+            document.querySelectorAll('.paper-page').forEach(page => {
+                if (isChecked) page.classList.add('safe-zone-active');
+                else page.classList.remove('safe-zone-active');
+            });
         }
 
         const dropZone = document.getElementById('dropZone');
@@ -1382,7 +1557,8 @@
                         src: e.target.result,
                         size2x2W: 2, size2x2H: 2,
                         size1x1W: 1, size1x1H: 1,
-                        sizePassW: 35, sizePassH: 45
+                        sizePassW: 35, sizePassH: 45,
+                        sizeAsaW: 3, sizeAsaH: 1.5
                     });
                     onDone();
                 };
@@ -1438,11 +1614,13 @@
             appConfig.cols2x2 = 4;
             appConfig.cols1x1 = 6;
             appConfig.colsPassport = 5;
+            appConfig.colsAsa = 2;
             localStorage.setItem('rushid_config', JSON.stringify(appConfig));
 
             document.getElementById('col2x2').value = 4;
             document.getElementById('col1x1').value = 6;
             document.getElementById('colPassport').value = 5;
+            document.getElementById('colAsa').value = 2;
 
             if (activeImageId) {
                 const imgObj = uploadedImages.find(i => i.id === activeImageId);
@@ -1450,6 +1628,7 @@
                     imgObj.size2x2W = 2; imgObj.size2x2H = 2;
                     imgObj.size1x1W = 1; imgObj.size1x1H = 1;
                     imgObj.sizePassW = 35; imgObj.sizePassH = 45;
+                    imgObj.sizeAsaW = 3; imgObj.sizeAsaH = 1.5;
                     loadSizesToInputs();
                 }
             }
@@ -1490,6 +1669,7 @@
             const q2x2 = parseInt(document.getElementById('qty2x2').value) || 0;
             const q1x1 = parseInt(document.getElementById('qty1x1').value) || 0;
             const qPassport = parseInt(document.getElementById('qtyPassport').value) || 0;
+            const qAsa = parseInt(document.getElementById('qtyAsa').value) || 0;
 
             canvasItems = canvasItems.filter(item => !(item.imgId === activeImageId && item.type === 'normal'));
 
@@ -1497,10 +1677,12 @@
             for (let i = 0; i < q2x2; i++) canvasItems.push({ id: newId++, imgId: activeImageId, size: '2x2', type: 'normal' });
             for (let i = 0; i < qPassport; i++) canvasItems.push({ id: newId++, imgId: activeImageId, size: 'passport', type: 'normal' });
             for (let i = 0; i < q1x1; i++) canvasItems.push({ id: newId++, imgId: activeImageId, size: '1x1', type: 'normal' });
+            for (let i = 0; i < qAsa; i++) canvasItems.push({ id: newId++, imgId: activeImageId, size: 'asa', type: 'normal' });
 
             document.getElementById('btnClear2x2').classList.toggle('active', q2x2 > 0);
             document.getElementById('btnClear1x1').classList.toggle('active', q1x1 > 0);
             document.getElementById('btnClearPassport').classList.toggle('active', qPassport > 0);
+            document.getElementById('btnClearAsa').classList.toggle('active', qAsa > 0);
 
             renderCanvas();
         }
@@ -1510,28 +1692,45 @@
                 document.getElementById('qty2x2').value = 0;
                 document.getElementById('qty1x1').value = 0;
                 document.getElementById('qtyPassport').value = 0;
+                document.getElementById('qtyAsa').value = 0;
                 document.getElementById('btnClear2x2').classList.remove('active');
                 document.getElementById('btnClear1x1').classList.remove('active');
                 document.getElementById('btnClearPassport').classList.remove('active');
+                document.getElementById('btnClearAsa').classList.remove('active');
+                
+                let cPkg = 0;
+                canvasItems.forEach(item => {
+                    if (item.type.startsWith('pkg')) cPkg++;
+                });
+                document.getElementById('btnClearPkg').classList.toggle('active', cPkg > 0);
+                
                 return;
             }
             
-            let c2x2 = 0, c1x1 = 0, cPass = 0;
+            let c2x2 = 0, c1x1 = 0, cPass = 0, cAsa = 0;
+            const pkgGroups = new Set();
             canvasItems.forEach(item => {
                 if (item.imgId === activeImageId && item.type === 'normal') {
                     if (item.size === '2x2') c2x2++;
                     if (item.size === '1x1') c1x1++;
                     if (item.size === 'passport') cPass++;
+                    if (item.size === 'asa') cAsa++;
+                }
+                if (item.type.startsWith('pkg')) {
+                    pkgGroups.add(item.groupId);
                 }
             });
             
             document.getElementById('qty2x2').value = c2x2;
             document.getElementById('qty1x1').value = c1x1;
             document.getElementById('qtyPassport').value = cPass;
+            document.getElementById('qtyAsa').value = cAsa;
             
             document.getElementById('btnClear2x2').classList.toggle('active', c2x2 > 0);
             document.getElementById('btnClear1x1').classList.toggle('active', c1x1 > 0);
             document.getElementById('btnClearPassport').classList.toggle('active', cPass > 0);
+            document.getElementById('btnClearAsa').classList.toggle('active', cAsa > 0);
+            document.getElementById('btnClearPkg').classList.toggle('active', pkgGroups.size > 0);
         }
 
         function setPaperSize(size) {
@@ -1543,21 +1742,16 @@
             });
 
             const paper = paperSizes[size];
-            const page = document.getElementById('paperPage');
             
             document.documentElement.style.setProperty('--paper-width', `${paper.w}mm`);
             document.documentElement.style.setProperty('--paper-height', `${paper.h}mm`);
             document.documentElement.style.setProperty('--paper-size-name', paper.name);
-            
-            document.getElementById('paperLabel').innerText = size;
 
             const itemsPerRowGroup = document.getElementById('itemsPerRowGroup');
             if (size === '5R') {
                 itemsPerRowGroup.style.display = 'none';
-                page.classList.add('paper-5r');
             } else {
                 itemsPerRowGroup.style.display = 'block';
-                page.classList.remove('paper-5r');
             }
 
             fitToViewport();
@@ -1588,10 +1782,15 @@
                 const count = currentPaper === 'A4' ? 30 : 5;
                 for (let i = 0; i < count; i++) canvasItems.push({ id: newId + i, imgId: activeImageId, size: 'passport', type: 'normal' });
             }
+            else if (preset === 'MaxAsa') { 
+                const count = currentPaper === 'A4' ? 14 : 4;
+                for (let i = 0; i < count; i++) canvasItems.push({ id: newId + i, imgId: activeImageId, size: 'asa', type: 'normal' });
+            }
             else if (preset === 'MixAll') { 
                 for (let i = 0; i < 4; i++) canvasItems.push({ id: newId + i, imgId: activeImageId, size: '2x2', type: 'normal' });
                 for (let i = 0; i < 12; i++) canvasItems.push({ id: newId + i + 10, imgId: activeImageId, size: '1x1', type: 'normal' });
                 for (let i = 0; i < 5; i++) canvasItems.push({ id: newId + i + 30, imgId: activeImageId, size: 'passport', type: 'normal' });
+                for (let i = 0; i < 2; i++) canvasItems.push({ id: newId + i + 50, imgId: activeImageId, size: 'asa', type: 'normal' });
             }
             
             syncInputsToCanvas();
@@ -1622,6 +1821,9 @@
             } else if (item.size === 'passport') {
                 div.style.width = `${imgObj.sizePassW}mm`;
                 div.style.height = `${imgObj.sizePassH}mm`;
+            } else if (item.size === 'asa') {
+                div.style.width = `${imgObj.sizeAsaW}in`;
+                div.style.height = `${imgObj.sizeAsaH}in`;
             }
 
             div.appendChild(img);
@@ -1637,7 +1839,17 @@
                 });
             });
 
-            const rects = items.map(el => el.getBoundingClientRect());
+            const rects = items.map(el => {
+                let top = 0, left = 0, width = el.offsetWidth, height = el.offsetHeight;
+                let curr = el;
+                while (curr && curr !== wrapper) {
+                    top += curr.offsetTop;
+                    left += curr.offsetLeft;
+                    curr = curr.offsetParent;
+                }
+                return { top, left, bottom: top + height, right: left + width };
+            });
+
             items.forEach((el, i) => {
                 const r = rects[i];
                 const hasNeighbourAbove = rects.some((o, j) =>
@@ -1650,15 +1862,57 @@
             });
         }
 
+        function updatePaginationUI() {
+            const pages = document.querySelectorAll('.paper-page');
+            const controls = document.getElementById('paginationControls');
+            const total = pages.length;
+
+            if (total <= 1) {
+                controls.classList.remove('visible');
+            } else {
+                controls.classList.add('visible');
+            }
+
+            if (currentPageIndex >= total && total > 0) {
+                currentPageIndex = total - 1;
+            }
+            if (currentPageIndex < 0) {
+                currentPageIndex = 0;
+            }
+
+            pages.forEach((page, idx) => {
+                if (idx === currentPageIndex) page.classList.add('active-page');
+                else page.classList.remove('active-page');
+            });
+
+            document.getElementById('pageText').innerText = `Page ${currentPageIndex + 1} of ${total}`;
+            document.getElementById('prevPageBtn').disabled = (currentPageIndex === 0);
+            document.getElementById('nextPageBtn').disabled = (currentPageIndex === total - 1);
+
+            setTimeout(fitToViewport, 10);
+        }
+
+        function changePage(delta) {
+            const pages = document.querySelectorAll('.paper-page');
+            const newIndex = currentPageIndex + delta;
+            if (newIndex >= 0 && newIndex < pages.length) {
+                currentPageIndex = newIndex;
+                updatePaginationUI();
+            }
+        }
+
         function renderCanvas() {
-            const page = document.getElementById('paperPage');
+            const pagesWrapper = document.getElementById('pagesWrapper');
             const warning = document.getElementById('overflowWarning');
             
-            warning.style.display = 'none';
-            page.innerHTML = '<div class="paper-label" id="paperLabel">' + currentPaper + '</div><div class="safe-zone-overlay"></div>';
+            if (warning) warning.style.display = 'none';
+            pagesWrapper.innerHTML = '';
 
             if (uploadedImages.length === 0) {
-                page.innerHTML += `
+                let currentPage = document.createElement('div');
+                currentPage.className = 'paper-page active-page';
+                currentPage.innerHTML = '<div class="paper-label">' + currentPaper + '</div><div class="safe-zone-overlay"></div>';
+                currentPage.innerHTML += `
                     <div class="empty-state">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -1669,10 +1923,17 @@
                         <button class="btn btn-primary" style="margin-top: 15px; padding: 12px 24px; font-size: 0.9rem; border-radius: 6px;" onclick="document.getElementById('fileInput').click()">Upload Image</button>
                     </div>
                 `;
+                pagesWrapper.appendChild(currentPage);
+                pagesObserver.disconnect();
+                pagesObserver.observe(pagesWrapper);
+                updatePaginationUI();
                 return;
             }
             if (canvasItems.length === 0) {
-                page.innerHTML += `
+                let currentPage = document.createElement('div');
+                currentPage.className = 'paper-page active-page';
+                currentPage.innerHTML = '<div class="paper-label">' + currentPaper + '</div><div class="safe-zone-overlay"></div>';
+                currentPage.innerHTML += `
                     <div class="empty-state">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -1682,22 +1943,56 @@
                         <span>Select a preset or enter quantities</span>
                     </div>
                 `;
+                pagesWrapper.appendChild(currentPage);
+                pagesObserver.disconnect();
+                pagesObserver.observe(pagesWrapper);
+                updatePaginationUI();
                 return;
             }
 
-            const wrapper = document.createElement('div');
-            wrapper.className = 'layout-container';
+            let currentPage = document.createElement('div');
+            currentPage.className = 'paper-page' + (currentPaper === '5R' ? ' paper-5r' : '');
+            currentPage.innerHTML = '<div class="paper-label">' + currentPaper + '</div><div class="safe-zone-overlay"></div>';
+            pagesWrapper.appendChild(currentPage);
             
+            let currentWrapper = document.createElement('div');
+            currentWrapper.className = 'layout-container';
             const gapV = appConfig.gapV;
             const gapH = appConfig.gapH;
-            wrapper.style.gap = gapV === 0 ? '0px' : `${gapV}mm`;
-            wrapper.classList.toggle('collapse-v', gapV === 0);
-            wrapper.classList.toggle('collapse-h', gapH === 0);
+            currentWrapper.style.gap = gapV === 0 ? '0px' : `${gapV}mm`;
+            currentWrapper.classList.toggle('collapse-v', gapV === 0);
+            currentWrapper.classList.toggle('collapse-h', gapH === 0);
+            currentPage.appendChild(currentWrapper);
+
+            function addGroupToPage(groupEl) {
+                currentWrapper.appendChild(groupEl);
+                void currentPage.offsetHeight;
+                
+                const availableHeight = (paperSizes[currentPaper].h - 6) * 3.779527559;
+                
+                if (currentWrapper.offsetHeight > availableHeight && currentWrapper.children.length > 1) {
+                    currentWrapper.removeChild(groupEl);
+                    
+                    currentPage = document.createElement('div');
+                    currentPage.className = 'paper-page' + (currentPaper === '5R' ? ' paper-5r' : '');
+                    currentPage.innerHTML = '<div class="paper-label">' + currentPaper + '</div><div class="safe-zone-overlay"></div>';
+                    pagesWrapper.appendChild(currentPage);
+                    
+                    currentWrapper = document.createElement('div');
+                    currentWrapper.className = 'layout-container';
+                    currentWrapper.style.gap = gapV === 0 ? '0px' : `${gapV}mm`;
+                    currentWrapper.classList.toggle('collapse-v', gapV === 0);
+                    currentWrapper.classList.toggle('collapse-h', gapH === 0);
+                    currentPage.appendChild(currentWrapper);
+                    
+                    currentWrapper.appendChild(groupEl);
+                }
+            }
 
             const normals = canvasItems.filter(item => item.type === 'normal');
             const packages = canvasItems.filter(item => item.type.startsWith('pkg'));
 
-            const normalsBySize = { '2x2': [], 'passport': [], '1x1': [] };
+            const normalsBySize = { '2x2': [], 'passport': [], 'asa': [], '1x1': [] };
             normals.forEach(item => normalsBySize[item.size].push(item));
 
             function createGrid(items, colsSetting) {
@@ -1714,7 +2009,7 @@
                             grid.appendChild(el);
                         }
                     });
-                    wrapper.appendChild(grid);
+                    addGroupToPage(grid);
                 }
             }
 
@@ -1750,7 +2045,7 @@
                         el.style.flexShrink = '0';
                         gridTop.appendChild(el);
                     });
-                    wrapper.appendChild(gridTop);
+                    addGroupToPage(gridTop);
 
                     if (pIndex < passports.length) {
                         let maxSleeping = Math.floor((availWidth + gapH) / (pH + gapH));
@@ -1779,11 +2074,17 @@
                             el.appendChild(img);
                             gridBottom.appendChild(el);
                         });
-                        wrapper.appendChild(gridBottom);
+                        addGroupToPage(gridBottom);
                     }
                 }
             } else if (currentPaper !== '5R') {
                 createGrid(normalsBySize['passport'], appConfig.colsPassport);
+            }
+
+            if (currentPaper === '5R') {
+                createGrid(normalsBySize['asa'], 1);
+            } else {
+                createGrid(normalsBySize['asa'], appConfig.colsAsa);
             }
             
             if (currentPaper === '5R') {
@@ -1844,16 +2145,38 @@
 
                 block.appendChild(col2x2);
                 block.appendChild(col1x1);
-                wrapper.appendChild(block);
+                addGroupToPage(block);
             });
 
-            page.appendChild(wrapper);
-            markCollapsedBorders(wrapper);
-            if(document.getElementById('safeZoneToggle').checked) page.classList.add('safe-zone-active');
+            const cap = document.getElementById('captureArea');
+            const origTransform = cap.style.transform;
+            cap.style.transform = 'scale(1)';
+            void cap.offsetHeight;
+            
+            pagesWrapper.querySelectorAll('.paper-page').forEach(page => {
+                const w = page.querySelector('.layout-container');
+                if (w) markCollapsedBorders(w);
+                if(document.getElementById('safeZoneToggle').checked) page.classList.add('safe-zone-active');
+            });
+            
+            cap.style.transform = origTransform;
 
-            setTimeout(() => {
-                if (page.scrollHeight > page.clientHeight + 5 || page.scrollWidth > page.clientWidth + 5) warning.style.display = 'block';
-            }, 50);
+            pagesObserver.disconnect();
+            pagesObserver.observe(pagesWrapper);
+
+            updatePaginationUI();
+            
+            let hasOverflow = false;
+            pagesWrapper.querySelectorAll('.paper-page').forEach(page => {
+                const w = page.querySelector('.layout-container');
+                if (w && w.offsetHeight > (paperSizes[currentPaper].h - 6) * 3.779527559) {
+                    hasOverflow = true;
+                }
+            });
+            if (hasOverflow && warning) {
+                warning.style.display = 'block';
+                warning.innerText = "Warning: Some elements exceed a single page!";
+            }
         }
 
         async function triggerPrint() {
@@ -1883,53 +2206,79 @@
 
         async function exportFile() {
             const format = document.getElementById('exportFormat').value;
-            const captureArea = document.getElementById('captureArea');
+            const itemsCount = document.querySelectorAll('.photo-item').length + document.querySelectorAll('.landscape-passport').length;
             
-            if (document.querySelectorAll('.photo-item').length === 0 && document.querySelectorAll('.landscape-passport').length === 0) {
+            if (itemsCount === 0) {
                 showAlert("Empty Canvas", "Please add photos to the canvas before exporting.");
                 return;
             }
 
-            const originalShadow = captureArea.style.boxShadow;
-            captureArea.style.boxShadow = 'none';
+            const cap = document.getElementById('captureArea');
+            const originalTransform = cap.style.transform;
+            cap.style.transform = 'scale(1)';
+            
+            const previewWrapper = document.getElementById('previewWrapper');
+            const originalW = previewWrapper.style.width;
+            const originalH = previewWrapper.style.height;
+            previewWrapper.style.width = 'auto';
+            previewWrapper.style.height = 'auto';
 
-            const originalScale = document.documentElement.style.getPropertyValue('--preview-scale');
-            document.documentElement.style.setProperty('--preview-scale', 1);
+            // Temporarily show all pages for export
+            const allPages = document.querySelectorAll('.paper-page');
+            allPages.forEach(p => p.classList.add('active-page'));
 
             showLoading('Rendering page...');
             await new Promise(r => setTimeout(r, 120));
 
             try {
-                const canvas = await html2canvas(captureArea, { 
-                    scale: 4, 
-                    useCORS: true,
-                    onclone: (clonedDoc) => {
-                        const cap = clonedDoc.getElementById('captureArea');
-                        if (cap) { cap.style.boxShadow = 'none'; cap.style.border = 'none'; }
-                        const overlay = clonedDoc.querySelector('.safe-zone-overlay');
-                        if (overlay) overlay.style.display = 'none';
-                        const label = clonedDoc.querySelector('.paper-label');
-                        if (label) label.style.display = 'none';
-                        const loading = clonedDoc.getElementById('loadingOverlay');
-                        if (loading) loading.style.display = 'none';
-                    }
-                });
-
-                setLoadingText(format === 'pdf' ? 'Generating PDF...' : 'Saving image...');
-                await new Promise(r => setTimeout(r, 40));
-
                 const finalFileName = generateFilename(format === 'jpeg' ? 'jpg' : format);
 
                 if (format === 'pdf') {
                     const { jsPDF } = window.jspdf;
                     const formatName = currentPaper === 'A4' ? [210, 297] : [127, 178];
                     const pdf = new jsPDF('p', 'mm', formatName);
-                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    
+                    for (let i = 0; i < allPages.length; i++) {
+                        const pageCanvas = await html2canvas(allPages[i], { 
+                            scale: 4, 
+                            useCORS: true,
+                            onclone: (clonedDoc) => {
+                                const clonedPage = clonedDoc.querySelectorAll('.paper-page')[i];
+                                if (clonedPage) {
+                                    const overlay = clonedPage.querySelector('.safe-zone-overlay');
+                                    if (overlay) overlay.style.display = 'none';
+                                    const label = clonedPage.querySelector('.paper-label');
+                                    if (label) label.style.display = 'none';
+                                }
+                                const loading = clonedDoc.getElementById('loadingOverlay');
+                                if (loading) loading.style.display = 'none';
+                            }
+                        });
+                        
+                        setLoadingText(`Generating PDF Page ${i+1}/${allPages.length}...`);
+                        const imgData = pageCanvas.toDataURL('image/jpeg', 1.0);
+                        const pdfWidth = pdf.internal.pageSize.getWidth();
+                        const pdfHeight = pdf.internal.pageSize.getHeight();
+                        
+                        if (i > 0) pdf.addPage();
+                        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    }
                     pdf.save(finalFileName);
                 } else {
+                    const canvas = await html2canvas(document.getElementById('pagesWrapper'), { 
+                        scale: 4, 
+                        useCORS: true,
+                        onclone: (clonedDoc) => {
+                            const overlays = clonedDoc.querySelectorAll('.safe-zone-overlay');
+                            overlays.forEach(o => o.style.display = 'none');
+                            const labels = clonedDoc.querySelectorAll('.paper-label');
+                            labels.forEach(l => l.style.display = 'none');
+                            const loading = clonedDoc.getElementById('loadingOverlay');
+                            if (loading) loading.style.display = 'none';
+                        }
+                    });
+                    
+                    setLoadingText('Saving image...');
                     const link = document.createElement('a');
                     link.download = finalFileName;
                     link.href = canvas.toDataURL(`image/${format}`, 1.0); 
@@ -1938,14 +2287,14 @@
 
                 recordPrint();
             } catch (error) {
-                hideLoading();
                 console.error("Export failed:", error);
                 showAlert("Export Failed", "Failed to export file. Please try again.");
             } finally {
                 hideLoading();
-                document.documentElement.style.setProperty('--preview-scale', originalScale);
-                captureArea.style.boxShadow = originalShadow;
-                fitToViewport();
+                cap.style.transform = originalTransform;
+                previewWrapper.style.width = originalW;
+                previewWrapper.style.height = originalH;
+                updatePaginationUI(); // Restore view to just the active page
             }
         }
 
@@ -1954,6 +2303,7 @@
             loadStats();
             initAccordions();
             setPaperSize('A4');
+            syncInputsToCanvas();
             fitToViewport();
             renderCanvas();
         }
