@@ -2207,6 +2207,13 @@ async function resetAll() {
    PAGE NAVIGATION
    ========================================================= */
 function getVisiblePageIndices() {
+    // Keep one blank page visible when the workspace has no uploaded images.
+    // This gives the user an empty paper canvas immediately on first load
+    // (and after Clear All), instead of showing "No visible pages".
+    if (!uploadedImages.length) {
+        return pages.map((_, index) => index);
+    }
+
     // A page is only part of the document when its page/group and at least
     // one of its layers are visible. Hiding a standalone layer therefore
     // removes its entire page instead of leaving a blank sheet in the canvas.
