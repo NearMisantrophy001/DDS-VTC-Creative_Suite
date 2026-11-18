@@ -1832,12 +1832,17 @@ function syncGroupTileSizes(page, ids) {
     ids.forEach(id => { const obj = uploadedImages.find(x => x.id === id); if (obj) { obj.tileW = reference.w; obj.tileH = reference.h; } });
     page.imageIds = ids; page.imageId = ids[0];
 }
-function finishLayerMove(ids, targetId) {
+function finishLayerMove(ids, targetId, options = {}) {
     selectedGroupPageId = null;
-    if (ids.length) { activeImageId = ids[0]; selectedImageIds = new Set(ids); }
+    // A reorder within the same group must not change the active image or its
+    // tile-size controls. Otherwise syncTileControls() can silently switch the
+    // selected preset to the dimensions stored on the dragged layer.
+    if (!options.preserveSelection) {
+        if (ids.length) { activeImageId = ids[0]; selectedImageIds = new Set(ids); }
+    }
     const pageIndex = targetId ? pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(targetId)) : -1;
     if (pageIndex >= 0) activePageIndex = pageIndex;
-    if (activeImageId) syncTileControls(activeImageId);
+    if (!options.preserveSelection && activeImageId) syncTileControls(activeImageId);
     clearLayerDragStyles(); renderImageQueue(); renderCanvas();
 }
 function moveDraggedLayersToGroupPosition(targetId, after) {
@@ -1865,8 +1870,11 @@ function moveDraggedLayersToGroupPosition(targetId, after) {
     targetIds.splice(insertAt, 0, ...moving.filter(id => !targetIds.includes(id)));
     if (targetIds.length < 2) return;
     syncGroupTileSizes(targetPage, targetIds);
-    // Preserve the group's collapsed state when inserting layers.
-    finishLayerMove(moving, targetId);
+    // Preserve the group's collapsed state when inserting layers. For a pure
+    // reorder within this group, also preserve the active layer and tile preset:
+    // changing selection here would load another layer's saved tile dimensions.
+    const isPureReorder = movingFromOutside.length === 0 && movingWithin.length > 0;
+    finishLayerMove(moving, targetId, { preserveSelection: isPureReorder });
 }
 function moveDraggedLayersToRootPosition(targetId, after) {
     const ids = [...draggedLayerIds].filter((id, i, arr) => id !== targetId && arr.indexOf(id) === i);
