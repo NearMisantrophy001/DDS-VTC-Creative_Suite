@@ -4,7 +4,7 @@ const cardsData = [
         title: "Rush ID",
         subtitle: "Created Nov 05, 2026",
         category: "tools",
-        cover: "Assets/Rush_Cover.jpg",
+        cover: "Assets/Rush_Cover.webp",
         logo: "R",
         href: "Rush_ID.html"
     },
@@ -12,7 +12,7 @@ const cardsData = [
         title: "Mug Printing",
         subtitle: "Created Nov 07, 2026",
         category: "tools",
-        cover: "Assets/Mug_Cover.jpg",
+        cover: "Assets/Mug_Cover.webp",
         logo: "M",
         href: "Mug_Printing.html"
     },
@@ -20,7 +20,7 @@ const cardsData = [
         title: "Tile Layout",
         subtitle: "Created Nov 11, 2026",
         category: "Tools",
-        cover: "Assets/PrintGrid_Cover.jpg",
+        cover: "Assets/Tile_Cover.webp",
         logo: "T",
         href: "Tile_Layout.html"
     },
