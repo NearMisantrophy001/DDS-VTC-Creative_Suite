@@ -16,14 +16,13 @@ const cardsData = [
         logo: "M",
         href: "Mug_Printing.html"
     },
-    // ================= FILES =================
     {
-        title: "Project Brief 2026",
-        subtitle: "PDF Document",
-        category: "files",
-        cover: "Assets/2.jpg",
-        logo: "P",
-        href: "#"
+        title: "Tile Layout",
+        subtitle: "Created Nov 11, 2026",
+        category: "Tools",
+        cover: "Assets/PrintGrid_Cover.jpg",
+        logo: "T",
+        href: "Print_Grid.html"
     },
     {
         title: "Client Contract Draft",

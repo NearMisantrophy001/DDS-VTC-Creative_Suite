@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PrintGrid — Tile Layout Tool</title>
+<title>Tile Layout — PrintGrid</title>
 <link rel="icon" type="image/png" sizes="192x192" href="favicon_io/favicon_dark.ico">
 <style>
     :root {
@@ -169,38 +169,62 @@
     .drop-zone strong { color: var(--brand-blue); font-weight: 600; }
     .upload-icon { color: var(--text-muted); margin-bottom: 6px; width: 20px; height: 20px; }
 
-    .image-queue {
-        display: flex; flex-wrap: wrap; gap: 6px;
-        padding: 6px; margin-top: 8px;
-        background: var(--bg-workspace);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        align-items: center;
-        min-height: 50px;
+    .panel-kicker, .layers-title {
+        font-size: .65rem; font-weight: 700; letter-spacing: .06em;
+        text-transform: uppercase; color: var(--text-muted);
     }
-    .queue-empty { font-size: .7rem; color: #9CA3AF; width: 100%; text-align: center; }
-
-    .thumb-container {
-        position: relative; width: 46px; height: 46px; cursor: pointer;
-        border-radius: 4px; overflow: hidden; border: 2px solid transparent;
-        transition: all .2s; background: var(--border);
+    .drop-zone {
+        margin-top: 10px; min-height: 96px; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 5px;
+        border: 2px dashed #666; border-radius: 7px; padding: 14px 8px;
+        background: #303030; color: var(--text-main); cursor: pointer;
     }
-    .thumb-container img { display: block; width: 100%; height: 100%; object-fit: cover; }
-    .thumb-container.active { border-color: var(--brand-blue); box-shadow: 0 0 0 2px rgba(37,99,235,.28); }
-
-    .thumb-container .remove-btn,
-    .thumb-container .edit-btn {
-        position: absolute; width: 15px; height: 15px; border: none; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        color: white; padding: 0; line-height: 1; opacity: 0; transition: opacity .15s;
-    }
-    .thumb-container .remove-btn { top: 0; right: 0; background: rgba(0,0,0,.72); font-size: 11px; }
-    .thumb-container .edit-btn { bottom: 0; right: 0; background: rgba(37,99,235,.92); }
-    .thumb-container .edit-btn svg { width: 9px; height: 9px; }
-    .thumb-container:hover .remove-btn,
-    .thumb-container:hover .edit-btn { opacity: 1; }
-    .thumb-container .remove-btn:hover { background: var(--danger); }
-    .thumb-container .edit-btn:hover { background: var(--primary-hover); }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--brand-blue); background: rgba(37,99,235,.10); }
+    .drop-zone .upload-icon { width: 22px; height: 22px; margin: 0 0 3px; }
+    .drop-main { font-size: .75rem; font-weight: 700; }
+    .drop-sub { font-size: .65rem; color: var(--text-muted); }
+    .drop-sub strong { color: #60A5FA; }
+    .layers-heading { display:flex; align-items:center; justify-content:space-between; margin-top: 20px; padding-bottom: 8px; border-bottom:1px solid var(--border); }
+    .layers-title { display:flex; align-items:center; gap:7px; }
+    .layers-title span { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:10px; background:var(--bg-workspace); color:var(--text-muted); font-size:.62rem; }
+    .layer-item.multi-selected { outline:1px solid var(--brand-blue); background:rgba(37,99,235,.14); }
+    .layer-group { display:flex; flex-direction:column; gap:2px; border-radius:6px; }
+    .layer-group-header { display:flex; align-items:center; gap:7px; min-width:0; min-height:38px; padding:5px 7px; border:1px solid transparent; border-radius:6px; background:var(--bg-workspace); cursor:pointer; }
+    .layer-group-header:hover { background:var(--hover-bg); }
+    .layer-group-header.drop-target, .layer-item.drop-target { outline:1px solid var(--brand-blue); background:rgba(37,99,235,.18); }
+    .layer-group-icon { color:var(--text-muted); font-size:13px; flex-shrink:0; }
+    .layer-group-title { color:var(--text-main); font-size:.68rem; font-weight:600; min-width:0; }
+    .layer-group-count { margin-left:auto; color:var(--text-muted); font-size:.6rem; white-space:nowrap; }
+    .layer-group-children { display:flex; flex-direction:column; gap:3px; padding-left:17px; margin-left:9px; border-left:1px solid var(--border); }
+    .layer-group-children.is-collapsed { display:none; }
+    .layer-group-chevron { width:14px; height:20px; border:0; background:transparent; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0; font-size:11px; transition:transform .15s ease; }
+    .layer-group-chevron.is-collapsed { transform:rotate(-90deg); }
+    .layer-group .layer-item { background:transparent; }
+    .layer-group .layer-item:hover { background:var(--hover-bg); }
+    .layer-group .layer-item.active { background:var(--hover-bg); }
+    .layer-item[draggable="true"] { cursor:grab; }
+    .layer-item.is-dragging { opacity:.35; }
+    .layer-item.drop-before { box-shadow: inset 0 2px 0 var(--brand-blue); }
+    .layer-item.drop-after { box-shadow: inset 0 -2px 0 var(--brand-blue); }
+    .layer-group-header.drop-target { outline:1px solid var(--brand-blue); background:rgba(37,99,235,.18); }
+    .layer-grip { cursor:grab; padding:5px 2px; border-radius:3px; }
+    .layer-grip:hover { color:var(--text-main); background:var(--border); }
+    .image-queue.drop-root-target { outline:1px dashed var(--brand-blue); outline-offset:4px; border-radius:6px; }
+    .page-layer-heading { display:flex; align-items:center; justify-content:space-between; padding:10px 2px 7px; color:var(--text-muted); font-size:.63rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+    .image-queue { display:flex; flex-direction:column; gap:5px; padding:0; margin:0; border:0; background:transparent; min-height:0; }
+    .queue-empty { font-size:.7rem; color:#9CA3AF; padding:14px 8px; text-align:center; border:1px dashed var(--border); border-radius:6px; }
+    .layer-item { display:flex; align-items:center; gap:7px; min-width:0; padding:6px 7px; border:1px solid transparent; border-radius:6px; background:var(--bg-workspace); cursor:pointer; transition:background .15s,border-color .15s; }
+    .layer-item:hover { background:var(--hover-bg); }
+    .layer-item.active { border-color:var(--border); border-left:3px solid var(--brand-blue); background:var(--hover-bg); padding-left:5px; }
+    .layer-grip { color:var(--text-muted); font-size:11px; line-height:1; flex-shrink:0; }
+    .layer-thumb { width:38px; height:30px; flex-shrink:0; border-radius:3px; overflow:hidden; background:#111; }
+    .layer-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .layer-name { flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:.68rem; font-weight:600; color:var(--text-main); }
+    .layer-item.active .layer-name { color:#60A5FA; }
+    .layer-action { width:19px; height:22px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--text-muted); cursor:pointer; border-radius:3px; font-size:12px; }
+    .layer-action:hover { background:var(--border); color:var(--text-main); }
+    .layer-action svg { width:14px; height:14px; display:block; }
+    .layer-action.layer-delete:hover { color:var(--danger); background:var(--danger-bg); }
 
     /* ============ BUTTONS / INPUTS ============ */
     .btn {
@@ -228,6 +252,11 @@
         gap: 6px; margin-bottom: 12px;
     }
     .input-group:last-child { margin-bottom: 0; }
+    .tile-preset-group {
+        display: flex; align-items: center; justify-content: flex-start;
+        gap: 6px; margin-bottom: 10px;
+    }
+    .tile-preset-group .select-wrapper { width: 100%; min-width: 0; }
 
     .static-label {
         font-size: .75rem; font-weight: 600; flex-grow: 1;
@@ -305,6 +334,7 @@
     }
     .select-wrapper.full { width: 100%; }
     .select-wrapper.full select { padding: 8px 20px 8px 8px; font-size: .8rem; }
+    #presetSelect, #presetSelect option { color: var(--text-main); background-color: var(--bg-panel); }
 
     .setting-row { margin-bottom: 16px; }
     .setting-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -353,8 +383,8 @@
 
     /* ============ WORKSPACE ============ */
     .workspace {
-        flex: 1; display: flex; justify-content: center; align-items: center;
-        overflow: hidden; padding: 40px; position: relative;
+        flex: 1; display: flex; justify-content: center; align-items: flex-start;
+        overflow: hidden; padding: 24px 40px 70px; position: relative;
         transition: background-color .3s;
     }
     .workspace.dragover-canvas {
@@ -367,9 +397,9 @@
 
     #captureArea {
         position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%) scale(var(--preview-scale));
-        transform-origin: center center;
+        top: 0; left: 50%;
+        transform: translateX(-50%) scale(var(--preview-scale));
+        transform-origin: top center;
         transition: transform .2s ease-out;
         display: flex; flex-direction: column;
     }
@@ -469,8 +499,6 @@
         font-size: .72rem; font-weight: 700; color: var(--text-muted);
         min-width: 78px; text-align: center; letter-spacing: .02em; user-select: none;
     }
-    .pager .pager-add { font-size: .68rem; font-weight: 700; padding: 0 10px; }
-    .pager .pager-sep { width: 1px; height: 18px; background: var(--border); margin: 0 2px; }
 
     /* ============ MODALS ============ */
     .modal-overlay {
@@ -693,85 +721,33 @@
             <a class="back-btn" href="index.html" title="Back">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </a>
-            <div class="logo-title"><h1>PrintGrid</h1></div>
+            <div class="logo-title"><h1>Tile Layout</h1></div>
         </div>
         <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"></button>
     </div>
 
     <div class="sidebar-content">
-        <!-- IMAGE -->
-        <div>
-            <div class="section-title" style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--text-muted);letter-spacing:.05em;margin-bottom:8px;">Image</div>
-            <div class="drop-zone" id="dropZone">
-                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                <div style="font-size:.75rem;font-weight:600;margin-bottom:2px;">Drag &amp; Drop image here</div>
-                <div style="font-size:.65rem;color:#9CA3AF;">or <strong>click to browse</strong></div>
-                <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/webp, image/svg+xml" multiple>
+        <!-- IMAGE UPLOAD + LAYERS -->
+        <div class="image-tools">
+            <div class="panel-kicker">Upload Image</div>
+            <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/webp, image/svg+xml" multiple style="display:none;">
+            <div class="drop-zone" id="imageDropZone" role="button" tabindex="0" onclick="document.getElementById('fileInput').click()">
+                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/></svg>
+                <div class="drop-main">Drag &amp; drop photo here</div>
+                <div class="drop-sub">or <strong>click to browse</strong></div>
             </div>
-
+            <div class="layers-heading">
+                <div class="layers-title">Layers <span id="layerCount">0</span></div>
+                <div class="layers-actions" style="display:flex;align-items:center;gap:10px;">
+                    <button class="text-btn" id="groupLayersBtn" type="button" onclick="toggleGroupSelection()" title="Select 2 or more layers to group" disabled>Group</button>
+                    <button class="text-btn" type="button" onclick="clearAll()">Clear all</button>
+                </div>
+            </div>
+            <div class="page-layer-heading"><span id="pageLayerLabel">Page 1</span></div>
             <div class="image-queue" id="imageQueue">
-                <div class="queue-empty">No images uploaded</div>
-            </div>
-
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-                <button class="text-btn" onclick="openCropModal()" title="Crop the selected image">✎ Edit / Crop Image</button>
-                <button class="text-btn" onclick="clearAll()">Clear All</button>
+                <div class="queue-empty">No layers yet</div>
             </div>
         </div>
-
-        <!-- TILE SIZE -->
-        <details open id="acc-tile">
-            <summary>Tile Size</summary>
-            <div class="details-content">
-                <div class="grid-3" id="presetGrid">
-                    <button class="btn preset-btn" data-w="5"     data-h="5">5 × 5</button>
-                    <button class="btn preset-btn" data-w="4.5"   data-h="4.5">4.5 × 4.5</button>
-                    <button class="btn preset-btn" data-w="4"     data-h="4">4 × 4</button>
-
-                    <button class="btn preset-btn" data-w="3.5"   data-h="3.5">3.5 × 3.5</button>
-                    <button class="btn preset-btn" data-w="3"     data-h="3">3 × 3</button>
-                    <button class="btn preset-btn" data-w="2.5"   data-h="2.5">2.5 × 2.5</button>
-
-                    <button class="btn preset-btn" data-w="2"     data-h="2">2 × 2</button>
-                    <button class="btn preset-btn" data-w="1.5"   data-h="1.5">1.5 × 1.5</button>
-                    <button class="btn preset-btn" data-w="1"     data-h="1">1 × 1</button>
-
-                    <button class="btn preset-btn" data-w="3.5"   data-h="2">3.5 × 2</button>
-                    <button class="btn preset-btn" data-w="3"     data-h="2">3 × 2</button>
-                    <button class="btn preset-btn" data-w="2"     data-h="1.5">2 × 1.5</button>
-
-                    <button class="btn preset-btn" data-w="2"     data-h="1">2 × 1</button>
-                    <button class="btn preset-btn" data-w="4"     data-h="3">4 × 3</button>
-                    <button class="btn preset-btn" data-w="5"     data-h="3.5">5 × 3.5</button>
-                </div>
-
-                <hr class="divider">
-
-                <div class="input-group">
-                    <div class="static-label">Custom (in)</div>
-                    <div class="input-wrapper" style="gap:4px;">
-                        <input type="number" id="tileW" step="0.1" min="0.2" max="12" value="2" oninput="onCustomTile()">
-                        <span class="dim-tag">W</span>
-                        <span class="times">×</span>
-                        <input type="number" id="tileH" step="0.1" min="0.2" max="12" value="2" oninput="onCustomTile()">
-                        <span class="dim-tag">H</span>
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <div class="static-label">Image Fit</div>
-                    <div class="segmented-control" style="width:172px;">
-                        <button id="fitCoverBtn" class="active" onclick="setFit('cover')" title="Fill the tile (may crop)">Fill</button>
-                        <button id="fitContainBtn" onclick="setFit('contain')" title="Fit inside the tile (no crop)">Fit</button>
-                        <button id="fitOriginalBtn" onclick="setFit('original')" title="Render at the image's original pixel size">Original</button>
-                    </div>
-                </div>
-
-                <hr class="divider">
-
-                <button class="text-btn" onclick="matchImageRatio()" title="Set the tile height so the tile ratio matches the image">⤢ Match tile ratio to image</button>
-            </div>
-        </details>
 
         <div class="warning-text" id="overflowWarning">Tile size exceeds the printable area.</div>
     </div>
@@ -793,11 +769,6 @@
         <button id="nextPageBtn" onclick="nextPage()" title="Next page (→)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
-        <div class="pager-sep"></div>
-        <button class="pager-add" onclick="addPage()" title="Add a new page">+ Page</button>
-        <button id="delPageBtn" onclick="deletePage()" title="Delete current page">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>
-        </button>
     </div>
 </div>
 
@@ -812,21 +783,11 @@
     </div>
 
     <div class="sidebar-content">
-        <!-- PRINTER -->
-        <details open id="acc-printer">
-            <summary>Printer</summary>
-            <div class="details-content">
-                <label class="toggle-label">
-                    <input type="checkbox" id="safeZoneToggle" checked onchange="toggleSafeZone()">
-                    Show printer safe zone
-                </label>
-            </div>
-        </details>
-
-        <!-- PAPER -->
+        <!-- PAPER & MARGINS -->
         <details open id="acc-paper">
             <summary>Paper &amp; Margins</summary>
             <div class="details-content">
+                
                 <div class="setting-row" style="margin-bottom:14px;">
                     <div class="setting-header" style="margin-bottom:6px;">
                         <span class="setting-label">Paper Size</span>
@@ -845,11 +806,16 @@
                     <div class="setting-header">
                         <span class="setting-label">Page Margin</span>
                         <div class="setting-value-wrapper">
-                            <input type="number" id="numMargin" step="0.01" min="0" max="1.2" value="0" oninput="syncSlider('numMargin','sliderMargin'); updateSettings()">
+                            <input type="number" id="numMargin" step="0.01" min="0" max="1.2" value="0" oninput="updateSettings()">
                             <span>in</span>
                         </div>
                     </div>
-                    <input type="range" id="sliderMargin" class="setting-slider" step="0.01" min="0" max="1.2" value="0" oninput="syncNumber('sliderMargin','numMargin'); updateSettings()">
+                </div>
+                <div class="setting-row" style="margin-bottom:14px;">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="safeZoneToggle" checked onchange="toggleSafeZone()">
+                        Show printer safe zone
+                    </label>
                 </div>
             </div>
         </details>
@@ -896,6 +862,63 @@
                     <input type="color" id="setBorderC" value="#E5E7EB" oninput="updateSettings()" onchange="updateSettings()"
                            style="width:36px;height:28px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--bg-workspace);">
                 </div>
+            </div>
+        </details>
+
+        <!-- ADJUST LAYOUT -->
+        <details open id="acc-adjust">
+            <summary>Adjust Layout</summary>
+            <div class="details-content">
+                <div class="input-group" style="margin-bottom:0;">
+                    <div class="static-label">Image Fit</div>
+                    <div class="segmented-control" style="width:172px;">
+                        <button id="fitCoverBtn" class="active" onclick="setFit('cover')" title="Fill the tile (may crop)">Fill</button>
+                        <button id="fitContainBtn" onclick="setFit('contain')" title="Fit inside the tile (no crop)">Fit</button>
+                        <button id="fitOriginalBtn" onclick="setFit('original')" title="Render at the image's original pixel size">Original</button>
+                    </div>
+                </div>
+
+                <hr class="divider" style="margin:12px 0;">
+
+                <div class="setting-row" style="margin-bottom:12px;">
+                    <div class="setting-header" style="margin-bottom:6px;">
+                        <span class="setting-label">Tile Layout</span>
+                    </div>
+                    <div class="select-wrapper full">
+                        <select id="presetSelect" aria-label="Tile layout preset">
+                            <option value="5,5">5 × 5</option>
+                            <option value="4.5,4.5">4.5 × 4.5</option>
+                            <option value="4,4">4 × 4</option>
+                            <option value="3.5,3.5">3.5 × 3.5</option>
+                            <option value="3,3">3 × 3</option>
+                            <option value="2.5,2.5">2.5 × 2.5</option>
+                            <option value="2,2">2 × 2</option>
+                            <option value="1.5,1.5" selected>1.5 × 1.5</option>
+                            <option value="1,1">1 × 1</option>
+                            <option value="3.5,2">3.5 × 2</option>
+                            <option value="3,2">3 × 2</option>
+                            <option value="2,1.5">2 × 1.5</option>
+                            <option value="2,1">2 × 1</option>
+                            <option value="4,3">4 × 3</option>
+                            <option value="5,3.5">5 × 3.5</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-bottom:0;">
+                    <div class="static-label">Custom (in)</div>
+                    <div class="input-wrapper" style="gap:4px;">
+                        <input type="number" id="tileW" step="0.1" min="0.2" max="12" value="1.5" oninput="onCustomTile()">
+                        <span class="dim-tag">W</span>
+                        <span class="times">×</span>
+                        <input type="number" id="tileH" step="0.1" min="0.2" max="12" value="1.5" oninput="onCustomTile()">
+                        <span class="dim-tag">H</span>
+                    </div>
+                </div>
+
+                <hr class="divider">
+
+                <button class="text-btn" onclick="matchImageRatio()" title="Set the tile height so the tile ratio matches the image">⤢ Match tile ratio to image</button>
             </div>
         </details>
 
@@ -1066,7 +1089,7 @@ const paperSizes = {
 };
 
 const DEFAULT_CONFIG = {
-    tileW: 2, tileH: 2,
+    tileW: 1.5, tileH: 1.5,
     gapH: 0, gapV: 0,
     borderW: 0.1, borderC: '#E5E7EB',
     margin: 0,
@@ -1077,6 +1100,9 @@ const DEFAULT_CONFIG = {
 let appConfig = { ...DEFAULT_CONFIG };
 let uploadedImages = [];
 let activeImageId = null;
+let selectedImageIds = new Set();
+let layerAnchorIndex = -1;
+let collapsedGroupIds = new Set();
 let currentPaper = 'A4';
 let isDarkMode = true;
 let crop = null;
@@ -1095,7 +1121,7 @@ function ensurePages() {
 }
 function syncActiveFromPage() {
     const pg = pages[activePageIndex];
-    activeImageId = pg ? pg.imageId : null;
+    activeImageId = pg ? (pg.imageIds?.[0] || pg.imageId || null) : null;
 }
 
 /* =========================================================
@@ -1159,13 +1185,57 @@ function loadConfig() {
     document.getElementById('setBorderC').value = appConfig.borderC;
 
     document.getElementById('numMargin').value = (appConfig.margin / 25.4).toFixed(2);
-    document.getElementById('sliderMargin').value = (appConfig.margin / 25.4).toFixed(2);
 
     document.getElementById('fitCoverBtn').classList.toggle('active', appConfig.fit === 'cover');
     document.getElementById('fitContainBtn').classList.toggle('active', appConfig.fit === 'contain');
     document.getElementById('fitOriginalBtn').classList.toggle('active', appConfig.fit === 'original');
 
-    updatePresetActiveState();
+}
+
+/* =========================================================
+   UI PREFERENCES (persisted independently from print settings)
+   ========================================================= */
+const UI_PREFS_KEY = 'printgrid_ui_preferences';
+const ACCORDION_IDS = ['acc-tile', 'acc-adjust', 'acc-paper', 'acc-spacing', 'acc-info'];
+
+function loadUIPreferences() {
+    let prefs = {};
+    try { prefs = JSON.parse(localStorage.getItem(UI_PREFS_KEY) || '{}') || {}; }
+    catch (e) { prefs = {}; }
+
+    isDarkMode = typeof prefs.darkMode === 'boolean' ? prefs.darkMode : true;
+    if (isDarkMode) document.body.setAttribute('data-theme', 'dark');
+    else document.body.removeAttribute('data-theme');
+
+    ACCORDION_IDS.forEach(id => {
+        const section = document.getElementById(id);
+        if (section && typeof prefs.accordions?.[id] === 'boolean') {
+            section.open = prefs.accordions[id];
+        }
+    });
+
+    updateThemeIcon();
+}
+
+function saveUIPreferences() {
+    const accordions = {};
+    ACCORDION_IDS.forEach(id => {
+        const section = document.getElementById(id);
+        if (section) accordions[id] = section.open;
+    });
+    try {
+        localStorage.setItem(UI_PREFS_KEY, JSON.stringify({
+            darkMode: isDarkMode,
+            accordions
+        }));
+    } catch (e) {}
+}
+
+function bindUIPreferencePersistence() {
+    ACCORDION_IDS.forEach(id => {
+        const section = document.getElementById(id);
+        if (section) section.addEventListener('toggle', saveUIPreferences);
+    });
 }
 
 /* =========================================================
@@ -1187,6 +1257,7 @@ function toggleTheme() {
         document.getElementById('setBorderC').value = '#E5E7EB';
     }
     updateThemeIcon();
+    saveUIPreferences();
     updateSettings();
 }
 
@@ -1223,11 +1294,29 @@ function setFit(mode) {
    TILE SIZE CONTROLS
    ========================================================= */
 function updatePresetActiveState() {
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-        const w = parseFloat(btn.dataset.w);
-        const h = parseFloat(btn.dataset.h);
-        btn.classList.toggle('active',
-            Math.abs(w - appConfig.tileW) < 0.001 && Math.abs(h - appConfig.tileH) < 0.001);
+    const select = document.getElementById('presetSelect');
+    if (!select) return;
+    const match = Array.from(select.options).find(option => {
+        if (!option.value) return false;
+        const [w, h] = option.value.split(',').map(Number);
+        return Math.abs(w - appConfig.tileW) < 0.001 && Math.abs(h - appConfig.tileH) < 0.001;
+    });
+    select.value = match ? match.value : '';
+}
+
+const presetSelect = document.getElementById('presetSelect');
+if (presetSelect) {
+    presetSelect.addEventListener('change', () => {
+        if (!presetSelect.value) return;
+        const [w, h] = presetSelect.value.split(',').map(Number);
+        appConfig.tileW = w;
+        appConfig.tileH = h;
+        const activeObj = getActiveImage();
+        if (activeObj) { activeObj.tileW = w; activeObj.tileH = h; }
+        document.getElementById('tileW').value = w;
+        document.getElementById('tileH').value = h;
+        saveConfig();
+        renderCanvas();
     });
 }
 
@@ -1241,24 +1330,12 @@ function onCustomTile() {
     appConfig.tileH = h;
     const activeObj = getActiveImage();
     if (activeObj) { activeObj.tileW = w; activeObj.tileH = h; }
-    updatePresetActiveState();
     saveConfig();
+    updatePresetActiveState();
     renderCanvas();
 }
 
-document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        appConfig.tileW = parseFloat(btn.dataset.w);
-        appConfig.tileH = parseFloat(btn.dataset.h);
-        const activeObj = getActiveImage();
-        if (activeObj) { activeObj.tileW = appConfig.tileW; activeObj.tileH = appConfig.tileH; }
-        document.getElementById('tileW').value = appConfig.tileW;
-        document.getElementById('tileH').value = appConfig.tileH;
-        updatePresetActiveState();
-        saveConfig();
-        renderCanvas();
-    });
-});
+
 
 /* Match the tile height to the active image's real aspect ratio */
 function matchImageRatio() {
@@ -1274,8 +1351,7 @@ function matchImageRatio() {
         const activeObj = getActiveImage();
         if (activeObj) { activeObj.tileW = appConfig.tileW; activeObj.tileH = h; }
         document.getElementById('tileH').value = h;
-        updatePresetActiveState();
-        saveConfig();
+            saveConfig();
         renderCanvas();
     };
     probe.onerror = () => showAlert('Error', 'Could not read the image dimensions.');
@@ -1314,6 +1390,7 @@ function setPaperSize(size) {
 function toggleSafeZone() {
     const on = document.getElementById('safeZoneToggle').checked;
     document.querySelectorAll('.paper-page').forEach(p => p.classList.toggle('safe-zone-active', on));
+    renderCanvas();
 }
 
 /* =========================================================
@@ -1341,20 +1418,20 @@ window.addEventListener('resize', fitToViewport);
 /* =========================================================
    IMAGE UPLOAD
    ========================================================= */
-const dropZone  = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 const workspaceArea = document.getElementById('workspaceArea');
 
-dropZone.addEventListener('click', () => fileInput.click());
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.classList.remove('dragover'); });
-dropZone.addEventListener('drop', e => {
-    e.preventDefault(); dropZone.classList.remove('dragover');
-    if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
-});
 fileInput.addEventListener('change', e => {
     if (e.target.files && e.target.files.length) handleFiles(e.target.files);
     e.target.value = '';
+});
+const imageDropZone = document.getElementById('imageDropZone');
+imageDropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+imageDropZone.addEventListener('dragover', e => { e.preventDefault(); imageDropZone.classList.add('dragover'); });
+imageDropZone.addEventListener('dragleave', e => { e.preventDefault(); imageDropZone.classList.remove('dragover'); });
+imageDropZone.addEventListener('drop', e => {
+    e.preventDefault(); imageDropZone.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
 });
 
 workspaceArea.addEventListener('dragover', e => { e.preventDefault(); workspaceArea.classList.add('dragover-canvas'); });
@@ -1395,7 +1472,14 @@ function handleFiles(files) {
                 tileW: appConfig.tileW,
                 tileH: appConfig.tileH
             };
+            // Never keep the initial blank placeholder as an exportable page.
+            if (!uploadedImages.length) {
+                pages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
+                activePageIndex = 0;
+            }
             uploadedImages.push(obj);
+            if (selectedImageIds.size === 0) selectedImageIds.add(obj.id);
+            pages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
             pages.push({ id: newPageId(), imageId: obj.id });   // one page per image
             finishOne();
         };
@@ -1406,46 +1490,355 @@ function handleFiles(files) {
 
 function renderImageQueue() {
     const queue = document.getElementById('imageQueue');
+    const count = document.getElementById('layerCount');
+    if (count) count.textContent = uploadedImages.length;
     queue.innerHTML = '';
-
+    queue.ondragover = ev => { if (draggedLayerIds.length) { ev.preventDefault(); queue.classList.add('drop-root-target'); } };
+    queue.ondragleave = ev => { if (!queue.contains(ev.relatedTarget)) queue.classList.remove('drop-root-target'); };
+    queue.ondrop = ev => { ev.preventDefault(); queue.classList.remove('drop-root-target'); moveDraggedLayersOut(); };
     if (!uploadedImages.length) {
-        queue.innerHTML = '<div class="queue-empty">No images uploaded</div>';
+        queue.innerHTML = '<div class="queue-empty">No layers yet</div>';
+        updateGroupButton();
         return;
     }
 
-    uploadedImages.forEach(obj => {
-        const div = document.createElement('div');
-        div.className = 'thumb-container' + (obj.id === activeImageId ? ' active' : '');
-        div.title = obj.name || 'Image';
-        div.onclick = () => selectImage(obj.id);
-
-        const img = document.createElement('img');
-        img.src = obj.croppedSrc || obj.src;
-        div.appendChild(img);
-
-        const rm = document.createElement('button');
-        rm.className = 'remove-btn';
-        rm.textContent = '×';
-        rm.title = 'Remove image';
-        rm.onclick = ev => { ev.stopPropagation(); removeImage(obj.id); };
-        div.appendChild(rm);
-
-        const ed = document.createElement('button');
-        ed.className = 'edit-btn';
-        ed.title = 'Crop / Edit';
-        ed.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"></path><path d="M18 22V8a2 2 0 0 0-2-2H2"></path></svg>`;
-        ed.onclick = ev => { ev.stopPropagation(); selectImage(obj.id); openCropModal(obj.id); };
-        div.appendChild(ed);
-
-        queue.appendChild(div);
+    const groupedIds = new Set();
+    const groupPages = pages.filter(pg => (pg.imageIds || []).length > 1);
+    const groupByFirstId = new Map();
+    groupPages.forEach((pg, idx) => {
+        const ids = pg.imageIds.filter(id => uploadedImages.some(img => img.id === id));
+        if (ids.length > 1) {
+            ids.forEach(id => groupedIds.add(id));
+            groupByFirstId.set(ids[0], { page: pg, ids, label: `Group ${idx + 1}` });
+        }
     });
+
+    const makeLayerRow = (obj, index) => {
+        const row = document.createElement('div');
+        const selected = selectedImageIds.has(obj.id);
+        row.className = 'layer-item' + (obj.id === activeImageId ? ' active' : '') + (selected ? ' multi-selected' : '');
+        row.title = (obj.name || 'Image layer') + ' — drag to move into or out of a group';
+        row.draggable = true;
+        row.addEventListener('dragstart', ev => startLayerDrag(ev, obj.id));
+        row.addEventListener('dragend', clearLayerDragStyles);
+        row.addEventListener('dragover', ev => {
+            if (!draggedLayerIds.length || draggedLayerIds.includes(obj.id)) return;
+            ev.preventDefault(); ev.stopPropagation();
+            const rect = row.getBoundingClientRect();
+            const after = ev.clientY > rect.top + rect.height / 2;
+            row.classList.toggle('drop-before', !after); row.classList.toggle('drop-after', after);
+            row.dataset.dropAfter = after ? '1' : '0';
+        });
+        row.addEventListener('dragleave', () => { row.classList.remove('drop-before','drop-after'); delete row.dataset.dropAfter; });
+        row.addEventListener('drop', ev => {
+            if (!draggedLayerIds.length) return;
+            ev.preventDefault(); ev.stopPropagation();
+            const after = row.dataset.dropAfter === '1';
+            row.classList.remove('drop-before','drop-after'); delete row.dataset.dropAfter;
+            const targetGroup = row.closest('.layer-group');
+            if (targetGroup) moveDraggedLayersToGroupPosition(obj.id, after);
+            else moveDraggedLayersToRootPosition(obj.id, after);
+        });
+        row.onclick = ev => selectLayer(obj.id, index, ev);
+
+        const grip = document.createElement('span');
+        grip.className = 'layer-grip'; grip.textContent = '⠿'; row.appendChild(grip);
+        const thumb = document.createElement('div'); thumb.className = 'layer-thumb';
+        const img = document.createElement('img'); img.src = obj.croppedSrc || obj.src; img.alt = '';
+        thumb.appendChild(img); row.appendChild(thumb);
+        const name = document.createElement('span'); name.className = 'layer-name';
+        name.textContent = obj.name || `Image ${index + 1}`; row.appendChild(name);
+        const edit = document.createElement('button'); edit.className = 'layer-action';
+        edit.type = 'button'; edit.title = 'Crop image'; edit.textContent = '✎';
+        edit.onclick = ev => { ev.stopPropagation(); selectImage(obj.id); openCropModal(obj.id); };
+        row.appendChild(edit);
+        const remove = document.createElement('button'); remove.className = 'layer-action layer-delete';
+        remove.type = 'button'; remove.title = 'Delete layer'; remove.setAttribute('aria-label', 'Delete layer');
+        remove.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>';
+        remove.onclick = ev => { ev.stopPropagation(); removeImage(obj.id); };
+        row.appendChild(remove);
+        return row;
+    };
+
+    uploadedImages.forEach((obj, index) => {
+        if (groupedIds.has(obj.id) && !groupByFirstId.has(obj.id)) return;
+        const groupInfo = groupByFirstId.get(obj.id);
+        if (groupInfo) {
+            const card = document.createElement('div');
+            card.className = 'layer-group' + (groupInfo.ids.every(id => selectedImageIds.has(id)) ? ' multi-selected' : '');
+            const isCollapsed = collapsedGroupIds.has(groupInfo.page.id);
+            const header = document.createElement('div');
+            header.className = 'layer-group-header';
+            header.draggable = false;
+            header.title = 'Select group · drop layers here to add them';
+            header.addEventListener('dragover', ev => { if (draggedLayerIds.length && draggedLayerIds.some(id => !groupInfo.ids.includes(id))) { ev.preventDefault(); ev.stopPropagation(); header.classList.add('drop-target'); } });
+            header.addEventListener('dragleave', () => header.classList.remove('drop-target'));
+            header.addEventListener('drop', ev => { ev.preventDefault(); ev.stopPropagation(); header.classList.remove('drop-target'); moveDraggedLayersIntoGroup(groupInfo.page.id); });
+            header.onclick = () => {
+                const pgIndex = pages.indexOf(groupInfo.page);
+                const alreadyOnGroup = pgIndex >= 0 && activePageIndex === pgIndex;
+                selectedImageIds = new Set(groupInfo.ids);
+                activeImageId = groupInfo.ids[0];
+                if (pgIndex >= 0) activePageIndex = pgIndex;
+                // First click from another view opens/navigates to the group; clicking it again collapses it.
+                if (alreadyOnGroup) collapsedGroupIds.add(groupInfo.page.id);
+                else collapsedGroupIds.delete(groupInfo.page.id);
+                syncTileControls(activeImageId); renderImageQueue(); renderCanvas();
+            };
+            const chevron = document.createElement('button');
+            chevron.type = 'button';
+            chevron.className = 'layer-group-chevron' + (isCollapsed ? ' is-collapsed' : '');
+            chevron.textContent = '▾';
+            chevron.title = isCollapsed ? 'Expand group' : 'Collapse group';
+            chevron.setAttribute('aria-label', chevron.title);
+            chevron.setAttribute('aria-expanded', String(!isCollapsed));
+            chevron.onclick = ev => {
+                ev.stopPropagation();
+                if (collapsedGroupIds.has(groupInfo.page.id)) collapsedGroupIds.delete(groupInfo.page.id);
+                else collapsedGroupIds.add(groupInfo.page.id);
+                renderImageQueue();
+            };
+            const icon = document.createElement('span'); icon.className = 'layer-group-icon'; icon.textContent = '▦';
+            const title = document.createElement('span'); title.className = 'layer-group-title'; title.textContent = groupInfo.label;
+            const countLabel = document.createElement('span'); countLabel.className = 'layer-group-count'; countLabel.textContent = `${groupInfo.ids.length} layers`;
+            header.append(chevron, icon, title, countLabel);
+            card.appendChild(header);
+            const children = document.createElement('div'); children.className = 'layer-group-children' + (isCollapsed ? ' is-collapsed' : '');
+            groupInfo.ids.forEach(id => {
+                const childObj = uploadedImages.find(img => img.id === id);
+                const childIndex = uploadedImages.indexOf(childObj);
+                if (childObj) children.appendChild(makeLayerRow(childObj, childIndex));
+            });
+            card.appendChild(children);
+            queue.appendChild(card);
+        } else if (!groupedIds.has(obj.id)) {
+            queue.appendChild(makeLayerRow(obj, index));
+        }
+    });
+    updateGroupButton();
+}
+
+let draggedLayerIds = [];
+function isGroupedImage(id) { return pages.some(pg => (pg.imageIds || []).includes(id)); }
+function startLayerDrag(ev, id) {
+    draggedLayerIds = selectedImageIds.has(id) ? [...selectedImageIds] : [id];
+    ev.dataTransfer.effectAllowed = 'move';
+    ev.dataTransfer.setData('text/plain', draggedLayerIds.join(','));
+    requestAnimationFrame(() => ev.currentTarget.classList.add('is-dragging'));
+}
+function clearLayerDragStyles() {
+    draggedLayerIds = [];
+    document.querySelectorAll('.is-dragging,.drop-target').forEach(el => el.classList.remove('is-dragging','drop-target'));
+    document.getElementById('imageQueue')?.classList.remove('drop-root-target');
+}
+function readDraggedIds(ev) {
+    const raw = ev.dataTransfer?.getData('text/plain');
+    return (raw ? raw.split(',') : draggedLayerIds).filter(id => uploadedImages.some(img => img.id === id));
+}
+function findPageForImage(id) {
+    return pages.find(pg => (pg.imageIds || [pg.imageId]).includes(id));
+}
+function detachImageFromPage(id) {
+    const pageIndex = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(id));
+    if (pageIndex < 0) return;
+    const pg = pages[pageIndex];
+    const ids = (pg.imageIds || [pg.imageId]).filter(x => x && x !== id);
+    if (!ids.length) pages.splice(pageIndex, 1);
+    else if (ids.length === 1) pages.splice(pageIndex, 1, { id: pg.id, imageId: ids[0] });
+    else pages[pageIndex] = { ...pg, imageId: ids[0], imageIds: ids };
+}
+function syncGroupTileSizes(page, ids) {
+    if (!page || !ids.length) return;
+    const reference = getImageTileSize(ids[0]);
+    ids.forEach(id => { const obj = uploadedImages.find(x => x.id === id); if (obj) { obj.tileW = reference.w; obj.tileH = reference.h; } });
+    page.imageIds = ids; page.imageId = ids[0];
+}
+function finishLayerMove(ids, targetId) {
+    if (ids.length) { activeImageId = ids[0]; selectedImageIds = new Set(ids); }
+    const pageIndex = targetId ? pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(targetId)) : -1;
+    if (pageIndex >= 0) activePageIndex = pageIndex;
+    if (activeImageId) syncTileControls(activeImageId);
+    clearLayerDragStyles(); renderImageQueue(); renderCanvas();
+}
+function moveDraggedLayersToGroupPosition(targetId, after) {
+    const ids = [...draggedLayerIds].filter(id => id !== targetId);
+    if (!ids.length) return;
+    let targetPage = findPageForImage(targetId);
+    if (!targetPage || !(targetPage.imageIds || []).length) return moveDraggedLayersToRootPosition(targetId, after);
+    // Keep same-group moves inside the group and reorder them; detach only layers coming from elsewhere.
+    let targetIds = [...targetPage.imageIds];
+    const movingWithin = ids.filter(id => targetIds.includes(id));
+    const movingFromOutside = ids.filter(id => !targetIds.includes(id));
+    targetIds = targetIds.filter(id => !movingWithin.includes(id));
+    if (movingWithin.length) {
+        targetPage.imageIds = [...targetIds];
+        targetPage.imageId = targetIds[0];
+    }
+    movingFromOutside.forEach(id => detachImageFromPage(id));
+    targetPage = pages.find(pg => pg.id === targetPage.id);
+    if (!targetPage) return;
+    targetIds = [...(targetPage.imageIds || [targetPage.imageId]).filter(Boolean)];
+    let insertAt = targetIds.indexOf(targetId);
+    if (insertAt < 0) insertAt = targetIds.length;
+    if (after) insertAt++;
+    const moving = [...movingWithin, ...movingFromOutside];
+    targetIds.splice(insertAt, 0, ...moving.filter(id => !targetIds.includes(id)));
+    if (targetIds.length < 2) return;
+    syncGroupTileSizes(targetPage, targetIds);
+    collapsedGroupIds.delete(targetPage.id);
+    finishLayerMove(moving, targetId);
+}
+function moveDraggedLayersToRootPosition(targetId, after) {
+    const ids = [...draggedLayerIds].filter(id => id !== targetId);
+    if (!ids.length) return;
+    const targetPage = findPageForImage(targetId);
+    if (!targetPage) return;
+    // A root target is a standalone layer. Remove dragged items from their old pages first.
+    ids.forEach(id => detachImageFromPage(id));
+    let at = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(targetId));
+    if (at < 0) return;
+    if (after) at++;
+    const newPages = ids.map(id => ({ id: newPageId(), imageId: id }));
+    pages.splice(at, 0, ...newPages);
+    finishLayerMove(ids, ids[0]);
+}
+
+function moveDraggedLayersIntoGroup(targetPageId) {
+    const target = pages.find(pg => pg.id === targetPageId && (pg.imageIds || []).length > 1);
+    const ids = [...draggedLayerIds];
+    if (!target || !ids.length) return;
+    const targetIds = [...target.imageIds];
+    ids.forEach(id => {
+        if (targetIds.includes(id)) return;
+        const source = findPageForImage(id);
+        if (source?.id === target.id) return;
+        detachImageFromPage(id);
+        targetIds.push(id);
+    });
+    if (targetIds.length !== target.imageIds.length) {
+        const reference = getImageTileSize(targetIds[0]);
+        targetIds.forEach(id => { const obj = uploadedImages.find(x => x.id === id); if (obj) { obj.tileW = reference.w; obj.tileH = reference.h; } });
+        target.imageIds = targetIds; target.imageId = targetIds[0];
+    }
+    activeImageId = ids[0] || targetIds[0];
+    selectedImageIds = new Set(ids.length ? ids : targetIds);
+    activePageIndex = pages.indexOf(target);
+    collapsedGroupIds.delete(target.id);
+    syncTileControls(activeImageId); clearLayerDragStyles(); renderImageQueue(); renderCanvas();
+}
+function moveDraggedLayersOut() {
+    const ids = [...draggedLayerIds];
+    if (!ids.length) return;
+    let firstNewPage = -1;
+    ids.forEach(id => {
+        const sourceIndex = pages.findIndex(pg => (pg.imageIds || []).includes(id));
+        if (sourceIndex < 0) return;
+        const source = pages[sourceIndex];
+        if (!(source.imageIds || []).includes(id)) return; // already a standalone layer
+        const wasGroup = [...source.imageIds];
+        const remaining = wasGroup.filter(x => x !== id);
+        if (remaining.length === 1) {
+            pages.splice(sourceIndex, 1, { id: source.id, imageId: remaining[0] });
+            pages.splice(sourceIndex + 1, 0, { id: newPageId(), imageId: id });
+        } else if (remaining.length >= 2) {
+            pages[sourceIndex] = { ...source, imageId: remaining[0], imageIds: remaining };
+            pages.splice(sourceIndex + 1, 0, { id: newPageId(), imageId: id });
+        }
+        if (firstNewPage < 0) firstNewPage = pages.findIndex(pg => pg.imageId === id && !(pg.imageIds || []).length);
+    });
+    if (firstNewPage >= 0) activePageIndex = firstNewPage;
+    activeImageId = ids[0]; selectedImageIds = new Set(ids);
+    syncTileControls(activeImageId); clearLayerDragStyles(); renderImageQueue(); renderCanvas();
+}
+
+function selectLayer(id, index, ev) {
+    if (ev.ctrlKey || ev.metaKey) {
+        selectedImageIds.has(id) ? selectedImageIds.delete(id) : selectedImageIds.add(id);
+        layerAnchorIndex = index;
+    } else if (ev.shiftKey && layerAnchorIndex >= 0) {
+        const lo = Math.min(layerAnchorIndex, index), hi = Math.max(layerAnchorIndex, index);
+        selectedImageIds = new Set(uploadedImages.slice(lo, hi + 1).map(img => img.id));
+    } else {
+        selectedImageIds = new Set([id]);
+        layerAnchorIndex = index;
+    }
+    activeImageId = id;
+    const pageIndex = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(id));
+    if (pageIndex >= 0) {
+        activePageIndex = pageIndex;
+        if ((pages[pageIndex].imageIds || []).length > 1) collapsedGroupIds.delete(pages[pageIndex].id);
+    }
+    syncTileControls(id);
+    renderCanvas(); // immediately switch the preview to the selected layer's page
+    renderImageQueue();
+}
+
+function updateGroupButton() {
+    const btn = document.getElementById('groupLayersBtn');
+    if (!btn) return;
+    const selected = [...selectedImageIds];
+    const groups = pages.filter(pg => (pg.imageIds || []).length > 1);
+    const selectedGroup = groups.find(pg => pg.imageIds.every(id => selectedImageIds.has(id)));
+    const partialGroup = groups.some(pg => pg.imageIds.some(id => selectedImageIds.has(id)) &&
+        !pg.imageIds.every(id => selectedImageIds.has(id)));
+    const includesOtherLayers = selectedGroup && selected.some(id => !selectedGroup.imageIds.includes(id));
+    const ungroupMode = !!selectedGroup && !includesOtherLayers;
+    btn.textContent = ungroupMode ? 'Ungroup' : 'Group';
+    btn.title = ungroupMode ? 'Ungroup selected group (Ctrl+Shift+G)' : 'Select 2 or more ungrouped layers to group (Ctrl+G)';
+    btn.disabled = ungroupMode ? false : (selected.length < 2 || partialGroup || selected.some(id =>
+        groups.some(pg => pg.imageIds.includes(id))));
+}
+
+function toggleGroupSelection() {
+    const selected = [...selectedImageIds];
+    const groups = pages.filter(pg => (pg.imageIds || []).length > 1);
+    const selectedGroup = groups.find(pg => pg.imageIds.every(id => selectedImageIds.has(id)) &&
+        selected.every(id => pg.imageIds.includes(id)));
+    if (selectedGroup) {
+        ungroupPage(selectedGroup);
+        return;
+    }
+    // Groups cannot be nested or combined with other groups.
+    if (selected.some(id => groups.some(pg => pg.imageIds.includes(id)))) return;
+    groupImages(selected);
+}
+
+function groupImages(ids) {
+    const existingGroupIds = new Set(pages.flatMap(pg => (pg.imageIds || []).length > 1 ? pg.imageIds : []));
+    const selectedIds = uploadedImages.filter(img => ids.includes(img.id) && !existingGroupIds.has(img.id)).map(img => img.id);
+    if (selectedIds.length < 2 || selectedIds.length !== ids.length) return;
+    // A single physical sheet needs one common tile size. Use the first selected layer's size.
+    const referenceSize = getImageTileSize(selectedIds[0]);
+    selectedIds.forEach(id => {
+        const obj = uploadedImages.find(img => img.id === id);
+        if (obj) { obj.tileW = referenceSize.w; obj.tileH = referenceSize.h; }
+    });
+    const selectedPages = pages.filter(pg => selectedIds.some(id => (pg.imageIds || [pg.imageId]).includes(id)));
+    const insertAt = Math.max(0, Math.min(...selectedPages.map(pg => pages.indexOf(pg))));
+    pages = pages.filter(pg => !selectedIds.some(id => (pg.imageIds || [pg.imageId]).includes(id)));
+    pages.splice(insertAt, 0, { id: newPageId(), imageId: selectedIds[0], imageIds: selectedIds });
+    activePageIndex = insertAt; activeImageId = selectedIds[0];
+    selectedImageIds = new Set(selectedIds);
+    syncTileControls(activeImageId); renderImageQueue(); renderCanvas();
+}
+
+function ungroupPage(pg) {
+    const index = pages.indexOf(pg);
+    if (index < 0) return;
+    const ids = pg.imageIds || [];
+    collapsedGroupIds.delete(pg.id);
+    pages.splice(index, 1, ...ids.map(id => ({ id: newPageId(), imageId: id })));
+    activePageIndex = index; activeImageId = ids[0] || null;
+    selectedImageIds = new Set(ids);
+    syncTileControls(activeImageId); renderImageQueue(); renderCanvas();
 }
 
 /* Select an image → jump to the page that holds it (create one if missing) */
 function selectImage(imageId) {
     activeImageId = imageId;
+    selectedImageIds = new Set([imageId]);
     syncTileControls(imageId);
-    let idx = pages.findIndex(p => p.imageId === imageId);
+    let idx = pages.findIndex(p => (p.imageIds || [p.imageId]).includes(imageId));
     if (idx === -1) {
         pages.push({ id: newPageId(), imageId });
         idx = pages.length - 1;
@@ -1457,7 +1850,13 @@ function selectImage(imageId) {
 
 function removeImage(id) {
     uploadedImages = uploadedImages.filter(i => i.id !== id);
-    pages = pages.filter(p => p.imageId !== id);
+    pages.forEach(pg => { if ((pg.imageIds || []).length <= 1) collapsedGroupIds.delete(pg.id); });
+    pages = pages.flatMap(p => {
+        const ids = (p.imageIds || [p.imageId]).filter(x => x && x !== id);
+        if (!ids.length) return [];
+        return ids.length === 1 ? [{ id: p.id, imageId: ids[0] }] : [{ ...p, imageId: ids[0], imageIds: ids }];
+    });
+    selectedImageIds.delete(id);
     if (!pages.length) pages.push({ id: newPageId(), imageId: uploadedImages.length ? uploadedImages[0].id : null });
     if (activePageIndex >= pages.length) activePageIndex = pages.length - 1;
     syncActiveFromPage();
@@ -1469,6 +1868,8 @@ function removeImage(id) {
 function clearAll() {
     uploadedImages = [];
     activeImageId = null;
+    selectedImageIds.clear();
+    collapsedGroupIds.clear(); draggedLayerIds = [];
     pages = [{ id: newPageId(), imageId: null }];
     activePageIndex = 0;
     renderImageQueue();
@@ -1480,6 +1881,8 @@ async function resetAll() {
     if (!ok) return;
     uploadedImages = [];
     activeImageId = null;
+    selectedImageIds.clear();
+    collapsedGroupIds.clear(); draggedLayerIds = [];
     pages = [{ id: newPageId(), imageId: null }];
     activePageIndex = 0;
     appConfig = { ...DEFAULT_CONFIG };
@@ -1506,13 +1909,6 @@ function goToPage(idx) {
 function prevPage() { goToPage(activePageIndex - 1); }
 function nextPage() { goToPage(activePageIndex + 1); }
 
-function addPage() {
-    pages.push({ id: newPageId(), imageId: activeImageId });
-    activePageIndex = pages.length - 1;
-    renderCanvas();
-    renderImageQueue();
-}
-
 async function deletePage() {
     if (pages.length <= 1) {
         await showAlert('Cannot Delete', 'At least one page is required.');
@@ -1529,7 +1925,6 @@ function updatePagerUI() {
     document.getElementById('pagerLabel').innerText = `Page ${activePageIndex + 1} / ${pages.length}`;
     document.getElementById('prevPageBtn').disabled = activePageIndex <= 0;
     document.getElementById('nextPageBtn').disabled = activePageIndex >= pages.length - 1;
-    document.getElementById('delPageBtn').disabled = pages.length <= 1;
 }
 
 function updatePageVisibility() {
@@ -1544,7 +1939,11 @@ function updatePageVisibility() {
 function computeLayout(imageId = activeImageId) {
     const paper = paperSizes[currentPaper];
     const t = getTileMM(imageId);
-    const m = appConfig.margin;
+    // The red safe-zone guide is 3mm from each paper edge. When enabled,
+    // treat it as a real layout boundary so no tile crosses into that area.
+    const safeZoneOn = document.getElementById('safeZoneToggle')?.checked ?? false;
+    const safeInset = safeZoneOn ? 3 : 0;
+    const m = Math.max(appConfig.margin, safeInset);
     const availW = paper.w - m * 2;
     const availH = paper.h - m * 2;
     const gh = appConfig.gapH;
@@ -1573,10 +1972,14 @@ function renderCanvas() {
     pagesWrapper.innerHTML = '';
     if (warning) warning.style.display = 'none';
 
+    // Remove stale/blank page records whenever real images exist.
+    if (uploadedImages.length) {
+        pages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
+    }
     ensurePages();
 
     const activePage = pages[activePageIndex];
-    const activeLayout = computeLayout(activePage ? activePage.imageId : null);
+    const activeLayout = computeLayout(activePage ? (activePage.imageIds?.[0] || activePage.imageId) : null);
     updateLayoutInfo(activeLayout);
 
     if (activeLayout.cols === 0 || activeLayout.rows === 0) {
@@ -1584,7 +1987,7 @@ function renderCanvas() {
     }
 
     pages.forEach((pg, idx) => {
-        const pageLayout = computeLayout(pg.imageId);
+        const pageLayout = computeLayout(pg.imageIds?.[0] || pg.imageId);
         pagesWrapper.appendChild(buildPage(pg, idx, pageLayout));
     });
 
@@ -1602,7 +2005,9 @@ function buildPage(pg, idx, layout) {
 
     if (document.getElementById('safeZoneToggle').checked) page.classList.add('safe-zone-active');
 
-    const imgObj = uploadedImages.find(i => i.id === pg.imageId) || null;
+    const pageImageIds = (pg.imageIds || [pg.imageId]).filter(Boolean);
+    const pageImages = pageImageIds.map(id => uploadedImages.find(i => i.id === id)).filter(Boolean);
+    const imgObj = pageImages[0] || null;
 
     if (!imgObj) {
         page.appendChild(emptyState(idx === activePageIndex ? 'Drop an image to begin' : 'Empty page', idx === activePageIndex));
@@ -1625,9 +2030,12 @@ function buildPage(pg, idx, layout) {
     grid.style.columnGap = `${appConfig.gapH}mm`;
     grid.style.rowGap = `${appConfig.gapV}mm`;
 
-    const src = imgObj.croppedSrc || imgObj.src;
     const objectFit = fitObjectFit();
     const total = layout.cols * layout.rows;
+    const perImage = Math.floor(total / pageImages.length);
+    const remainder = total % pageImages.length;
+    const allocationEnds = [];
+    pageImages.forEach((obj, n) => allocationEnds.push((allocationEnds[n - 1] || 0) + perImage + (n < remainder ? 1 : 0)));
 
     for (let i = 0; i < total; i++) {
         const row = Math.floor(i / layout.cols);
@@ -1640,10 +2048,15 @@ function buildPage(pg, idx, layout) {
         if (appConfig.gapH === 0 && col > 0) tile.style.borderLeftWidth = '0';
         if (appConfig.gapV === 0 && row > 0) tile.style.borderTopWidth = '0';
 
+        const imageIndex = allocationEnds.findIndex(end => i < end);
+        const tileImage = pageImages[Math.max(0, imageIndex)] || imgObj;
         const img = document.createElement('img');
-        img.src = src;
+        img.src = tileImage.croppedSrc || tileImage.src;
         img.alt = '';
         img.style.objectFit = objectFit;
+        tile.title = `Select ${tileImage.name || 'image layer'}`;
+        tile.style.cursor = 'pointer';
+        tile.onclick = () => selectImage(tileImage.id);
 
         tile.appendChild(img);
         grid.appendChild(tile);
@@ -1680,7 +2093,14 @@ function updateLayoutInfo(layout) {
 
     const n = layout.cols * layout.rows;
     main.innerText = `${layout.cols} × ${layout.rows} = ${n} tiles`;
-    sub.innerText = `${layout.tileW} × ${layout.tileH} in · ${layout.paper.label} · ${(layout.paper.w / 25.4).toFixed(2)} × ${(layout.paper.h / 25.4).toFixed(2)} in`;
+    const currentPage = pages[activePageIndex];
+    const groupIds = currentPage?.imageIds || [];
+    const groupNote = groupIds.length > 1
+        ? ` · ${groupIds.length} images, ${Math.floor(n / groupIds.length)}–${Math.ceil(n / groupIds.length)} tiles each`
+        : '';
+    const safeOn = document.getElementById('safeZoneToggle')?.checked ?? false;
+    const boundaryNote = safeOn ? ' · 3mm safe zone applied' : '';
+    sub.innerText = `${layout.tileW} × ${layout.tileH} in · ${layout.paper.label} · ${(layout.paper.w / 25.4).toFixed(2)} × ${(layout.paper.h / 25.4).toFixed(2)} in${groupNote}${boundaryNote}`;
 }
 
 /* =========================================================
@@ -1691,12 +2111,17 @@ async function triggerPrint() {
         await showAlert('Nothing to Print', 'Please upload an image first.');
         return;
     }
-    const hasInvalidPage = pages.some(pg => {
-        const layout = computeLayout(pg.imageId);
-        return pg.imageId && (layout.cols === 0 || layout.rows === 0);
+    const printablePages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
+    const hasInvalidPage = printablePages.some(pg => {
+        const layout = computeLayout(pg.imageIds?.[0] || pg.imageId);
+        return layout.cols === 0 || layout.rows === 0;
     });
     if (hasInvalidPage) {
         await showAlert('Tile Too Large', 'At least one image tile size does not fit on the selected paper. Select that image and reduce its tile size.');
+        return;
+    }
+    if (!printablePages.length) {
+        await showAlert('Nothing to Print', 'There are no pages with images to print.');
         return;
     }
     showLoading('Preparing print...');
@@ -1744,12 +2169,18 @@ async function exportFile() {
         return;
     }
 
-    const hasInvalidPage = pages.some(pg => {
-        const layout = computeLayout(pg.imageId);
-        return pg.imageId && (layout.cols === 0 || layout.rows === 0);
+    const printablePages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
+    const hasInvalidPage = printablePages.some(pg => {
+        const layout = computeLayout(pg.imageIds?.[0] || pg.imageId);
+        return layout.cols === 0 || layout.rows === 0;
     });
     if (hasInvalidPage) {
         await showAlert('Tile Too Large', 'At least one image tile size does not fit on the selected paper. Select that image and reduce its tile size.');
+        return;
+    }
+
+    if (!printablePages.length) {
+        await showAlert('Empty Canvas', 'There are no pages with images to export.');
         return;
     }
 
@@ -1762,7 +2193,13 @@ async function exportFile() {
     await new Promise(r => setTimeout(r, 140));
 
     try {
-        const pageEls = Array.from(document.querySelectorAll('#pagesWrapper .paper-page'));
+        const pageEls = Array.from(document.querySelectorAll('#pagesWrapper .paper-page'))
+            .filter(el => {
+                const idx = Number(el.dataset.pageIndex);
+                const pg = pages[idx];
+                return pg && (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)) && el.querySelector('.tile');
+            });
+        if (!pageEls.length) throw new Error('No printable pages were rendered.');
         const paper = paperSizes[currentPaper];
         const baseName = generateFilename(format === 'jpg' ? 'jpg' : format);
 
@@ -2056,7 +2493,22 @@ document.addEventListener('keydown', e => {
         else if (document.getElementById('customModal').classList.contains('active')) closeModal(false);
         return;
     }
-    if (e.target.matches('input, select, textarea')) return;
+    if (e.target.matches('input, select, textarea, [contenteditable="true"]')) return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+        e.preventDefault(); selectedImageIds = new Set(uploadedImages.map(img => img.id)); renderImageQueue(); return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        if (e.shiftKey) {
+            const group = pages.find(pg => (pg.imageIds || []).length > 1 &&
+                pg.imageIds.every(id => selectedImageIds.has(id)) &&
+                [...selectedImageIds].every(id => pg.imageIds.includes(id)));
+            if (group) ungroupPage(group);
+        } else {
+            toggleGroupSelection();
+        }
+        return;
+    }
     if (e.key === 'ArrowLeft')  { prevPage(); }
     if (e.key === 'ArrowRight') { nextPage(); }
 });
@@ -2065,30 +2517,44 @@ document.addEventListener('keydown', e => {
    INIT
    ========================================================= */
 function initApp() {
-    loadConfig();
-    updateThemeIcon();
-    pages = [{ id: newPageId(), imageId: null }];
-    activePageIndex = 0;
-    setPaperSize(currentPaper);
-    renderImageQueue();
-    renderCanvas();
-    fitToViewport();
+    try {
+        loadConfig();
+        loadUIPreferences();
+        bindUIPreferencePersistence();
+        // Keep the initial canvas available, but it is not an exportable page.
+        pages = [{ id: newPageId(), imageId: null }];
+        activePageIndex = 0;
+        setPaperSize(currentPaper);
+        renderImageQueue();
+        renderCanvas();
+        fitToViewport();
+    } catch (err) {
+        console.error('PrintGrid initialization failed:', err);
+        setLoadingText('Workspace loaded with an error. Please refresh.');
+    } finally {
+        // Never leave the loading screen covering the app if one UI step fails.
+        hideLoading();
+    }
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);s
+    document.addEventListener('DOMContentLoaded', initApp, { once: true });
 } else {
     initApp();
 }
 
+// Fallback in case initialization or a browser event fails unexpectedly.
 window.addEventListener('load', () => {
-    const minDisplay = 900;
-    const startedAt = performance.now();
-    setLoadingText('Loading Workspace');
-    fitToViewport();
-    const delay = Math.max(0, minDisplay - (performance.now() - startedAt));
-    setTimeout(hideLoading, delay);
-});
+    try { fitToViewport(); } catch (err) { console.error('Viewport setup failed:', err); }
+    hideLoading();
+}, { once: true });
+
+setTimeout(() => {
+    if (loadingOverlay && !loadingOverlay.classList.contains('hidden')) {
+        console.warn('PrintGrid loading fallback activated.');
+        hideLoading();
+    }
+}, 2500);
 </script>
 </body>
 </html>
