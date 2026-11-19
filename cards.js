@@ -3,72 +3,35 @@ const cardsData = [
     {
         title: "Rush ID",
         subtitle: "Created Nov 05, 2026",
-        category: "tools",
+        description: "Easily arrange ID picture in various sizes into print-ready layouts.",
+        category: "Printing",
         cover: "Assets/Rush_Cover.webp",
         logo: "R",
         href: "Rush_ID.html"
     },
     {
         title: "Mug Printing",
-        subtitle: "Created Nov 07, 2026",
-        category: "tools",
+        subtitle: "Created Nov 10, 2026",
+        description: "Create and arrange mug designs into layouts ready for printing.",
+        category: "Printing",
         cover: "Assets/Mug_Cover.webp",
         logo: "M",
         href: "Mug_Printing.html"
     },
     {
         title: "Tile Layout",
-        subtitle: "Created Nov 11, 2026",
-        category: "Tools",
+        subtitle: "Created Nov 19, 2026",
+        description: "Combine multiple images into organized tile layouts for stickers and other prints.",
+        category: "Printing",
         cover: "Assets/Tile_Cover.webp",
         logo: "T",
         href: "Tile_Layout.html"
     },
     {
-        title: "Client Contract Draft",
-        subtitle: "Word Document",
-        category: "files",
-        cover: "Assets/1.jpg",
-        logo: "D",
-        href: "#"
-    },
-    // ================= BOOKMARKS =================
-    {
-        title: "Logo Design Inspiration",
-        subtitle: "Saved Nov 10, 2026",
-        category: "bookmarks",
-        cover: "Assets/1.jpg",
-        logo: "1",
-        href: "#"
-    },
-    {
-        title: "Color Palette Guide",
-        subtitle: "Saved Nov 12, 2026",
-        category: "bookmarks",
-        cover: "Assets/2.jpg",
-        logo: "2",
-        href: "#"
-    },
-    {
-        title: "Typography Rules",
-        subtitle: "Saved Nov 15, 2026",
-        category: "bookmarks",
-        cover: "Assets/1.jpg",
-        logo: "3",
-        href: "#"
-    },
-    {
-        title: "UI/UX Wireframes",
-        subtitle: "Saved Nov 18, 2026",
-        category: "bookmarks",
-        cover: "Assets/2.jpg",
-        logo: "4",
-        href: "#"
-    },
-    {
         title: "Printing Dimensions",
         subtitle: "Saved Nov 20, 2026",
-        category: "bookmarks",
+        description: "Quick reference guide for standard paper, photo, tarpaulin, and sublimation print sizes.",
+        category: "Tools",
         cover: "Assets/1.jpg",
         logo: "5",
         href: "#"
@@ -92,6 +55,7 @@ const cardsData = [
         const cover = card.cover || 'Assets/placeholder.png';
         const logo = card.logo || '?';
         const safeTitle = esc(card.title);
+        const description = card.description || '';
 
         let logoHTML;
         if (isImageSource(logo)) {
@@ -106,6 +70,7 @@ const cardsData = [
             <a href="${href}" class="card clickable" data-category="${card.category}" data-title="${safeTitle}">
                 <div class="card-thumb">
                     <img src="${cover}" alt="${safeTitle} Cover">
+                    ${description ? `<div class="card-desc">${description}</div>` : ''}
                     <div class="card-tags"><span class="tag tag-gray">${tagLabel}</span></div>
                 </div>
                 <button type="button"

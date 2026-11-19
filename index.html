@@ -135,7 +135,7 @@
         font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
         color: var(--text-muted); letter-spacing: 0.05em;
         padding: 0 10px; margin-top: 10px;
-        display: none; /* Hidden until favorites exist */
+        display: none;
     }
     
     /* Sidebar favorite items */
@@ -168,11 +168,11 @@
         align-items: center;
         justify-content: center;
         border-radius: 4px;
-        opacity: 0; /* Hidden by default */
+        opacity: 0;
         transition: opacity 0.2s ease, transform 0.1s ease, background 0.2s ease;
     }
     .sidebar-fav-item:hover .sidebar-unstar-btn {
-        opacity: 1; /* Show on hover */
+        opacity: 1;
     }
     .sidebar-unstar-btn:hover {
         background: rgba(250, 204, 21, 0.15);
@@ -228,13 +228,12 @@
     }
 
     /* =========================================
-       LIST VIEW LAYOUT (Subtitle moved to right)
+       LIST VIEW LAYOUT
        ========================================= */
     .grid-container.list-view { display: flex; flex-direction: column; gap: 8px; }
     
     .grid-container.list-view .card {
         display: grid; 
-        /* Col 1: Star, Col 2: Thumb, Col 3: Text/Tags, Col 4: Subtitle (Right-aligned) */
         grid-template-columns: 32px 80px minmax(0, 1fr) auto; 
         grid-template-rows: auto auto;
         column-gap: 16px;
@@ -244,14 +243,12 @@
         border-radius: 10px;
     }
 
-    /* Unwrap containers so elements can be placed directly into the Grid */
     .grid-container.list-view .card-thumb,
     .grid-container.list-view .card-info,
     .grid-container.list-view .card-text {
         display: contents;
     }
 
-    /* 1. Star */
     .grid-container.list-view .card-fav {
         grid-column: 1;
         grid-row: 1 / span 2;
@@ -278,7 +275,6 @@
         background: var(--hover-bg);
     }
 
-    /* 2. Thumbnail */
     .grid-container.list-view .card-thumb img {
         grid-column: 2;
         grid-row: 1 / span 2;
@@ -291,8 +287,8 @@
     }
     .grid-container.list-view .card-thumb::after { display: none; }
     .grid-container.list-view .card-icon { display: none; }
+    .grid-container.list-view .card-desc { display: none; }
 
-    /* 3. Title */
     .grid-container.list-view .card-title {
         grid-column: 3;
         grid-row: 1;
@@ -306,7 +302,6 @@
         min-width: 0;
     }
 
-    /* 4. Subtitle (Far Right) */
     .grid-container.list-view .card-subtitle {
         grid-column: 4;
         grid-row: 1;
@@ -317,7 +312,6 @@
         white-space: nowrap;
     }
 
-    /* 5. Tags */
     .grid-container.list-view .card-tags {
         grid-column: 3 / span 2;
         grid-row: 2;
@@ -359,6 +353,10 @@
     .card-thumb img {
         position: absolute; top: 0; left: 0;
         width: 100%; height: 100%; object-fit: cover; z-index: 1;
+        transition: transform 0.3s ease;
+    }
+    .card.clickable:hover .card-thumb img {
+        transform: scale(1.04);
     }
     .card-thumb::after {
         content: ''; position: absolute; bottom: 0; left: 0;
@@ -366,7 +364,32 @@
         background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
         z-index: 1; pointer-events: none;
     }
-    .card-tags { position: absolute; bottom: 10px; left: 10px; display: flex; gap: 4px; z-index: 2; }
+
+    /* ---------- HOVER HELPER DESCRIPTION OVERLAY ---------- */
+    .card-desc {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background: rgba(15, 23, 42, 0.84);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        color: #F8FAFC;
+        padding: 14px 44px 42px 14px; /* Leaves room for star button & category tag */
+        font-size: 0.78rem;
+        line-height: 1.45;
+        display: flex;
+        align-items: center;
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 0.22s ease, transform 0.22s ease;
+        pointer-events: none;
+    }
+    .card.clickable:hover .card-desc {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .card-tags { position: absolute; bottom: 10px; left: 10px; display: flex; gap: 4px; z-index: 3; }
     .tag {
         font-size: 0.65rem; font-weight: 600; padding: 4px 10px;
         border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
@@ -469,16 +492,13 @@
     }
 
     /* ---------- CUSTOM ICON STYLES ---------- */
-    /* Using *= to match the full title "Mug Printing" and "Rush ID" */
-    
-    /* MUG and RUSH → Theme-aware background AND text */
     .card[data-title*="mug" i] .card-icon,
     .sidebar-fav-item[data-title*="mug" i] .fav-sidebar-icon,
     .card[data-title*="rush" i] .card-icon,
     .sidebar-fav-item[data-title*="rush" i] .fav-sidebar-icon {
         background: var(--hover-bg) !important; 
         border-color: var(--border);
-        color: var(--text-main) !important; /* Dark in light mode, light in dark mode */
+        color: var(--text-main) !important;
     }
 </style>
 </head>
@@ -524,7 +544,6 @@
             <input type="text" id="searchInput" placeholder="Search" />
         </div>
 
-        <!-- Sidebar Favorites Section -->
         <div class="section-title" id="sidebarFavTitle">Favorites</div>
         <div class="nav-group" id="sidebarFavorites"></div>
     </aside>
@@ -533,9 +552,8 @@
         <div class="tabs-bar">
             <div class="tabs">
                 <div class="tab fav-tab active" data-tab="favorites">Favorites</div>
+                <div class="tab" data-tab="printing">Printing</div>
                 <div class="tab" data-tab="tools">Tools</div>
-                <div class="tab" data-tab="files">Files</div>
-                <div class="tab" data-tab="bookmarks">Bookmarks</div>
                 <div class="tab" data-tab="all">All</div>
             </div>
             <div class="filters">
@@ -557,7 +575,6 @@
         </div>
 
         <div class="grid-container" id="cardGrid">
-            <!-- Cards are injected here by cards.js -->
             <div class="empty-state" id="emptyState">
                 <div class="empty-title">No items found</div>
                 <div class="empty-sub">Try a different search or category.</div>
@@ -663,24 +680,19 @@
                 sidebarFavTitle.style.display = 'block';
 
                 favorites.forEach(titleKey => {
-                    // Find the card in the global cardsData array
                     const card = cardsData.find(c => c.title === titleKey);
-                    if (!card) return; // Failsafe if data was removed
+                    if (!card) return;
 
                     const logo = card.logo || '?';
                     const href = card.href || '#';
-                    
-                    // Determine if logo is an image or text
                     const isImg = typeof logo === 'string' && (logo.includes('/') || logo.startsWith('http') || /\.(png|jpg|jpeg|gif|svg|webp|ico)$/i.test(logo));
-                    
-                    const iconHTML = isImg 
-                        ? `<img src="${logo}" alt="icon">`
-                        : `<span>${logo}</span>`;
+                    const iconHTML = isImg ? `<img src="${logo}" alt="icon">` : `<span>${logo}</span>`;
 
                     const a = document.createElement('a');
                     a.href = href;
                     a.className = 'nav-item sidebar-fav-item';
                     a.setAttribute('data-title', card.title);
+                    if (card.description) a.title = card.description;
                     a.innerHTML = `
                         <div class="fav-sidebar-icon">${iconHTML}</div>
                         <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${card.title}</span>
@@ -747,7 +759,6 @@
                     }
                 });
 
-                // Empty state
                 if (emptyState) {
                     if (visibleCount === 0) {
                         emptyState.classList.add('visible');
@@ -812,7 +823,6 @@
                 const btn = e.target.closest('.sidebar-unstar-btn');
                 if (!btn) return;
 
-                // Prevent link navigation
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -890,7 +900,7 @@
 
             /* ---------------- INITIAL STATE ---------------- */
             refreshFavButtons();
-            renderSidebarFavorites(); // Initialize sidebar
+            renderSidebarFavorites();
             filterCards();
 
             /* ---------------- HIDE LOADING OVERLAY ---------------- */

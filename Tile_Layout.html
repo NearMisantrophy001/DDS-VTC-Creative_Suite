@@ -620,9 +620,38 @@
         box-shadow: inset 0 0 0 1px rgba(255,255,255,.6);
     }
 
-    .crop-zoom-row { display: flex; align-items: center; gap: 10px; }
+    .crop-box-rect {
+        position: absolute;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.45);
+        cursor: move;
+        touch-action: none;
+        display: none;
+        z-index: 2;
+    }
+    .crop-stage.free-crop-active .crop-grid-lines { display: none; }
+    .crop-stage.free-crop-active .crop-box-rect { display: block; }
+    .crop-handle {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: #ffffff;
+        border: 1.5px solid var(--brand-blue);
+        border-radius: 2px;
+        z-index: 3;
+    }
+    .crop-handle.nw { top: -5px; left: -5px; cursor: nwse-resize; }
+    .crop-handle.ne { top: -5px; right: -5px; cursor: nesw-resize; }
+    .crop-handle.sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+    .crop-handle.se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+    .crop-handle.n  { top: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+    .crop-handle.s  { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+    .crop-handle.w  { left: -5px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+    .crop-handle.e  { right: -5px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+
+    .crop-zoom-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .crop-zoom-row .setting-label { flex-shrink: 0; }
-    .crop-zoom-row .setting-slider { margin-top: 0; }
+    .crop-zoom-row .setting-value-wrapper input { width: 68px; height: 30px; }
 
     /* ============ LOADING OVERLAY ============ */
     .loading-overlay {
@@ -1064,7 +1093,7 @@ body.group-child-layer-selected #tileLayoutControls {
         <div class="crop-head">
             <div>
                 <div class="modal-header" style="margin-bottom:0;">Edit Image</div>
-                <div class="crop-sub">Drag to reposition · Scroll or slide to zoom</div>
+                <div class="crop-sub" id="cropSubHint">Drag to reposition · Scroll or enter zoom</div>
             </div>
             <button class="icon-btn" onclick="closeCrop()" title="Close">✕</button>
         </div>
@@ -1073,6 +1102,17 @@ body.group-child-layer-selected #tileLayoutControls {
             <div class="crop-stage" id="cropStage">
                 <img id="cropImg" alt="" draggable="false">
                 <div class="crop-grid-lines"></div>
+                <div class="crop-box-rect" id="cropBoxRect">
+                    <div class="crop-grid-lines"></div>
+                    <div class="crop-handle nw" data-handle="nw"></div>
+                    <div class="crop-handle n" data-handle="n"></div>
+                    <div class="crop-handle ne" data-handle="ne"></div>
+                    <div class="crop-handle w" data-handle="w"></div>
+                    <div class="crop-handle e" data-handle="e"></div>
+                    <div class="crop-handle sw" data-handle="sw"></div>
+                    <div class="crop-handle s" data-handle="s"></div>
+                    <div class="crop-handle se" data-handle="se"></div>
+                </div>
             </div>
         </div>
 
@@ -1080,12 +1120,16 @@ body.group-child-layer-selected #tileLayoutControls {
             <button data-aspect="tile" class="active" onclick="setCropAspect('tile')">Tile Ratio</button>
             <button data-aspect="square" onclick="setCropAspect('square')">1 : 1</button>
             <button data-aspect="image" onclick="setCropAspect('image')">Original</button>
+            <button data-aspect="free" onclick="setCropAspect('free')">Free</button>
         </div>
 
         <div class="crop-zoom-row">
-            <span class="setting-label" style="width:44px;">Zoom</span>
-            <input type="range" id="cropZoom" class="setting-slider" min="1" max="4" step="0.01" value="1"
-                   oninput="setCropZoom(parseFloat(this.value))">
+            <span class="setting-label">Zoom</span>
+            <div class="setting-value-wrapper">
+                <input type="number" id="cropZoom" min="1" max="4" step="0.05" value="1"
+                       oninput="onCropZoomInput(this.value)" onchange="onCropZoomInput(this.value, true)">
+                <span>×</span>
+            </div>
         </div>
 
         <div class="modal-footer">
@@ -2946,8 +2990,44 @@ async function exportFile() {
 /* =========================================================
    CROP / EDIT IMAGE
    ========================================================= */
-const cropStage = document.getElementById('cropStage');
-const cropImg   = document.getElementById('cropImg');
+const cropStage   = document.getElementById('cropStage');
+const cropImg     = document.getElementById('cropImg');
+const cropBoxRect = document.getElementById('cropBoxRect');
+
+function setCropZoomInputValue(val) {
+    const el = document.getElementById('cropZoom');
+    if (el) el.value = Number(val).toFixed(2).replace(/\.00$/, '');
+}
+
+function initFreeCropBox() {
+    if (!crop) return;
+    const padX = Math.max(12, Math.round(crop.vw * 0.08));
+    const padY = Math.max(12, Math.round(crop.vh * 0.08));
+    const minW = Math.min(40, crop.vw);
+    const minH = Math.min(40, crop.vh);
+    const w = Math.max(minW, crop.vw - padX * 2);
+    const h = Math.max(minH, crop.vh - padY * 2);
+    crop.freeRect = {
+        x: Math.round((crop.vw - w) / 2),
+        y: Math.round((crop.vh - h) / 2),
+        w: Math.round(w),
+        h: Math.round(h)
+    };
+}
+
+function syncCropModeUI() {
+    if (!crop) return;
+    const isFree = crop.aspectMode === 'free';
+    cropStage.classList.toggle('free-crop-active', isFree);
+    const hint = document.getElementById('cropSubHint');
+    if (hint) {
+        hint.textContent = isFree
+            ? 'Drag box or corners for free-form crop · Enter zoom'
+            : 'Drag to reposition · Scroll or enter zoom';
+    }
+    const zoomInput = document.getElementById('cropZoom');
+    if (zoomInput) zoomInput.disabled = isFree;
+}
 
 function openCropModal(imgId) {
     const obj = uploadedImages.find(i => i.id === (imgId || activeImageId));
@@ -2959,12 +3039,15 @@ function openCropModal(imgId) {
         zoom: 1, x: 0, y: 0,
         natW: 0, natH: 0,
         vw: 0, vh: 0, base: 1, dw: 0, dh: 0,
-        dragging: false, startX: 0, startY: 0, origX: 0, origY: 0
+        freeRect: null,
+        dragging: false, dragMode: null, handle: null,
+        startX: 0, startY: 0, origX: 0, origY: 0, origRect: null
     };
 
     document.querySelectorAll('#cropAspectCtrl button').forEach(b =>
         b.classList.toggle('active', b.dataset.aspect === 'tile'));
-    document.getElementById('cropZoom').value = 1;
+    setCropZoomInputValue(1);
+    syncCropModeUI();
 
     cropImg.onload = () => {
         crop.natW = cropImg.naturalWidth || 1;
@@ -2984,13 +3067,13 @@ function openCropModal(imgId) {
             const s = crop.base * crop.zoom;
             crop.x = crop.vw / 2 - cxSrc * s;
             crop.y = crop.vh / 2 - cySrc * s;
-            document.getElementById('cropZoom').value = crop.zoom;
+            setCropZoomInputValue(crop.zoom);
         } else {
             crop.zoom = 1;
             const s = crop.base;
             crop.x = (crop.vw - crop.natW * s) / 2;
             crop.y = (crop.vh - crop.natH * s) / 2;
-            document.getElementById('cropZoom').value = 1;
+            setCropZoomInputValue(1);
         }
 
         layoutCrop();
@@ -3002,6 +3085,7 @@ function openCropModal(imgId) {
 
 function getCropAspect() {
     if (!crop) return 1;
+    if (crop.aspectMode === 'free') return crop.natW / crop.natH || 1;
     if (crop.aspectMode === 'square') return 1;
     if (crop.aspectMode === 'image') return crop.natW / crop.natH || 1;
     const size = getImageTileSize(activeImageId);
@@ -3035,19 +3119,43 @@ function computeCropStage(keepCenter) {
     cropStage.style.width  = vw + 'px';
     cropStage.style.height = vh + 'px';
 
-    crop.base = Math.max(vw / crop.natW, vh / crop.natH);
-
-    if (prev) {
-        const s = crop.base * crop.zoom;
-        crop.x = vw / 2 - prev.sx * s;
-        crop.y = vh / 2 - prev.sy * s;
-    } else {
-        const s = crop.base * crop.zoom;
+    if (crop.aspectMode === 'free') {
+        crop.zoom = 1;
+        setCropZoomInputValue(1);
+        crop.base = Math.min(vw / crop.natW, vh / crop.natH);
+        const s = crop.base;
         crop.x = (vw - crop.natW * s) / 2;
         crop.y = (vh - crop.natH * s) / 2;
+        initFreeCropBox();
+    } else {
+        crop.base = Math.max(vw / crop.natW, vh / crop.natH);
+        if (prev) {
+            const s = crop.base * crop.zoom;
+            crop.x = vw / 2 - prev.sx * s;
+            crop.y = vh / 2 - prev.sy * s;
+        } else {
+            const s = crop.base * crop.zoom;
+            crop.x = (vw - crop.natW * s) / 2;
+            crop.y = (vh - crop.natH * s) / 2;
+        }
     }
 
     layoutCrop();
+}
+
+function layoutFreeCropBox() {
+    if (!crop || !crop.freeRect) return;
+    const minSize = 24;
+    const r = crop.freeRect;
+    r.w = Math.max(minSize, Math.min(crop.vw, r.w));
+    r.h = Math.max(minSize, Math.min(crop.vh, r.h));
+    r.x = Math.max(0, Math.min(crop.vw - r.w, r.x));
+    r.y = Math.max(0, Math.min(crop.vh - r.h, r.y));
+
+    cropBoxRect.style.left   = r.x + 'px';
+    cropBoxRect.style.top    = r.y + 'px';
+    cropBoxRect.style.width  = r.w + 'px';
+    cropBoxRect.style.height = r.h + 'px';
 }
 
 function layoutCrop() {
@@ -3056,17 +3164,23 @@ function layoutCrop() {
     crop.dw = crop.natW * s;
     crop.dh = crop.natH * s;
 
-    crop.x = Math.min(0, Math.max(crop.vw - crop.dw, crop.x));
-    crop.y = Math.min(0, Math.max(crop.vh - crop.dh, crop.y));
+    if (crop.aspectMode !== 'free') {
+        crop.x = Math.min(0, Math.max(crop.vw - crop.dw, crop.x));
+        crop.y = Math.min(0, Math.max(crop.vh - crop.dh, crop.y));
+    }
 
     cropImg.style.width  = crop.dw + 'px';
     cropImg.style.height = crop.dh + 'px';
     cropImg.style.left   = crop.x + 'px';
     cropImg.style.top    = crop.y + 'px';
+
+    if (crop.aspectMode === 'free') {
+        layoutFreeCropBox();
+    }
 }
 
 function setCropZoom(z) {
-    if (!crop) return;
+    if (!crop || crop.aspectMode === 'free') return;
     const oldS = crop.base * crop.zoom;
     const cx = crop.vw / 2, cy = crop.vh / 2;
     const sx = (cx - crop.x) / oldS;
@@ -3078,8 +3192,24 @@ function setCropZoom(z) {
     crop.x = cx - sx * s;
     crop.y = cy - sy * s;
 
-    document.getElementById('cropZoom').value = crop.zoom;
+    setCropZoomInputValue(crop.zoom);
     layoutCrop();
+}
+
+function onCropZoomInput(rawVal, clampOnBlur = false) {
+    if (!crop || crop.aspectMode === 'free') return;
+    if (String(rawVal).trim() === '') {
+        if (clampOnBlur) setCropZoom(1);
+        return;
+    }
+    const parsed = parseFloat(rawVal);
+    if (!Number.isFinite(parsed)) {
+        if (clampOnBlur) setCropZoom(1);
+        return;
+    }
+    const clamped = Math.max(1, Math.min(4, parsed));
+    setCropZoom(clamped);
+    if (clampOnBlur) setCropZoomInputValue(clamped);
 }
 
 function setCropAspect(mode) {
@@ -3087,35 +3217,83 @@ function setCropAspect(mode) {
     crop.aspectMode = mode;
     document.querySelectorAll('#cropAspectCtrl button').forEach(b =>
         b.classList.toggle('active', b.dataset.aspect === mode));
+    syncCropModeUI();
     computeCropStage(true);
     layoutCrop();
 }
 
-/* --- drag to pan --- */
+/* --- drag to pan or resize free-form crop box --- */
 cropStage.addEventListener('pointerdown', e => {
     if (!crop) return;
+    const handleEl = e.target.closest('.crop-handle');
     crop.dragging = true;
     crop.startX = e.clientX;
     crop.startY = e.clientY;
     crop.origX = crop.x;
     crop.origY = crop.y;
+
+    if (crop.aspectMode === 'free' && handleEl) {
+        crop.dragMode = 'resize';
+        crop.handle = handleEl.dataset.handle;
+        crop.origRect = { ...crop.freeRect };
+    } else if (crop.aspectMode === 'free' && e.target.closest('#cropBoxRect')) {
+        crop.dragMode = 'move-box';
+        crop.handle = null;
+        crop.origRect = { ...crop.freeRect };
+    } else {
+        crop.dragMode = 'pan';
+        crop.handle = null;
+        crop.origRect = null;
+    }
+
     try { cropStage.setPointerCapture(e.pointerId); } catch (err) {}
 });
 
 cropStage.addEventListener('pointermove', e => {
     if (!crop || !crop.dragging) return;
-    crop.x = crop.origX + (e.clientX - crop.startX);
-    crop.y = crop.origY + (e.clientY - crop.startY);
-    layoutCrop();
+    const dx = e.clientX - crop.startX;
+    const dy = e.clientY - crop.startY;
+
+    if (crop.aspectMode === 'free' && crop.dragMode === 'move-box' && crop.origRect) {
+        crop.freeRect.x = crop.origRect.x + dx;
+        crop.freeRect.y = crop.origRect.y + dy;
+        layoutFreeCropBox();
+        return;
+    }
+
+    if (crop.aspectMode === 'free' && crop.dragMode === 'resize' && crop.origRect) {
+        const r = { ...crop.origRect };
+        const h = crop.handle;
+        if (h.includes('w')) { r.x = crop.origRect.x + dx; r.w = crop.origRect.w - dx; }
+        if (h.includes('e')) { r.w = crop.origRect.w + dx; }
+        if (h.includes('n')) { r.y = crop.origRect.y + dy; r.h = crop.origRect.h - dy; }
+        if (h.includes('s')) { r.h = crop.origRect.h + dy; }
+        crop.freeRect = r;
+        layoutFreeCropBox();
+        return;
+    }
+
+    if (crop.aspectMode !== 'free') {
+        crop.x = crop.origX + dx;
+        crop.y = crop.origY + dy;
+        layoutCrop();
+    }
 });
 
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
-    cropStage.addEventListener(evt, () => { if (crop) crop.dragging = false; });
+    cropStage.addEventListener(evt, () => {
+        if (crop) {
+            crop.dragging = false;
+            crop.dragMode = null;
+            crop.handle = null;
+            crop.origRect = null;
+        }
+    });
 });
 
 /* --- wheel to zoom --- */
 cropStage.addEventListener('wheel', e => {
-    if (!crop) return;
+    if (!crop || crop.aspectMode === 'free') return;
     e.preventDefault();
     const delta = -e.deltaY * 0.0016;
     setCropZoom(crop.zoom + delta);
@@ -3127,11 +3305,17 @@ function resetCrop() {
     crop.obj.croppedSrc = null;
     crop.obj.cropRect = null;
 
-    crop.zoom = 1;
-    const s = crop.base;
-    crop.x = (crop.vw - crop.natW * s) / 2;
-    crop.y = (crop.vh - crop.natH * s) / 2;
-    document.getElementById('cropZoom').value = 1;
+    if (crop.aspectMode === 'free') {
+        crop.zoom = 1;
+        setCropZoomInputValue(1);
+        initFreeCropBox();
+    } else {
+        crop.zoom = 1;
+        const s = crop.base;
+        crop.x = (crop.vw - crop.natW * s) / 2;
+        crop.y = (crop.vh - crop.natH * s) / 2;
+        setCropZoomInputValue(1);
+    }
     layoutCrop();
 
     renderImageQueue();
@@ -3146,17 +3330,31 @@ function closeCrop() {
 function applyCrop() {
     if (!crop) return;
 
-    const s = crop.base * crop.zoom;
-    const sx = (0 - crop.x) / s;
-    const sy = (0 - crop.y) / s;
-    const sw = crop.vw / s;
-    const sh = crop.vh / s;
+    let sx, sy, sw, sh, aspect;
+
+    if (crop.aspectMode === 'free' && crop.freeRect) {
+        const r = crop.freeRect;
+        const s = crop.base * crop.zoom;
+        sx = Math.max(0, Math.min(crop.natW, (r.x - crop.x) / s));
+        sy = Math.max(0, Math.min(crop.natH, (r.y - crop.y) / s));
+        const sx2 = Math.max(sx + 1, Math.min(crop.natW, (r.x + r.w - crop.x) / s));
+        const sy2 = Math.max(sy + 1, Math.min(crop.natH, (r.y + r.h - crop.y) / s));
+        sw = sx2 - sx;
+        sh = sy2 - sy;
+        aspect = sw / sh;
+    } else {
+        const s = crop.base * crop.zoom;
+        sx = (0 - crop.x) / s;
+        sy = (0 - crop.y) / s;
+        sw = crop.vw / s;
+        sh = crop.vh / s;
+        aspect = crop.vw / crop.vh;
+    }
 
     // Output resolution: aim for ~600 dpi on the longest tile edge, capped
     const longestTileIn = Math.max(appConfig.tileW, appConfig.tileH);
     const targetPx = Math.min(2400, Math.max(800, Math.round(longestTileIn * 600)));
 
-    const aspect = crop.vw / crop.vh;
     let outW, outH;
     if (aspect >= 1) { outW = targetPx; outH = Math.max(1, Math.round(targetPx / aspect)); }
     else             { outH = targetPx; outW = Math.max(1, Math.round(targetPx * aspect)); }
