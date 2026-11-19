@@ -278,6 +278,16 @@
         gap: 6px; margin-bottom: 12px;
     }
     .input-group:last-child { margin-bottom: 0; }
+    .quantity-input-group { gap: 8px; }
+    .quantity-input-group .static-label { flex: 1 1 auto; min-width: 0; }
+    .quantity-controls { display: flex; align-items: center; gap: 6px; flex: 0 1 66%; min-width: 0; }
+    .quantity-controls .setting-value-wrapper { flex: 1 1 0; min-width: 0; gap: 5px; }
+    .quantity-controls .setting-value-wrapper input { width: 100%; min-width: 0; flex: 1 1 auto; height: 30px; }
+    .quantity-controls .toggle-label { flex: 0 0 auto; padding: 7px 8px; gap: 6px; white-space: nowrap; }
+    @media (max-width: 360px) {
+        .quantity-controls { flex-basis: 72%; gap: 4px; }
+        .quantity-controls .toggle-label { padding: 7px 6px; gap: 4px; }
+    }
     .tile-preset-group {
         display: flex; align-items: center; justify-content: flex-start;
         gap: 6px; margin-bottom: 10px;
@@ -316,6 +326,7 @@
         flex: 1; padding: 5px 0; border: none; background: transparent;
         border-radius: 4px; cursor: pointer; font-size: .75rem; font-weight: 600;
         color: var(--text-muted); transition: all .2s;
+        display: inline-flex; align-items: center; justify-content: center;
     }
     .segmented-control button:hover { color: var(--text-main); }
     .segmented-control button.active {
@@ -717,6 +728,15 @@
         .paper-page:last-child { page-break-after: auto; break-after: auto; }
         .safe-zone-overlay, .paper-label { display: none !important; }
     }
+
+    #imageQueue.drop-files-target { outline:2px dashed var(--brand-blue); outline-offset:4px; background:rgba(37,99,235,.06); border-radius:8px; }
+    .layer-group-header.drop-files-target, .layer-item.drop-files-target { outline:2px dashed var(--brand-blue); outline-offset:2px; background:rgba(37,99,235,.08); }
+
+/* Hide tile sizing controls while editing one child layer in a group. */
+body.group-child-layer-selected #tileLayoutControls {
+    display: none !important;
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -846,7 +866,7 @@
         </details>
 
         <!-- SPACING & BORDER -->
-        <details open id="acc-spacing">
+        <details id="acc-spacing">
             <summary>Spacing &amp; Border</summary>
             <div class="details-content">
                 <div class="setting-row">
@@ -875,11 +895,11 @@
                     <div class="setting-header">
                         <span class="setting-label">Border Width</span>
                         <div class="setting-value-wrapper">
-                            <input type="number" id="numBorderW" step="0.1" min="0" max="5" value="0.1" oninput="syncSlider('numBorderW','sliderBorderW'); updateSettings()">
+                            <input type="number" id="numBorderW" step="0.1" min="0" max="5" value="0" oninput="syncSlider('numBorderW','sliderBorderW'); updateSettings()">
                             <span>px</span>
                         </div>
                     </div>
-                    <input type="range" id="sliderBorderW" class="setting-slider" step="0.1" min="0" max="5" value="0.1" oninput="syncNumber('sliderBorderW','numBorderW'); updateSettings()">
+                    <input type="range" id="sliderBorderW" class="setting-slider" step="0.1" min="0" max="5" value="0" oninput="syncNumber('sliderBorderW','numBorderW'); updateSettings()">
                 </div>
 
                 <div class="setting-header" style="margin-top:2px;margin-bottom:0;">
@@ -894,17 +914,62 @@
         <details open id="acc-adjust">
             <summary>Adjust Layout</summary>
             <div class="details-content">
+                <div id="quantitySection" style="display:none;">
+                    <div class="input-group quantity-input-group" id="quantitySetting" style="margin-bottom:12px;">
+                        <div class="static-label">Quantity</div>
+                        <div class="quantity-controls">
+                            <div class="setting-value-wrapper" id="layerQuantityValueWrap">
+                                <input type="number" id="layerQuantity" min="0" max="500" step="1" value="1"
+                                       onfocus="if (this.disabled === false) updateLayerQuantityMode('fixed')"
+                                       oninput="updateLayerQuantity(this.value)">
+                                <span>pcs</span>
+                            </div>
+                            <label class="toggle-label" for="layerQuantityAuto">
+                                <input type="checkbox" id="layerQuantityAuto" checked
+                                       onchange="updateLayerQuantityMode(this.checked ? 'auto' : 'fixed')">
+                                <span>Auto-fill</span>
+                            </label>
+                        </div>
+                    </div>
+                    <hr class="divider" id="quantityDivider" style="margin:12px 0;">
+                </div>
+                <div class="input-group" style="margin-bottom:10px;">
+                    <div class="static-label">Position</div>
+                    <div class="segmented-control" style="width:132px;">
+                        <button id="alignTopBtn" onclick="setAlign('top')" title="Align canvas top" aria-label="Align canvas top">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="2" y1="2.5" x2="14" y2="2.5"></line>
+                                <rect x="4.5" y="4.5" width="3" height="8" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                <rect x="8.5" y="4.5" width="3" height="5.5" rx="0.75" fill="currentColor" stroke="none"></rect>
+                            </svg>
+                        </button>
+                        <button id="alignCenterBtn" class="active" onclick="setAlign('center')" title="Align canvas center" aria-label="Align canvas center">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="2" y1="8" x2="14" y2="8"></line>
+                                <rect x="4.5" y="3.5" width="3" height="9" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                <rect x="8.5" y="5" width="3" height="6" rx="0.75" fill="currentColor" stroke="none"></rect>
+                            </svg>
+                        </button>
+                        <button id="alignBottomBtn" onclick="setAlign('bottom')" title="Align canvas bottom" aria-label="Align canvas bottom">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="2" y1="13.5" x2="14" y2="13.5"></line>
+                                <rect x="4.5" y="3.5" width="3" height="8" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                <rect x="8.5" y="6" width="3" height="5.5" rx="0.75" fill="currentColor" stroke="none"></rect>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
                 <div class="input-group" style="margin-bottom:0;">
                     <div class="static-label">Image Fit</div>
-                    <div class="segmented-control" style="width:172px;">
+                    <div class="segmented-control" style="width:132px;">
                         <button id="fitCoverBtn" class="active" onclick="setFit('cover')" title="Fill the tile (may crop)">Fill</button>
                         <button id="fitContainBtn" onclick="setFit('contain')" title="Fit inside the tile (no crop)">Fit</button>
-                        <button id="fitOriginalBtn" onclick="setFit('original')" title="Render at the image's original pixel size">Original</button>
                     </div>
                 </div>
 
                 <hr class="divider" style="margin:12px 0;">
 
+                <div id="tileLayoutControls">
                 <div class="setting-row" style="margin-bottom:12px;">
                     <div class="setting-header" style="margin-bottom:6px;">
                         <span class="setting-label tile-layout-label">Tile Layout</span>
@@ -945,6 +1010,7 @@
                 <hr class="divider">
 
                 <button class="text-btn" onclick="matchImageRatio()" title="Set the tile height so the tile ratio matches the image">⤢ Match tile ratio to image</button>
+                </div>
             </div>
         </details>
 
@@ -1117,9 +1183,10 @@ const paperSizes = {
 const DEFAULT_CONFIG = {
     tileW: 1.5, tileH: 1.5,
     gapH: 0, gapV: 0,
-    borderW: 0.1, borderC: '#E5E7EB',
+    borderW: 0, borderC: '#E5E7EB',
     margin: 0,
     fit: 'cover',
+    align: 'center',
     paper: 'A4'
 };
 
@@ -1179,10 +1246,45 @@ function syncTileControls(imageId = activeImageId) {
 function getTileAspect() {
     return appConfig.tileW / appConfig.tileH;
 }
-function fitObjectFit() {
-    if (appConfig.fit === 'contain') return 'contain';
-    if (appConfig.fit === 'original') return 'none';
-    return 'cover';
+function getImageFit(imageId = activeImageId) {
+    const obj = uploadedImages.find(img => img.id === imageId);
+    const fit = obj?.fit || appConfig.fit;
+    return fit === 'contain' ? 'contain' : 'cover';
+}
+function fitObjectFit(imageId = activeImageId) {
+    return getImageFit(imageId) === 'contain' ? 'contain' : 'cover';
+}
+function getCanvasAlign(pageOrImageId = null) {
+    let page = null;
+    if (pageOrImageId && typeof pageOrImageId === 'object') {
+        page = pageOrImageId;
+    } else if (typeof pageOrImageId === 'string') {
+        page = pages.find(pg => pg.id === pageOrImageId || (pg.imageIds || [pg.imageId]).includes(pageOrImageId));
+    }
+    if (!page) {
+        page = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(activeImageId)) || pages[activePageIndex] || null;
+    }
+    const align = page?.canvasAlign || appConfig.align;
+    if (align === 'top' || align === 'bottom') return align;
+    return 'center';
+}
+function canvasAlignItems(pageOrImageId = null) {
+    const align = getCanvasAlign(pageOrImageId);
+    if (align === 'top') return 'flex-start';
+    if (align === 'bottom') return 'flex-end';
+    return 'center';
+}
+function syncAlignControls(imageId = activeImageId) {
+    const align = getCanvasAlign(imageId);
+    document.getElementById('alignTopBtn')?.classList.toggle('active', align === 'top');
+    document.getElementById('alignCenterBtn')?.classList.toggle('active', align === 'center');
+    document.getElementById('alignBottomBtn')?.classList.toggle('active', align === 'bottom');
+}
+function syncFitControls(imageId = activeImageId) {
+    const fit = getImageFit(imageId);
+    document.getElementById('fitCoverBtn')?.classList.toggle('active', fit === 'cover');
+    document.getElementById('fitContainBtn')?.classList.toggle('active', fit === 'contain');
+    syncAlignControls(imageId);
 }
 
 /* =========================================================
@@ -1223,9 +1325,11 @@ function loadConfig() {
 
     document.getElementById('numMargin').value = (appConfig.margin / 25.4).toFixed(2);
 
+    if (appConfig.fit !== 'cover' && appConfig.fit !== 'contain') appConfig.fit = 'cover';
+    if (!['top', 'center', 'bottom'].includes(appConfig.align)) appConfig.align = 'center';
     document.getElementById('fitCoverBtn').classList.toggle('active', appConfig.fit === 'cover');
     document.getElementById('fitContainBtn').classList.toggle('active', appConfig.fit === 'contain');
-    document.getElementById('fitOriginalBtn').classList.toggle('active', appConfig.fit === 'original');
+    syncAlignControls(activeImageId);
 
 }
 
@@ -1320,10 +1424,30 @@ function updateSettings() {
 }
 
 function setFit(mode) {
-    appConfig.fit = mode;
-    document.getElementById('fitCoverBtn').classList.toggle('active', mode === 'cover');
-    document.getElementById('fitContainBtn').classList.toggle('active', mode === 'contain');
-    document.getElementById('fitOriginalBtn').classList.toggle('active', mode === 'original');
+    const page = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
+    const isGroupChild = !!page && (page.imageIds || []).length > 1 && !selectedGroupPageId;
+    if (isGroupChild) {
+        const obj = uploadedImages.find(img => img.id === activeImageId);
+        if (obj) obj.fit = mode;
+    } else {
+        appConfig.fit = mode;
+    }
+    syncFitControls(activeImageId);
+    saveConfig();
+    renderCanvas();
+}
+
+function setAlign(mode) {
+    if (!['top', 'center', 'bottom'].includes(mode)) return;
+    const page = (selectedGroupPageId && pages.find(pg => pg.id === selectedGroupPageId))
+        || pages.find(pg => (pg.imageIds || [pg.imageId]).includes(activeImageId))
+        || pages[activePageIndex]
+        || null;
+    if (page) {
+        page.canvasAlign = mode;
+    }
+    appConfig.align = mode;
+    syncAlignControls(activeImageId);
     saveConfig();
     renderCanvas();
 }
@@ -1508,7 +1632,10 @@ function handleFiles(files) {
                 cropRect: null,
                 name: file.name,
                 tileW: appConfig.tileW,
-                tileH: appConfig.tileH
+                tileH: appConfig.tileH,
+                quantityOverride: null,
+                fit: null,
+                align: null
             };
             // Never keep the initial blank placeholder as an exportable page.
             if (!uploadedImages.length) {
@@ -1535,6 +1662,12 @@ function renderImageQueue() {
     if (count) count.textContent = uploadedImages.length;
     queue.innerHTML = '';
     queue.ondragover = ev => {
+        if (ev.dataTransfer && Array.from(ev.dataTransfer.types || []).includes('Files')) {
+            ev.preventDefault();
+            ev.dataTransfer.dropEffect = 'copy';
+            queue.classList.add('drop-files-target');
+            return;
+        }
         // The queue itself (blank space between/below root layers) is the
         // drop target for detaching a grouped layer into the root layer list.
         if (!draggedLayerIds.length && !draggedGroupPageId) return;
@@ -1544,9 +1677,15 @@ function renderImageQueue() {
         queue.classList.add('drop-root-target');
     };
     queue.ondragleave = ev => {
-        if (!queue.contains(ev.relatedTarget)) queue.classList.remove('drop-root-target');
+        if (!queue.contains(ev.relatedTarget)) queue.classList.remove('drop-root-target', 'drop-files-target');
     };
     queue.ondrop = ev => {
+        if (ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files.length) {
+            ev.preventDefault(); ev.stopPropagation();
+            queue.classList.remove('drop-root-target', 'drop-files-target');
+            handleFiles(ev.dataTransfer.files);
+            return;
+        }
         if (ev.target.closest('.layer-item, .layer-group-header, .layer-group')) return;
         ev.preventDefault(); ev.stopPropagation();
         queue.classList.remove('drop-root-target');
@@ -1590,6 +1729,11 @@ function renderImageQueue() {
         });
         row.addEventListener('dragleave', () => { row.classList.remove('drop-before','drop-after'); delete row.dataset.dropAfter; });
         row.addEventListener('drop', ev => {
+            if (ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files.length) {
+                ev.preventDefault(); ev.stopPropagation();
+                handleFiles(ev.dataTransfer.files);
+                return;
+            }
             if (draggedGroupPageId) { ev.preventDefault(); ev.stopPropagation(); const after=row.dataset.dropAfter==='1'; moveGroupToLayerPosition(draggedGroupPageId,obj.id,after); return; }
             if (!draggedLayerIds.length) return;
             ev.preventDefault(); ev.stopPropagation();
@@ -1648,6 +1792,12 @@ function renderImageQueue() {
             header.addEventListener('dragstart', ev => startGroupDrag(ev, groupInfo.page.id));
             header.addEventListener('dragend', clearLayerDragStyles);
             header.addEventListener('dragover', ev => {
+                if (ev.dataTransfer && Array.from(ev.dataTransfer.types || []).includes('Files')) {
+                    ev.preventDefault(); ev.stopPropagation();
+                    ev.dataTransfer.dropEffect = 'copy';
+                    header.classList.add('drop-files-target');
+                    return;
+                }
                 if (draggedGroupPageId && draggedGroupPageId !== groupInfo.page.id) {
                     ev.preventDefault(); ev.stopPropagation();
                     const r = header.getBoundingClientRect();
@@ -1666,8 +1816,14 @@ function renderImageQueue() {
                     header.dataset.dropAfter = after ? '1' : '0';
                 }
             });
-            header.addEventListener('dragleave', () => { header.classList.remove('drop-target','drop-before','drop-after'); delete header.dataset.dropAfter; });
+            header.addEventListener('dragleave', () => { header.classList.remove('drop-target','drop-before','drop-after','drop-files-target'); delete header.dataset.dropAfter; });
             header.addEventListener('drop', ev => {
+                if (ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files.length) {
+                    ev.preventDefault(); ev.stopPropagation();
+                    header.classList.remove('drop-files-target');
+                    handleFiles(ev.dataTransfer.files);
+                    return;
+                }
                 ev.preventDefault(); ev.stopPropagation();
                 const after = header.dataset.dropAfter === '1';
                 header.classList.remove('drop-target','drop-before','drop-after'); delete header.dataset.dropAfter;
@@ -1680,7 +1836,7 @@ function renderImageQueue() {
                 activeImageId = groupInfo.ids[0] || null;
                 const groupPageIndex = pages.findIndex(pg => pg.id === groupInfo.page.id);
                 if (groupPageIndex >= 0) activePageIndex = groupPageIndex;
-                if (activeImageId) syncTileControls(activeImageId);
+                if (activeImageId) { syncTileControls(activeImageId); syncQuantityControl(activeImageId); }
                 renderImageQueue();
                 renderCanvas();
             };
@@ -1956,6 +2112,99 @@ function moveDraggedLayersOut() {
     renderCanvas();
 }
 
+function getCurrentLayerCanvasQuantity(imageId = activeImageId) {
+    const page = pages.find(pg => (pg.imageIds || []).includes(imageId));
+    if (!page) return 0;
+
+    const pageImageIds = (page.imageIds || [page.imageId]).filter(Boolean);
+    const pageImages = page.visible === false
+        ? []
+        : pageImageIds.map(id => uploadedImages.find(img => img.id === id)).filter(img => img && img.visible !== false);
+    const selectedIndex = pageImages.findIndex(img => img.id === imageId);
+    if (selectedIndex < 0) return 0;
+
+    const layout = computeLayout(pageImages[0]?.id || imageId);
+    const capacity = layout.cols * layout.rows;
+    if (pageImageIds.length <= 1) return capacity;
+
+    const overrides = pageImages.map(img => img.quantityOverride == null
+        ? null
+        : Math.max(0, Math.min(500, Math.floor(Number(img.quantityOverride) || 0))));
+    const fixedTotal = overrides.reduce((sum, qty) => sum + (qty == null ? 0 : qty), 0);
+    const autoIndexes = overrides.map((qty, i) => qty == null ? i : -1).filter(i => i >= 0);
+    const remaining = Math.max(0, capacity - fixedTotal);
+    const eachAuto = autoIndexes.length ? Math.floor(remaining / autoIndexes.length) : 0;
+    let autoRemainder = autoIndexes.length ? remaining % autoIndexes.length : 0;
+    const requested = overrides.map(qty => {
+        if (qty != null) return qty;
+        const allocation = eachAuto + (autoRemainder > 0 ? 1 : 0);
+        if (autoRemainder > 0) autoRemainder--;
+        return allocation;
+    });
+    const totalRequested = requested.reduce((sum, qty) => sum + qty, 0);
+    const visibleTotal = Math.min(capacity, totalRequested);
+    const start = requested.slice(0, selectedIndex).reduce((sum, qty) => sum + qty, 0);
+    return Math.max(0, Math.min(requested[selectedIndex], visibleTotal - start));
+}
+
+function updateLayerQuantityMode(mode) {
+    const obj = uploadedImages.find(img => img.id === activeImageId);
+    if (!obj) return;
+    if (mode === 'auto') {
+        obj.quantityOverride = null;
+    } else {
+        // When switching from Auto to a fixed quantity, keep the number already
+        // visible for this layer on the canvas instead of resetting to 1.
+        const current = obj.quantityOverride;
+        obj.quantityOverride = current == null ? getCurrentLayerCanvasQuantity(activeImageId) : current;
+    }
+    syncQuantityControl(activeImageId);
+    renderCanvas();
+    renderImageQueue();
+}
+
+function updateLayerQuantity(value) {
+    const page = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
+    // Quantity overrides are intentionally limited to individual children of a group.
+    if (!page || (page.imageIds || []).length < 2 || selectedGroupPageId) return;
+    const obj = uploadedImages.find(img => img.id === activeImageId);
+    if (!obj) return;
+
+    if (String(value).trim() === '') return;
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return;
+    obj.quantityOverride = Math.max(0, Math.min(500, Math.floor(parsed)));
+    renderCanvas();
+    renderImageQueue();
+}
+
+function syncQuantityControl(imageId = activeImageId) {
+    syncFitControls(imageId);
+    const input = document.getElementById('layerQuantity');
+    const autoCheckbox = document.getElementById('layerQuantityAuto');
+    const valueWrap = document.getElementById('layerQuantityValueWrap');
+    if (!input || !autoCheckbox) return;
+    const page = pages.find(pg => (pg.imageIds || []).includes(imageId));
+    const isIndividualGroupLayer = !!page && (page.imageIds || []).length > 1 && !selectedGroupPageId;
+    const obj = uploadedImages.find(img => img.id === imageId);
+    const isChildLayerSelected = isIndividualGroupLayer && !!obj;
+    const section = document.getElementById('quantitySection');
+    const setting = document.getElementById('quantitySetting');
+    if (section) section.style.display = isChildLayerSelected ? '' : 'none';
+    if (setting) setting.style.display = isChildLayerSelected ? '' : 'none';
+    const tileLayoutControls = document.getElementById('tileLayoutControls');
+    document.body.classList.toggle('group-child-layer-selected', isChildLayerSelected);
+    if (tileLayoutControls) {
+        tileLayoutControls.style.setProperty('display', isChildLayerSelected ? 'none' : '', 'important');
+    }
+    autoCheckbox.disabled = !isChildLayerSelected;
+    autoCheckbox.checked = !(isIndividualGroupLayer && obj?.quantityOverride != null);
+    input.disabled = !isChildLayerSelected || autoCheckbox.checked;
+    input.value = isIndividualGroupLayer
+        ? String(obj?.quantityOverride != null ? obj.quantityOverride : getCurrentLayerCanvasQuantity(imageId))
+        : '0';
+    if (valueWrap) valueWrap.style.opacity = autoCheckbox.checked ? '.45' : '1';
+}
 function selectLayer(id, index, ev) {
     selectedGroupPageId = null;
     if (ev.ctrlKey || ev.metaKey) {
@@ -1975,6 +2224,7 @@ function selectLayer(id, index, ev) {
         if ((pages[pageIndex].imageIds || []).length > 1) collapsedGroupIds.delete(pages[pageIndex].id);
     }
     syncTileControls(id);
+    syncQuantityControl(id);
     renderCanvas(); // immediately switch the preview to the selected layer's page
     renderImageQueue();
 }
@@ -2026,7 +2276,7 @@ function groupImages(ids) {
     activePageIndex = insertAt; activeImageId = selectedIds[0];
     selectedImageIds = new Set(selectedIds);
     selectedGroupPageId = pages[insertAt]?.id || null;
-    syncTileControls(activeImageId); renderImageQueue(); renderCanvas();
+    syncTileControls(activeImageId); syncQuantityControl(activeImageId); renderImageQueue(); renderCanvas();
 }
 
 function ungroupPage(pg) {
@@ -2037,14 +2287,16 @@ function ungroupPage(pg) {
     pages.splice(index, 1, ...ids.map(id => ({ id: newPageId(), imageId: id })));
     activePageIndex = index; activeImageId = ids[0] || null;
     selectedImageIds = new Set(ids);
-    syncTileControls(activeImageId); renderImageQueue(); renderCanvas();
+    syncTileControls(activeImageId); syncQuantityControl(activeImageId); renderImageQueue(); renderCanvas();
 }
 
 /* Select an image → jump to the page that holds it (create one if missing) */
 function selectImage(imageId) {
+    selectedGroupPageId = null;
     activeImageId = imageId;
     selectedImageIds = new Set([imageId]);
     syncTileControls(imageId);
+    syncQuantityControl(imageId);
     let idx = pages.findIndex(p => (p.imageIds || [p.imageId]).includes(imageId));
     if (idx === -1) {
         pages.push({ id: newPageId(), imageId });
@@ -2368,6 +2620,8 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
     const inner = document.createElement('div');
     inner.className = 'page-inner';
     inner.style.padding = `${layout.m}mm`;
+    inner.style.alignItems = canvasAlignItems(pg);
+    inner.dataset.canvasAlign = getCanvasAlign(pg);
 
     const grid = document.createElement('div');
     grid.className = 'tile-grid';
@@ -2376,12 +2630,41 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
     grid.style.columnGap = `${appConfig.gapH}mm`;
     grid.style.rowGap = `${appConfig.gapV}mm`;
 
-    const objectFit = fitObjectFit();
-    const total = layout.cols * layout.rows;
-    const perImage = Math.floor(total / pageImages.length);
-    const remainder = total % pageImages.length;
+    const capacity = layout.cols * layout.rows;
+    // Standalone pages keep their original behavior: fill every available tile.
+    // Groups split the sheet evenly by default. A numeric override reserves that
+    // many tiles for one child; all remaining tiles are shared evenly by Auto children.
+    let requested;
+    if (pageImageIds.length <= 1) {
+        requested = [capacity];
+    } else {
+        const overrides = pageImages.map(obj => obj.quantityOverride == null
+            ? null
+            : Math.max(0, Math.min(500, Math.floor(Number(obj.quantityOverride) || 0))));
+        const fixedTotal = overrides.reduce((sum, qty) => sum + (qty == null ? 0 : qty), 0);
+        const autoIndexes = overrides.map((qty, i) => qty == null ? i : -1).filter(i => i >= 0);
+        const remaining = Math.max(0, capacity - fixedTotal);
+        const eachAuto = autoIndexes.length ? Math.floor(remaining / autoIndexes.length) : 0;
+        let autoRemainder = autoIndexes.length ? remaining % autoIndexes.length : 0;
+        requested = overrides.map((qty, i) => {
+            if (qty != null) return qty;
+            const allocation = eachAuto + (autoRemainder > 0 ? 1 : 0);
+            if (autoRemainder > 0) autoRemainder--;
+            return allocation;
+        });
+    }
+    const totalRequested = requested.reduce((sum, qty) => sum + qty, 0);
+    const total = Math.min(capacity, totalRequested);
     const allocationEnds = [];
-    pageImages.forEach((obj, n) => allocationEnds.push((allocationEnds[n - 1] || 0) + perImage + (n < remainder ? 1 : 0)));
+    requested.forEach((qty, n) => allocationEnds.push((allocationEnds[n - 1] || 0) + qty));
+    const quantityOverflow = totalRequested > capacity;
+    if (quantityOverflow && idx === activePageIndex) {
+        const warning = document.getElementById('overflowWarning');
+        if (warning) {
+            warning.style.display = 'block';
+            warning.textContent = `Requested ${totalRequested} copies, but only ${capacity} fit. Reduce a layer quantity.`;
+        }
+    }
 
     for (let i = 0; i < total; i++) {
         const row = Math.floor(i / layout.cols);
@@ -2399,7 +2682,7 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
         const img = document.createElement('img');
         img.src = tileImage.croppedSrc || tileImage.src;
         img.alt = '';
-        img.style.objectFit = objectFit;
+        img.style.objectFit = fitObjectFit(tileImage.id);
         tile.title = `Select ${tileImage.name || 'image layer'}`;
         tile.style.cursor = 'pointer';
         tile.onclick = () => selectImage(tileImage.id);
@@ -2442,7 +2725,7 @@ function updateLayoutInfo(layout) {
     const currentPage = pages[activePageIndex];
     const groupIds = currentPage?.imageIds || [];
     const groupNote = groupIds.length > 1
-        ? ` · ${groupIds.length} images, ${Math.floor(n / groupIds.length)}–${Math.ceil(n / groupIds.length)} tiles each`
+        ? ` · ${groupIds.length} layers · quantities auto-split unless overridden`
         : '';
     const safeOn = document.getElementById('safeZoneToggle')?.checked ?? false;
     const boundaryNote = safeOn ? ' · 3mm safe zone applied' : '';
@@ -2487,9 +2770,77 @@ function generateFilename(ext) {
     return `TileLayout_${stamp}_${rand}.${ext}`;
 }
 
-function hideExportOverlays(doc) {
+function prepareExportClone(doc) {
     doc.querySelectorAll('.safe-zone-overlay, .paper-label').forEach(el => el.style.display = 'none');
     doc.querySelectorAll('.modal-overlay, .loading-overlay, .pager').forEach(el => el.style.display = 'none');
+
+    // Reset captureArea transform inside clone so html2canvas measures unscaled 1:1 coordinates
+    const clonedCap = doc.getElementById('captureArea');
+    if (clonedCap) {
+        clonedCap.style.transform = 'none';
+        clonedCap.style.position = 'static';
+        clonedCap.style.left = '0';
+        clonedCap.style.top = '0';
+    }
+
+    doc.querySelectorAll('.page-inner').forEach(inner => {
+        const cAlign = inner.dataset.canvasAlign || 'center';
+        inner.style.display = 'flex';
+        inner.style.justifyContent = 'center';
+        inner.style.alignItems = cAlign === 'top' ? 'flex-start' : (cAlign === 'bottom' ? 'flex-end' : 'center');
+    });
+
+    // html2canvas ignores CSS object-fit: cover / contain and stretches <img> to 100%x100%.
+    // Compute exact aspect-preserved box inside each tile so PDF/PNG/JPG matches the canvas accurately.
+    doc.querySelectorAll('.tile').forEach(tile => {
+        const img = tile.querySelector('img');
+        if (!img) return;
+        const natW = img.naturalWidth;
+        const natH = img.naturalHeight;
+        const boxW = tile.clientWidth;
+        const boxH = tile.clientHeight;
+        if (!natW || !natH || !boxW || !boxH) return;
+
+        const fit = img.style.objectFit || 'cover';
+        const imgRatio = natW / natH;
+        const boxRatio = boxW / boxH;
+        let renderW, renderH;
+
+        if (fit === 'contain') {
+            if (imgRatio > boxRatio) {
+                renderW = boxW;
+                renderH = boxW / imgRatio;
+            } else {
+                renderH = boxH;
+                renderW = boxH * imgRatio;
+            }
+        } else {
+            // cover (Fill)
+            if (imgRatio > boxRatio) {
+                renderH = boxH;
+                renderW = boxH * imgRatio;
+            } else {
+                renderW = boxW;
+                renderH = boxW / imgRatio;
+            }
+        }
+
+        const offsetX = (boxW - renderW) / 2;
+        const offsetY = (boxH - renderH) / 2;
+
+        tile.style.display = 'block';
+        tile.style.position = 'relative';
+        tile.style.overflow = 'hidden';
+
+        img.style.position = 'absolute';
+        img.style.maxWidth = 'none';
+        img.style.maxHeight = 'none';
+        img.style.width = renderW + 'px';
+        img.style.height = renderH + 'px';
+        img.style.left = offsetX + 'px';
+        img.style.top = offsetY + 'px';
+        img.style.objectFit = 'fill';
+    });
 }
 
 /* Capture a page even if it is currently hidden by the pager */
@@ -2502,7 +2853,9 @@ async function capturePageEl(el) {
             scale: 4,
             useCORS: true,
             backgroundColor: '#ffffff',
-            onclone: hideExportOverlays
+            scrollX: 0,
+            scrollY: 0,
+            onclone: prepareExportClone
         });
     } finally {
         if (wasHidden) el.style.display = '';
@@ -2533,7 +2886,11 @@ async function exportFile() {
     const format = document.getElementById('exportFormat').value;
     const cap = document.getElementById('captureArea');
     const originalTransform = cap.style.transform;
-    cap.style.transform = 'scale(1)';
+    const originalPosition = cap.style.position;
+    const originalLeft = cap.style.left;
+    cap.style.transform = 'none';
+    cap.style.position = 'static';
+    cap.style.left = '0';
 
     showLoading('Rendering page...');
     await new Promise(r => setTimeout(r, 140));
@@ -2580,6 +2937,8 @@ async function exportFile() {
     } finally {
         hideLoading();
         cap.style.transform = originalTransform;
+        cap.style.position = originalPosition;
+        cap.style.left = originalLeft;
         fitToViewport();
     }
 }
