@@ -2869,17 +2869,43 @@ function generateFilename(ext) {
     return `TileLayout_${stamp}_${rand}.${ext}`;
 }
 
-function prepareExportClone(doc) {
-    // The live canvas uses compressed previews for speed. Export uses the
-    // original/cropped source so print and PDF quality are not reduced.
-    doc.querySelectorAll('.tile img[data-image-id]').forEach(img => {
-        const source = uploadedImages.find(item => item.id === img.dataset.imageId);
-        if (source) img.src = source.croppedSrc || source.src;
+async function prepareExportClone(doc, targetPageIndex) {
+    // Make the target page visible in the cloned document. The live pager hides
+    // inactive pages with display:none, which can otherwise produce a blank capture.
+    const clonedPages = Array.from(doc.querySelectorAll('#pagesWrapper .paper-page'));
+    clonedPages.forEach(page => {
+        page.style.display = Number(page.dataset.pageIndex) === Number(targetPageIndex) ? 'block' : 'none';
     });
+
+    // Use the full-resolution source, then WAIT until every cloned image has
+    // loaded and decoded before html2canvas starts drawing the page.
+    const clonedImages = Array.from(doc.querySelectorAll('.tile img[data-image-id]'));
+    clonedImages.forEach(img => {
+        const source = uploadedImages.find(item => item.id === img.dataset.imageId);
+        if (source) {
+            img.removeAttribute('src');
+            img.src = source.croppedSrc || source.src;
+        }
+    });
+    await Promise.all(clonedImages.map(async img => {
+        if (!img.src) return;
+        try {
+            if (!img.complete || !img.naturalWidth) {
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+            }
+            if (img.decode) await img.decode();
+        } catch (err) {
+            console.error('Export image failed to load:', img.dataset.imageId, err);
+            throw new Error('An image could not be loaded for export. Please re-upload it and try again.');
+        }
+    }));
+
     doc.querySelectorAll('.safe-zone-overlay, .paper-label').forEach(el => el.style.display = 'none');
     doc.querySelectorAll('.modal-overlay, .loading-overlay, .pager').forEach(el => el.style.display = 'none');
 
-    // Reset captureArea transform inside clone so html2canvas measures unscaled 1:1 coordinates
     const clonedCap = doc.getElementById('captureArea');
     if (clonedCap) {
         clonedCap.style.transform = 'none';
@@ -2895,55 +2921,34 @@ function prepareExportClone(doc) {
         inner.style.alignItems = cAlign === 'top' ? 'flex-start' : (cAlign === 'bottom' ? 'flex-end' : 'center');
     });
 
-    // html2canvas ignores CSS object-fit: cover / contain and stretches <img> to 100%x100%.
-    // Compute exact aspect-preserved box inside each tile so PDF/PNG/JPG matches the canvas accurately.
+    // html2canvas does not reliably reproduce object-fit; size the decoded image explicitly.
     doc.querySelectorAll('.tile').forEach(tile => {
         const img = tile.querySelector('img');
-        if (!img) return;
-        const natW = img.naturalWidth;
-        const natH = img.naturalHeight;
+        if (!img || !img.naturalWidth || !img.naturalHeight) return;
         const boxW = tile.clientWidth;
         const boxH = tile.clientHeight;
-        if (!natW || !natH || !boxW || !boxH) return;
-
+        if (!boxW || !boxH) return;
         const fit = img.style.objectFit || 'cover';
-        const imgRatio = natW / natH;
+        const imgRatio = img.naturalWidth / img.naturalHeight;
         const boxRatio = boxW / boxH;
         let renderW, renderH;
-
         if (fit === 'contain') {
-            if (imgRatio > boxRatio) {
-                renderW = boxW;
-                renderH = boxW / imgRatio;
-            } else {
-                renderH = boxH;
-                renderW = boxH * imgRatio;
-            }
+            if (imgRatio > boxRatio) { renderW = boxW; renderH = boxW / imgRatio; }
+            else { renderH = boxH; renderW = boxH * imgRatio; }
         } else {
-            // cover (Fill)
-            if (imgRatio > boxRatio) {
-                renderH = boxH;
-                renderW = boxH * imgRatio;
-            } else {
-                renderW = boxW;
-                renderH = boxW / imgRatio;
-            }
+            if (imgRatio > boxRatio) { renderH = boxH; renderW = boxH * imgRatio; }
+            else { renderW = boxW; renderH = boxW / imgRatio; }
         }
-
-        const offsetX = (boxW - renderW) / 2;
-        const offsetY = (boxH - renderH) / 2;
-
         tile.style.display = 'block';
         tile.style.position = 'relative';
         tile.style.overflow = 'hidden';
-
         img.style.position = 'absolute';
         img.style.maxWidth = 'none';
         img.style.maxHeight = 'none';
         img.style.width = renderW + 'px';
         img.style.height = renderH + 'px';
-        img.style.left = offsetX + 'px';
-        img.style.top = offsetY + 'px';
+        img.style.left = ((boxW - renderW) / 2) + 'px';
+        img.style.top = ((boxH - renderH) / 2) + 'px';
         img.style.objectFit = 'fill';
     });
 }
@@ -2960,7 +2965,7 @@ async function capturePageEl(el) {
             backgroundColor: '#ffffff',
             scrollX: 0,
             scrollY: 0,
-            onclone: prepareExportClone
+            onclone: doc => prepareExportClone(doc, el.dataset.pageIndex)
         });
     } finally {
         if (wasHidden) el.style.display = '';
