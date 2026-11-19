@@ -227,7 +227,7 @@
     .layer-item.active { border-color:transparent; border-left:2px solid var(--brand-blue); background:rgba(37,99,235,.16); padding-left:4px; }
     .layer-grip { color:var(--text-muted); opacity:.9; font-size:15px; line-height:1; flex-shrink:0; padding:5px 4px; margin-left:-3px; cursor:grab; touch-action:none; }
     .layer-item:hover .layer-grip { opacity:1; }
-    .layer-thumb { width:42px; height:30px; flex-shrink:0; border-radius:4px; overflow:hidden; background:#111; position:relative; }
+    .layer-thumb { width:42px; height:30px; flex-shrink:0; border-radius:4px; overflow:hidden; background:#fff; position:relative; }
     .layer-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
     .layer-thumb .layer-edit-overlay { position:absolute; inset:0; width:100%; height:100%; border-radius:0; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,.62); color:#fff; opacity:0; z-index:2; }
     .layer-item:hover .layer-thumb .layer-edit-overlay, .layer-item:focus-within .layer-thumb .layer-edit-overlay { opacity:1; }
@@ -902,22 +902,22 @@ body.group-child-layer-selected #tileLayoutControls {
                     <div class="setting-header">
                         <span class="setting-label">Horizontal Gap</span>
                         <div class="setting-value-wrapper">
-                            <input type="number" id="numGapH" step="0.01" min="0" max="0.4" value="0" oninput="syncSlider('numGapH','sliderGapH'); updateSettings()">
+                            <input type="number" id="numGapH" step="0.01" min="0" max="0.4" value="0.02" oninput="syncSlider('numGapH','sliderGapH'); updateSettings()">
                             <span>in</span>
                         </div>
                     </div>
-                    <input type="range" id="sliderGapH" class="setting-slider" step="0.01" min="0" max="0.4" value="0" oninput="syncNumber('sliderGapH','numGapH'); updateSettings()">
+                    <input type="range" id="sliderGapH" class="setting-slider" step="0.01" min="0" max="0.4" value="0.02" oninput="syncNumber('sliderGapH','numGapH'); updateSettings()">
                 </div>
 
                 <div class="setting-row">
                     <div class="setting-header">
                         <span class="setting-label">Vertical Gap</span>
                         <div class="setting-value-wrapper">
-                            <input type="number" id="numGapV" step="0.01" min="0" max="0.4" value="0" oninput="syncSlider('numGapV','sliderGapV'); updateSettings()">
+                            <input type="number" id="numGapV" step="0.01" min="0" max="0.4" value="0.02" oninput="syncSlider('numGapV','sliderGapV'); updateSettings()">
                             <span>in</span>
                         </div>
                     </div>
-                    <input type="range" id="sliderGapV" class="setting-slider" step="0.01" min="0" max="0.4" value="0" oninput="syncNumber('sliderGapV','numGapV'); updateSettings()">
+                    <input type="range" id="sliderGapV" class="setting-slider" step="0.01" min="0" max="0.4" value="0.02" oninput="syncNumber('sliderGapV','numGapV'); updateSettings()">
                 </div>
 
                 <div class="setting-row">
@@ -1226,7 +1226,7 @@ const paperSizes = {
 
 const DEFAULT_CONFIG = {
     tileW: 1.5, tileH: 1.5,
-    gapH: 0, gapV: 0,
+    gapH: 0.508, gapV: 0.508,
     borderW: 0, borderC: '#E5E7EB',
     margin: 0,
     fit: 'cover',
@@ -1647,31 +1647,73 @@ workspaceArea.addEventListener('drop', e => {
     if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
 });
 
+// Keep originals as Blob URLs (no Base64 copy in memory) and create a
+// small workspace preview using the browser's resize-during-decode support.
+async function makePreviewSrc(file, maxEdge = 1200) {
+    let sourceBitmap = null;
+    let previewBitmap = null;
+    try {
+        sourceBitmap = await createImageBitmap(file);
+        const scale = Math.min(1, maxEdge / Math.max(sourceBitmap.width, sourceBitmap.height));
+        previewBitmap = scale < 1
+            ? await createImageBitmap(sourceBitmap, {
+                resizeWidth: Math.max(1, Math.round(sourceBitmap.width * scale)),
+                resizeHeight: Math.max(1, Math.round(sourceBitmap.height * scale)),
+                resizeQuality: 'medium'
+            })
+            : sourceBitmap;
+        const canvas = document.createElement('canvas');
+        canvas.width = previewBitmap.width;
+        canvas.height = previewBitmap.height;
+        const ctx = canvas.getContext('2d', { alpha: false });
+        // Flatten transparent images onto white so transparent pixels never turn black.
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(previewBitmap, 0, 0);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.82));
+        return blob ? URL.createObjectURL(blob) : null;
+    } catch (err) {
+        return null;
+    } finally {
+        if (previewBitmap && previewBitmap !== sourceBitmap) previewBitmap.close?.();
+        sourceBitmap?.close?.();
+    }
+}
+
+function releaseImageSources(items) {
+    items.forEach(item => {
+        [item.src, item.previewSrc].forEach(url => {
+            if (typeof url === 'string' && url.startsWith('blob:')) URL.revokeObjectURL(url);
+        });
+    });
+}
+
 function handleFiles(files) {
     const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (!valid.length) { showAlert('Invalid File', 'Please upload an image file (PNG, JPG, WEBP, SVG).'); return; }
 
     showLoading(`Loading ${valid.length} image${valid.length > 1 ? 's' : ''}...`);
-
     let done = 0;
     const total = valid.length;
 
     const finishOne = () => {
         done++;
         if (done < total) return;
-        activePageIndex = pages.length - 1;   // jump to the freshly created page
+        activePageIndex = pages.length - 1;
         syncActiveFromPage();
         renderImageQueue();
         renderCanvas();
         hideLoading();
     };
 
-    valid.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = e => {
+    valid.forEach(async file => {
+        const originalSrc = URL.createObjectURL(file);
+        try {
+            const previewSrc = await makePreviewSrc(file);
             const obj = {
                 id: 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-                src: e.target.result,
+                src: originalSrc,
+                previewSrc: previewSrc || originalSrc,
                 croppedSrc: null,
                 cropRect: null,
                 name: file.name,
@@ -1681,7 +1723,6 @@ function handleFiles(files) {
                 fit: null,
                 align: null
             };
-            // Never keep the initial blank placeholder as an exportable page.
             if (!uploadedImages.length) {
                 pages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
                 activePageIndex = 0;
@@ -1689,11 +1730,13 @@ function handleFiles(files) {
             uploadedImages.push(obj);
             if (selectedImageIds.size === 0) selectedImageIds.add(obj.id);
             pages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
-            pages.push({ id: newPageId(), imageId: obj.id });   // one page per image
+            pages.push({ id: newPageId(), imageId: obj.id });
+        } catch (err) {
+            URL.revokeObjectURL(originalSrc);
+            console.error('Image upload failed:', err);
+        } finally {
             finishOne();
-        };
-        reader.onerror = finishOne;
-        reader.readAsDataURL(file);
+        }
     });
 }
 
@@ -1792,7 +1835,7 @@ function renderImageQueue() {
         const grip = document.createElement('span');
         grip.className = 'layer-grip'; grip.textContent = '⠿'; row.appendChild(grip);
         const thumb = document.createElement('div'); thumb.className = 'layer-thumb';
-        const img = document.createElement('img'); img.src = obj.croppedSrc || obj.src; img.alt = '';
+        const img = document.createElement('img'); img.src = obj.previewSrc || obj.croppedSrc || obj.src; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
         thumb.appendChild(img);
         const edit = document.createElement('button'); edit.className = 'layer-action layer-edit-overlay';
         edit.type = 'button'; edit.title = 'Edit image'; edit.setAttribute('aria-label', 'Edit image');
@@ -2157,7 +2200,7 @@ function moveDraggedLayersOut() {
 }
 
 function getCurrentLayerCanvasQuantity(imageId = activeImageId) {
-    const page = pages.find(pg => (pg.imageIds || []).includes(imageId));
+    const page = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
     if (!page) return 0;
 
     const pageImageIds = (page.imageIds || [page.imageId]).filter(Boolean);
@@ -2169,7 +2212,12 @@ function getCurrentLayerCanvasQuantity(imageId = activeImageId) {
 
     const layout = computeLayout(pageImages[0]?.id || imageId);
     const capacity = layout.cols * layout.rows;
-    if (pageImageIds.length <= 1) return capacity;
+    if (pageImageIds.length <= 1) {
+        const obj = pageImages[0];
+        return obj?.quantityOverride == null
+            ? capacity
+            : Math.max(0, Math.min(capacity, Math.floor(Number(obj.quantityOverride) || 0)));
+    }
 
     const overrides = pageImages.map(img => img.quantityOverride == null
         ? null
@@ -2208,9 +2256,8 @@ function updateLayerQuantityMode(mode) {
 }
 
 function updateLayerQuantity(value) {
-    const page = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
-    // Quantity overrides are intentionally limited to individual children of a group.
-    if (!page || (page.imageIds || []).length < 2 || selectedGroupPageId) return;
+    const page = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(activeImageId));
+    if (!page || selectedGroupPageId) return;
     const obj = uploadedImages.find(img => img.id === activeImageId);
     if (!obj) return;
 
@@ -2228,23 +2275,23 @@ function syncQuantityControl(imageId = activeImageId) {
     const autoCheckbox = document.getElementById('layerQuantityAuto');
     const valueWrap = document.getElementById('layerQuantityValueWrap');
     if (!input || !autoCheckbox) return;
-    const page = pages.find(pg => (pg.imageIds || []).includes(imageId));
-    const isIndividualGroupLayer = !!page && (page.imageIds || []).length > 1 && !selectedGroupPageId;
+    const page = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
     const obj = uploadedImages.find(img => img.id === imageId);
-    const isChildLayerSelected = isIndividualGroupLayer && !!obj;
+    const isLayerSelected = !!page && !!obj && !selectedGroupPageId;
+    const isIndividualGroupLayer = !!page && (page.imageIds || []).length > 1 && !selectedGroupPageId;
     const section = document.getElementById('quantitySection');
     const setting = document.getElementById('quantitySetting');
-    if (section) section.style.display = isChildLayerSelected ? '' : 'none';
-    if (setting) setting.style.display = isChildLayerSelected ? '' : 'none';
+    if (section) section.style.display = isLayerSelected ? '' : 'none';
+    if (setting) setting.style.display = isLayerSelected ? '' : 'none';
     const tileLayoutControls = document.getElementById('tileLayoutControls');
-    document.body.classList.toggle('group-child-layer-selected', isChildLayerSelected);
+    document.body.classList.toggle('group-child-layer-selected', isIndividualGroupLayer);
     if (tileLayoutControls) {
-        tileLayoutControls.style.setProperty('display', isChildLayerSelected ? 'none' : '', 'important');
+        tileLayoutControls.style.setProperty('display', isIndividualGroupLayer ? 'none' : '', 'important');
     }
-    autoCheckbox.disabled = !isChildLayerSelected;
-    autoCheckbox.checked = !(isIndividualGroupLayer && obj?.quantityOverride != null);
-    input.disabled = !isChildLayerSelected || autoCheckbox.checked;
-    input.value = isIndividualGroupLayer
+    autoCheckbox.disabled = !isLayerSelected;
+    autoCheckbox.checked = !(isLayerSelected && obj?.quantityOverride != null);
+    input.disabled = !isLayerSelected || autoCheckbox.checked;
+    input.value = isLayerSelected
         ? String(obj?.quantityOverride != null ? obj.quantityOverride : getCurrentLayerCanvasQuantity(imageId))
         : '0';
     if (valueWrap) valueWrap.style.opacity = autoCheckbox.checked ? '.45' : '1';
@@ -2433,6 +2480,7 @@ function deleteSelectedLayers() {
         : (selectedImageIds.size ? selectedImageIds : (activeImageId ? [activeImageId] : [])));
     if (!idsToDelete.size) return;
 
+    releaseImageSources(uploadedImages.filter(img => idsToDelete.has(img.id)));
     uploadedImages = uploadedImages.filter(img => !idsToDelete.has(img.id));
     pages = pages.flatMap(page => {
         const ids = (page.imageIds || [page.imageId]).filter(id => id && !idsToDelete.has(id));
@@ -2454,6 +2502,7 @@ function deleteSelectedLayers() {
 }
 
 function removeImage(id) {
+    releaseImageSources(uploadedImages.filter(i => i.id === id));
     uploadedImages = uploadedImages.filter(i => i.id !== id);
     pages.forEach(pg => { if ((pg.imageIds || []).length <= 1) collapsedGroupIds.delete(pg.id); });
     pages = pages.flatMap(p => {
@@ -2471,6 +2520,7 @@ function removeImage(id) {
 }
 
 function clearAll() {
+    releaseImageSources(uploadedImages);
     uploadedImages = [];
     activeImageId = null;
     selectedImageIds.clear();
@@ -2484,6 +2534,7 @@ function clearAll() {
 async function resetAll() {
     const ok = await showConfirm('Reset Everything', 'This clears all images and restores default settings. Continue?');
     if (!ok) return;
+    releaseImageSources(uploadedImages);
     uploadedImages = [];
     activeImageId = null;
     selectedImageIds.clear();
@@ -2675,12 +2726,13 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
     grid.style.rowGap = `${appConfig.gapV}mm`;
 
     const capacity = layout.cols * layout.rows;
-    // Standalone pages keep their original behavior: fill every available tile.
-    // Groups split the sheet evenly by default. A numeric override reserves that
-    // many tiles for one child; all remaining tiles are shared evenly by Auto children.
+    // Every selected layer can have its own quantity. Auto-fill uses the full
+    // sheet for a standalone layer; in groups, Auto layers share the remainder.
     let requested;
     if (pageImageIds.length <= 1) {
-        requested = [capacity];
+        requested = [pageImages[0]?.quantityOverride == null
+            ? capacity
+            : Math.max(0, Math.min(500, Math.floor(Number(pageImages[0].quantityOverride) || 0)))];
     } else {
         const overrides = pageImages.map(obj => obj.quantityOverride == null
             ? null
@@ -2724,8 +2776,11 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
         const imageIndex = allocationEnds.findIndex(end => i < end);
         const tileImage = pageImages[Math.max(0, imageIndex)] || imgObj;
         const img = document.createElement('img');
-        img.src = tileImage.croppedSrc || tileImage.src;
+        img.src = tileImage.previewSrc || tileImage.croppedSrc || tileImage.src;
+        img.dataset.imageId = tileImage.id;
         img.alt = '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
         img.style.objectFit = fitObjectFit(tileImage.id);
         tile.title = `Select ${tileImage.name || 'image layer'}`;
         tile.style.cursor = 'pointer';
@@ -2815,6 +2870,12 @@ function generateFilename(ext) {
 }
 
 function prepareExportClone(doc) {
+    // The live canvas uses compressed previews for speed. Export uses the
+    // original/cropped source so print and PDF quality are not reduced.
+    doc.querySelectorAll('.tile img[data-image-id]').forEach(img => {
+        const source = uploadedImages.find(item => item.id === img.dataset.imageId);
+        if (source) img.src = source.croppedSrc || source.src;
+    });
     doc.querySelectorAll('.safe-zone-overlay, .paper-label').forEach(el => el.style.display = 'none');
     doc.querySelectorAll('.modal-overlay, .loading-overlay, .pager').forEach(el => el.style.display = 'none');
 
