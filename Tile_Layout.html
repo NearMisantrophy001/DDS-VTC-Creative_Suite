@@ -193,7 +193,10 @@
     .layers-title { display:flex; align-items:center; gap:7px; }
     .layers-title span { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:10px; background:var(--bg-workspace); color:var(--text-muted); font-size:.62rem; }
     /* Compact, Figma-inspired layer list */
-    .layer-item.multi-selected { outline:0; background:rgba(37,99,235,.18); }
+    /* Selected layers use the same blue selection language, including inside groups. */
+    .layer-item.multi-selected { background:rgba(37,99,235,.16); box-shadow:inset 0 0 0 1px rgba(37,99,235,.30); }
+    .layer-item.active { background:rgba(37,99,235,.22); box-shadow:inset 0 0 0 1px rgba(37,99,235,.45); }
+    .layer-item.active .layer-name { color:var(--text-main); font-weight:700; }
     .layer-group { display:flex; flex-direction:column; gap:1px; border-radius:4px; }
     .layer-group-header { display:flex; align-items:center; gap:6px; min-width:0; min-height:32px; padding:3px 5px; border:0; border-radius:4px; background:transparent; cursor:pointer; }
     .layer-group-header:hover { background:var(--hover-bg); }
@@ -212,7 +215,9 @@
     .layer-group-chevron.is-collapsed { transform:rotate(-90deg); }
     .layer-group .layer-item { background:transparent; }
     .layer-group .layer-item:hover { background:var(--hover-bg); }
-    .layer-group .layer-item.active { background:var(--hover-bg); }
+    .layer-group .layer-item.active { background:rgba(37,99,235,.22); }
+    .layer-group .layer-item.multi-selected { background:rgba(37,99,235,.16); box-shadow:inset 0 0 0 1px rgba(37,99,235,.30); }
+    .layer-group .layer-item.active.multi-selected { background:rgba(37,99,235,.22); box-shadow:inset 0 0 0 1px rgba(37,99,235,.45); }
     .layer-item[draggable="true"] { cursor:grab; }
     .layer-item.is-dragging { opacity:.35; }
     .layer-item.drop-before { box-shadow: inset 0 4px 0 var(--brand-blue); background:rgba(37,99,235,.10); }
@@ -384,25 +389,32 @@
     .setting-label { font-size: .75rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
     .compact-setting-row {
         display: grid;
-        grid-template-columns: 84px minmax(0, 1fr);
+        grid-template-columns: 76px minmax(0, 1fr);
         align-items: center;
-        column-gap: 14px;
+        column-gap: 10px;
         min-height: 36px;
         margin-bottom: 14px;
     }
     .compact-setting-row:last-of-type { margin-bottom: 8px; }
     .compact-setting-row .setting-value-wrapper {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 18px;
+        grid-template-columns: minmax(0, 1fr) 15px;
         align-items: center;
-        column-gap: 6px;
+        column-gap: 4px;
         min-width: 0;
     }
     .compact-setting-row .setting-value-wrapper input {
         width: 100%;
         min-width: 0;
         height: 30px;
+        padding: 2px 4px;
         background: var(--input-bg);
+        -moz-appearance: textfield;
+    }
+    .compact-setting-row .setting-value-wrapper input::-webkit-outer-spin-button,
+    .compact-setting-row .setting-value-wrapper input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
     }
     .compact-setting-row .setting-value-wrapper span {
         text-align: left;
@@ -411,47 +423,32 @@
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         align-items: center;
-        column-gap: 14px;
+        column-gap: 8px;
         min-width: 0;
         width: 100%;
     }
     .icon-number-control {
         display: grid;
-        grid-template-columns: 16px minmax(0, 1fr);
+        grid-template-columns: 15px minmax(0, 1fr);
         align-items: center;
-        column-gap: 7px;
-        min-width: 0;
-    }
-    .compact-setting-row .setting-value-wrapper input {
-        width: 100%;
-        min-width: 0;
-        height: 30px;
-        background: var(--input-bg);
-    }
-    .compact-setting-row .setting-value-wrapper span {
-        text-align: left;
-    }
-    .spacing-control-group {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        align-items: center;
-        column-gap: 10px;
-        min-width: 0;
-        width: 100%;
-    }
-    .icon-number-control {
-        display: grid;
-        grid-template-columns: 16px minmax(0, 1fr);
-        align-items: center;
-        column-gap: 5px;
+        column-gap: 4px;
         min-width: 0;
     }
     .control-icon {
         width: 15px; height: 15px; color: var(--text-muted); justify-self: center;
     }
-    .border-stroke-control {
+    .stroke-select-group {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
         width: 100%;
         min-width: 0;
+    }
+    .stroke-select-group .select-wrapper { min-width: 0; }
+    .stroke-select-group .select-wrapper select {
+        height: 30px;
+        padding: 5px 18px 5px 7px;
+        font-size: .72rem;
     }
     .border-color-group {
         display: flex;
@@ -490,6 +487,13 @@
         cursor: pointer;
         background: var(--input-bg);
         flex: 0 0 30px;
+    }
+    .spacing-locked {
+        opacity: 0.48;
+    }
+    .spacing-locked .setting-value-wrapper span,
+    .spacing-locked .control-icon {
+        color: var(--text-muted);
     }
     @media (max-width: 360px) {
         .compact-setting-row { grid-template-columns: 72px minmax(0, 1fr); column-gap: 8px; }
@@ -718,87 +722,89 @@
         background: var(--bg-panel); color: var(--text-main);
         border-radius: 10px; border: 1px solid var(--border);
         box-shadow: 0 20px 60px rgba(0,0,0,.55);
-        width: 92%; max-width: 430px; padding: 18px;
-        display: flex; flex-direction: column; gap: 14px;
-        transform: translateY(20px); transition: transform .2s;
+        width: min(96vw, 1040px); max-width: 1040px; max-height: 94vh;
+        padding: 18px; display: flex; flex-direction: column; gap: 14px;
+        overflow: auto; transform: translateY(20px); transition: transform .2s;
     }
     .modal-overlay.active .crop-box { transform: translateY(0); }
-
-    .crop-head { display: flex; justify-content: space-between; align-items: flex-start; }
+    .crop-head { display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
     .crop-sub { font-size: .7rem; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
     .icon-btn {
         background: transparent; border: none; cursor: pointer;
-        color: var(--text-muted); width: 26px; height: 26px; border-radius: 4px;
-        display: flex; align-items: center; justify-content: center; font-size: 14px;
+        color: var(--text-muted); width: 28px; height: 28px; border-radius: 4px;
+        display: flex; align-items: center; justify-content: center; font-size: 16px;
         transition: all .2s;
     }
     .icon-btn:hover { background: var(--hover-bg); color: var(--text-main); }
-
+    .crop-content { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 16px; min-height: 0; }
     .crop-stage-wrap {
-        display: flex; justify-content: center; align-items: center;
-        background: var(--bg-workspace);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 14px;
+        min-width: 0; min-height: 260px; display: flex; justify-content: center; align-items: center;
+        background: var(--bg-workspace); border: 1px solid var(--border);
+        border-radius: 8px; padding: 12px; overflow: auto;
     }
     .crop-stage {
-        position: relative;
-        overflow: hidden;
-        background: #0b0b0b;
-        border-radius: 3px;
-        cursor: grab;
-        touch-action: none;
-        box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+        position: relative; flex: 0 0 auto; overflow: hidden; background: #0b0b0b;
+        border-radius: 3px; cursor: grab; touch-action: none; box-shadow: 0 0 0 1px rgba(0,0,0,.25);
     }
     .crop-stage:active { cursor: grabbing; }
-    .crop-stage img {
-        position: absolute;
-        max-width: none;
-        user-select: none;
-        -webkit-user-drag: none;
-        pointer-events: none;
-    }
+    .crop-stage img { position: absolute; max-width: none; user-select: none; -webkit-user-drag: none; pointer-events: none; }
     .crop-grid-lines {
         position: absolute; inset: 0; pointer-events: none;
-        background-image:
-            linear-gradient(to right, rgba(255,255,255,.22) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,.22) 1px, transparent 1px);
-        background-size: 33.3333% 33.3333%;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,.6);
+        background-image: linear-gradient(to right, rgba(255,255,255,.22) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.22) 1px, transparent 1px);
+        background-size: 33.3333% 33.3333%; box-shadow: inset 0 0 0 1px rgba(255,255,255,.6);
     }
-
     .crop-box-rect {
-        position: absolute;
-        border: 2px solid #ffffff;
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.45);
-        cursor: move;
-        touch-action: none;
-        display: none;
-        z-index: 2;
+        position: absolute; border: 2px solid #ffffff;
+        box-shadow: 0 0 0 9999px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.45);
+        cursor: move; touch-action: none; display: none; z-index: 2;
     }
     .crop-stage.free-crop-active .crop-grid-lines { display: none; }
     .crop-stage.free-crop-active .crop-box-rect { display: block; }
-    .crop-handle {
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        background: #ffffff;
-        border: 1.5px solid var(--brand-blue);
-        border-radius: 2px;
-        z-index: 3;
+    .crop-handle { position: absolute; width: 10px; height: 10px; background: #fff; border: 1.5px solid var(--brand-blue); border-radius: 2px; z-index: 3; }
+    .crop-handle.nw { top:-5px;left:-5px;cursor:nwse-resize; } .crop-handle.ne { top:-5px;right:-5px;cursor:nesw-resize; }
+    .crop-handle.sw { bottom:-5px;left:-5px;cursor:nesw-resize; } .crop-handle.se { bottom:-5px;right:-5px;cursor:nwse-resize; }
+    .crop-handle.n { top:-5px;left:50%;transform:translateX(-50%);cursor:ns-resize; } .crop-handle.s { bottom:-5px;left:50%;transform:translateX(-50%);cursor:ns-resize; }
+    .crop-handle.w { left:-5px;top:50%;transform:translateY(-50%);cursor:ew-resize; } .crop-handle.e { right:-5px;top:50%;transform:translateY(-50%);cursor:ew-resize; }
+    .crop-settings { display:flex; flex-direction:column; gap:14px; min-width:0; padding:4px 0; }
+    .crop-setting-label { display:block; font-size:.78rem; color:var(--text-muted); margin-bottom:6px; }
+    .crop-mode-select { width:100%; min-height:36px; background:var(--bg-workspace); color:var(--text-main); border:1px solid var(--border); border-radius:6px; padding:7px 9px; }
+    .crop-zoom-row { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:10px; }
+    .crop-zoom-row .setting-label { flex-shrink:0; }
+    .crop-zoom-row .setting-value-wrapper { display:flex; align-items:center; gap:8px; }
+    .crop-zoom-row .setting-value-wrapper input { width:78px; height:32px; }
+    .crop-zoom-slider, .crop-adjust-slider {
+        --range-progress: 0%; width:100%; height:18px; border-radius:999px; appearance:none;
+        background:transparent; outline:none; cursor:pointer; display:block; margin:8px 0 2px;
     }
-    .crop-handle.nw { top: -5px; left: -5px; cursor: nwse-resize; }
-    .crop-handle.ne { top: -5px; right: -5px; cursor: nesw-resize; }
-    .crop-handle.sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
-    .crop-handle.se { bottom: -5px; right: -5px; cursor: nwse-resize; }
-    .crop-handle.n  { top: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
-    .crop-handle.s  { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
-    .crop-handle.w  { left: -5px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
-    .crop-handle.e  { right: -5px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
-
-    .crop-zoom-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .crop-zoom-row .setting-label { flex-shrink: 0; }
-    .crop-zoom-row .setting-value-wrapper input { width: 68px; height: 30px; }
+    .crop-zoom-slider::-webkit-slider-runnable-track, .crop-adjust-slider::-webkit-slider-runnable-track {
+        height:4px; border-radius:999px; background:linear-gradient(to right, var(--brand-blue) 0 var(--range-progress), #737987 var(--range-progress) 100%);
+    }
+    .crop-zoom-slider::-moz-range-track, .crop-adjust-slider::-moz-range-track { height:4px; border-radius:999px; background:#737987; }
+    .crop-zoom-slider::-moz-range-progress, .crop-adjust-slider::-moz-range-progress { height:4px; border-radius:999px; background:var(--brand-blue); }
+    .crop-zoom-slider::-webkit-slider-thumb, .crop-adjust-slider::-webkit-slider-thumb {
+        appearance:none; width:12px; height:12px; margin-top:-4px; border-radius:50%; background:var(--brand-blue); border:0; cursor:pointer;
+    }
+    .crop-zoom-slider::-moz-range-thumb, .crop-adjust-slider::-moz-range-thumb {
+        width:12px; height:12px; border-radius:50%; background:var(--brand-blue); border:0; cursor:pointer;
+    }
+    .crop-adjust-group { display:flex; flex-direction:column; gap:5px; }
+    .crop-adjust-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .crop-adjust-value { color:var(--text-muted); font-size:.72rem; min-width:42px; text-align:right; font-variant-numeric:tabular-nums; }
+    .crop-mini-reset { display:inline-flex; align-items:center; justify-content:center; width:23px; height:23px; padding:0; border:0; border-radius:5px; background:transparent; color:var(--text-muted); cursor:pointer; flex:0 0 auto; }
+    .crop-mini-reset svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+    .crop-mini-reset:hover { color:var(--brand-blue); background:var(--bg-workspace); }
+    .crop-settings select { color:var(--text-main); }
+    
+    .crop-footer { display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-shrink:0; }
+    .crop-footer .btn { min-height:36px; }
+    .crop-reset-btn { width:36px; min-width:36px; height:36px; padding:0 !important; font-size:0 !important; }
+    .crop-reset-btn svg { width:16px !important; height:16px !important; }
+    @media (max-width: 700px) {
+        .crop-box { width:96vw; max-height:96vh; padding:12px; gap:10px; }
+        .crop-content { grid-template-columns:minmax(0,1fr); }
+        .crop-stage-wrap { min-height:180px; }
+        .crop-settings { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+    }
 
     /* ============ LOADING OVERLAY ============ */
     .loading-overlay {
@@ -912,6 +918,48 @@
 body.group-child-layer-selected #tileLayoutControls,
 body.group-child-layer-selected #matchRatioControl {
     display: none !important;
+}
+
+/* Lock group-level settings when a single child layer inside a group is selected,
+   while keeping border controls enabled per logo/layer. */
+body.group-child-layer-selected #acc-paper .details-content,
+body.group-child-layer-selected #acc-spacing .compact-setting-row:has(#numGapH),
+body.group-child-layer-selected #acc-adjust .input-group:has(#alignTopBtn) {
+    opacity: 0.45;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Hide border controls when the group itself is selected. */
+body.group-selected #acc-spacing .compact-setting-row:has(#numBorderW),
+body.group-selected #acc-spacing .compact-setting-row:has(#borderStyleSelect),
+body.group-selected #acc-spacing .compact-setting-row:has(#hexBorderC) {
+    display: none;
+}
+
+/* Disable border controls visually when a group header is selected while keeping them visible. */
+body.group-selected #acc-spacing .compact-setting-row:has(#numBorderW),
+body.group-selected #acc-spacing .compact-setting-row:has(#borderStyleSelect),
+body.group-selected #acc-spacing .compact-setting-row:has(#hexBorderC) {
+    display: grid !important;
+    opacity: 0.45;
+    pointer-events: none;
+    user-select: none;
+}
+
+.group-child-notice {
+    display: none;
+    font-size: .68rem;
+    color: var(--text-muted);
+    background: var(--bg-workspace);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 7px 9px;
+    margin-bottom: 10px;
+    line-height: 1.35;
+}
+body.group-child-layer-selected .group-child-notice {
+    display: block;
 }
 
 
@@ -1051,7 +1099,7 @@ body.group-child-layer-selected #matchRatioControl {
                 <div class="drop-sub">or <strong>click to browse</strong></div>
             </div>
             <div class="layers-heading">
-                <div class="layers-title" title="Select layers · Ctrl+D to duplicate · Delete to delete">Layers <span id="layerCount">0</span></div>
+                <div class="layers-title" title="Select layers · Ctrl+A selects all · Ctrl-click toggles · Shift-click selects a range · Ctrl+D duplicates · Delete removes">Layers <span id="layerCount">0</span></div>
                 <div class="layers-actions" style="display:flex;align-items:center;gap:10px;">
                     <button class="text-btn" id="groupLayersBtn" type="button" onclick="toggleGroupSelection()" title="Select 2 or more layers to group" disabled>Group</button>
                     <button class="text-btn" type="button" onclick="clearAll()">Clear all</button>
@@ -1164,7 +1212,7 @@ body.group-child-layer-selected #matchRatioControl {
                                 <line x1="4" y1="18" x2="20" y2="18" stroke-width="3.5"/>
                             </svg>
                             <div class="setting-value-wrapper">
-                                <input type="number" id="numBorderW" step="0.1" min="0" max="20" value="0" oninput="updateSettings()" aria-label="Border width">
+                                <input type="number" id="numBorderW" step="1" min="0" max="20" value="0" oninput="updateSettings()" aria-label="Border width">
                                 <span>px</span>
                             </div>
                         </div>
@@ -1173,17 +1221,27 @@ body.group-child-layer-selected #matchRatioControl {
                                 <path d="M4 18V10a6 6 0 0 1 6-6h8"/>
                             </svg>
                             <div class="setting-value-wrapper">
-                                <input type="number" id="numBorderR" step="0.5" min="0" max="200" value="0" oninput="updateSettings()" aria-label="Border radius">
+                                <input type="number" id="numBorderR" step="1" min="0" max="200" value="0" oninput="updateSettings()" aria-label="Border radius">
                                 <span>px</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="compact-setting-row">
-                    <span class="setting-label">Border Stroke</span>
-                    <div class="segmented-control border-stroke-control" role="group" aria-label="Border stroke">
-                        <button type="button" id="borderSolidBtn" class="active" onclick="setBorderStyle('solid')" title="Solid line border">Line</button>
-                        <button type="button" id="borderDottedBtn" onclick="setBorderStyle('dotted')" title="Dotted cutting line border">Dotted</button>
+                    <span class="setting-label">Stroke</span>
+                    <div class="stroke-select-group">
+                        <div class="select-wrapper full">
+                            <select id="borderStyleSelect" onchange="setBorderStyle(this.value)" aria-label="Stroke style" title="Stroke style">
+                                <option value="solid">Line</option>
+                                <option value="dotted">Dotted</option>
+                            </select>
+                        </div>
+                        <div class="select-wrapper full">
+                            <select id="borderPositionSelect" onchange="setBorderPosition(this.value)" aria-label="Stroke position" title="Stroke position">
+                                <option value="inside">Inside</option>
+                                <option value="outside">Outside</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="compact-setting-row">
@@ -1192,6 +1250,9 @@ body.group-child-layer-selected #matchRatioControl {
                         <input type="text" id="hexBorderC" value="#E5E7EB" maxlength="7" spellcheck="false" autocomplete="off" oninput="onBorderHexInput(this.value)" onchange="onBorderHexBlur()" aria-label="Border color hex">
                         <input type="color" id="setBorderC" value="#E5E7EB" oninput="onBorderColorPicker(this.value)" onchange="onBorderColorPicker(this.value)" aria-label="Border color picker">
                     </div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+                    <button type="button" class="text-btn" onclick="resetCurrentStyleOverride()" title="Use default spacing and border for this layer or group">Reset layer style</button>
                 </div>
             </div>
         </details>
@@ -1348,48 +1409,63 @@ body.group-child-layer-selected #matchRatioControl {
         <div class="crop-head">
             <div>
                 <div class="modal-header" style="margin-bottom:0;">Edit Image</div>
-                <div class="crop-sub" id="cropSubHint">Drag to reposition · Scroll or enter zoom</div>
+                <div class="crop-sub" id="cropSubHint">Drag the crop box or its corners to adjust the crop</div>
             </div>
             <button class="icon-btn" onclick="closeCrop()" title="Close">✕</button>
         </div>
-
-        <div class="crop-stage-wrap">
-            <div class="crop-stage" id="cropStage">
-                <img id="cropImg" alt="" draggable="false">
-                <div class="crop-grid-lines"></div>
-                <div class="crop-box-rect" id="cropBoxRect">
+        <div class="crop-content">
+            <div class="crop-stage-wrap">
+                <div class="crop-stage" id="cropStage">
+                    <img id="cropImg" alt="" draggable="false">
                     <div class="crop-grid-lines"></div>
-                    <div class="crop-handle nw" data-handle="nw"></div>
-                    <div class="crop-handle n" data-handle="n"></div>
-                    <div class="crop-handle ne" data-handle="ne"></div>
-                    <div class="crop-handle w" data-handle="w"></div>
-                    <div class="crop-handle e" data-handle="e"></div>
-                    <div class="crop-handle sw" data-handle="sw"></div>
-                    <div class="crop-handle s" data-handle="s"></div>
-                    <div class="crop-handle se" data-handle="se"></div>
+                    <div class="crop-box-rect" id="cropBoxRect">
+                        <div class="crop-grid-lines"></div>
+                        <div class="crop-handle nw" data-handle="nw"></div><div class="crop-handle n" data-handle="n"></div>
+                        <div class="crop-handle ne" data-handle="ne"></div><div class="crop-handle w" data-handle="w"></div>
+                        <div class="crop-handle e" data-handle="e"></div><div class="crop-handle sw" data-handle="sw"></div>
+                        <div class="crop-handle s" data-handle="s"></div><div class="crop-handle se" data-handle="se"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="crop-settings">
+                <div>
+                    <label class="crop-setting-label" for="cropAspectSelect">Crop mode</label>
+                    <select id="cropAspectSelect" class="crop-mode-select" onchange="setCropAspect(this.value)">
+                        <option value="image" selected>Original Image</option>
+                        <option value="free">Free Form</option>
+                        <option value="tile">Tile Ratio</option>
+                        <option value="square">1 : 1</option>
+                    </select>
+                </div>
+                <div id="cropZoomRow" class="crop-adjust-group">
+                    <div class="crop-adjust-head"><label class="crop-setting-label" for="cropZoomSlider" style="margin:0">Zoom</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropZoomValue">1×</span><button type="button" class="crop-mini-reset" aria-label="Reset zoom" title="Reset zoom" onclick="resetCropSlider('cropZoomSlider')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                    <input class="crop-zoom-slider" type="range" id="cropZoomSlider" min="1" max="4" step="0.05" value="1"
+                           aria-label="Zoom" oninput="onCropZoomInput(this.value, true)">
+                </div>
+                <div class="crop-adjust-group">
+                    <div class="crop-adjust-head"><label class="crop-setting-label" for="cropBrightness" style="margin:0">Brightness</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropBrightnessValue">100%</span><button type="button" class="crop-mini-reset" aria-label="Reset brightness" title="Reset brightness" onclick="resetCropSlider('cropBrightness')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                    <input class="crop-adjust-slider" type="range" id="cropBrightness" min="0" max="200" value="100" step="1" oninput="updateCropAdjustments()">
+                </div>
+                <div class="crop-adjust-group">
+                    <div class="crop-adjust-head"><label class="crop-setting-label" for="cropContrast" style="margin:0">Contrast</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropContrastValue">100%</span><button type="button" class="crop-mini-reset" aria-label="Reset contrast" title="Reset contrast" onclick="resetCropSlider('cropContrast')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                    <input class="crop-adjust-slider" type="range" id="cropContrast" min="0" max="200" value="100" step="1" oninput="updateCropAdjustments()">
+                </div>
+                <div class="crop-adjust-group">
+                    <div class="crop-adjust-head"><label class="crop-setting-label" for="cropHue" style="margin:0">Hue</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropHueValue">0°</span><button type="button" class="crop-mini-reset" aria-label="Reset hue" title="Reset hue" onclick="resetCropSlider('cropHue')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                    <input class="crop-adjust-slider" type="range" id="cropHue" min="0" max="360" value="0" step="1" oninput="updateCropAdjustments()">
+                </div>
+                <div>
+                    <label class="crop-setting-label" for="cropColorMode">Color Mode</label>
+                    <select id="cropColorMode" class="crop-mode-select" onchange="updateCropAdjustments()">
+                        <option value="color" selected>Colored</option>
+                        <option value="bw">Black and White</option>
+                    </select>
                 </div>
             </div>
         </div>
-
-        <div class="segmented-control" id="cropAspectCtrl">
-            <button data-aspect="tile" class="active" onclick="setCropAspect('tile')">Tile Ratio</button>
-            <button data-aspect="square" onclick="setCropAspect('square')">1 : 1</button>
-            <button data-aspect="image" onclick="setCropAspect('image')">Original</button>
-            <button data-aspect="free" onclick="setCropAspect('free')">Free</button>
-        </div>
-
-        <div class="crop-zoom-row">
-            <span class="setting-label">Zoom</span>
-            <div class="setting-value-wrapper">
-                <input type="number" id="cropZoom" min="1" max="4" step="0.05" value="1"
-                       oninput="onCropZoomInput(this.value)" onchange="onCropZoomInput(this.value, true)">
-                <span>×</span>
-            </div>
-        </div>
-
-        <div class="modal-footer">
-            <button class="btn" onclick="resetCrop()">Reset</button>
+        <div class="crop-footer">
             <button class="btn" onclick="closeCrop()">Cancel</button>
+            <button class="btn crop-reset-btn" onclick="resetCrop()" title="Reset crop" aria-label="Reset crop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg></button>
             <button class="btn btn-primary" onclick="applyCrop()">Apply Crop</button>
         </div>
     </div>
@@ -1484,7 +1560,7 @@ const MM_TO_PX = 96 / 25.4;
 const DEFAULT_CONFIG = {
     tileW: 1.5, tileH: 1.5,
     gapH: 2 * PX_TO_MM, gapV: 2 * PX_TO_MM,
-    borderW: 0, borderR: 0, borderStyle: 'solid', borderC: '#E5E7EB',
+    borderW: 0, borderR: 0, borderStyle: 'solid', borderPosition: 'inside', borderC: '#E5E7EB',
     margin: 0,
     fit: 'cover',
     align: 'center',
@@ -1523,7 +1599,171 @@ function syncActiveFromPage() {
    HELPERS
    ========================================================= */
 function getActiveImage() {
+    if (selectedImageIds.size > 0) {
+        if (activeImageId && selectedImageIds.has(activeImageId)) {
+            return uploadedImages.find(i => i.id === activeImageId) || null;
+        }
+        const firstSelectedId = [...selectedImageIds].find(id => uploadedImages.some(i => i.id === id));
+        if (firstSelectedId) return uploadedImages.find(i => i.id === firstSelectedId) || null;
+    }
     return uploadedImages.find(i => i.id === activeImageId) || null;
+}
+
+function getSelectedBorderTargetImages() {
+    if (getSelectedGroupPage()) return [];
+    const ids = selectedImageIds.size > 0
+        ? [...selectedImageIds]
+        : (activeImageId ? [activeImageId] : []);
+    return ids
+        .map(id => uploadedImages.find(img => img.id === id))
+        .filter(Boolean);
+}
+
+function createStyleOverride(base = {}) {
+    return {
+        gapH: Number.isFinite(base.gapH) ? base.gapH : appConfig.gapH,
+        gapV: Number.isFinite(base.gapV) ? base.gapV : appConfig.gapV,
+        borderW: Number.isFinite(base.borderW) ? base.borderW : appConfig.borderW,
+        borderR: Number.isFinite(base.borderR) ? base.borderR : appConfig.borderR,
+        borderStyle: base.borderStyle === 'dotted' ? 'dotted' : (appConfig.borderStyle === 'dotted' ? 'dotted' : 'solid'),
+        borderPosition: base.borderPosition === 'inside' ? 'inside' : (base.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside')),
+        borderC: normalizeHexColor(base.borderC) || normalizeHexColor(appConfig.borderC) || '#E5E7EB'
+    };
+}
+
+function getSelectedGroupPage() {
+    if (selectedGroupPageId) {
+        const byId = pages.find(pg => pg.id === selectedGroupPageId && (pg.imageIds || []).length > 1);
+        if (byId) return byId;
+    }
+    return null;
+}
+
+function isIndividualGroupLayerSelected(imageId = activeImageId) {
+    if (getSelectedGroupPage()) return false;
+    if (selectedImageIds.size > 1) return false;
+    const page = pages.find(pg => (pg.imageIds || []).length > 1 && (pg.imageIds || []).includes(imageId));
+    return !!page;
+}
+
+function getEffectiveStyle(imageId = activeImageId) {
+    const groupPage = getSelectedGroupPage();
+    if (groupPage) {
+        return { ...appConfig, ...(groupPage.styleOverride || {}) };
+    }
+    const pageForImage = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
+    const isGroupedMember = !!(pageForImage && (pageForImage.imageIds || []).length > 1);
+    const groupStyle = isGroupedMember ? (pageForImage.styleOverride || {}) : {};
+    const imgObj = uploadedImages.find(i => i.id === imageId);
+    if (imgObj) {
+        return {
+            ...appConfig,
+            gapH: isGroupedMember
+                ? (Number.isFinite(groupStyle.gapH) ? groupStyle.gapH : appConfig.gapH)
+                : (Number.isFinite(imgObj.gapH) ? imgObj.gapH : appConfig.gapH),
+            gapV: isGroupedMember
+                ? (Number.isFinite(groupStyle.gapV) ? groupStyle.gapV : appConfig.gapV)
+                : (Number.isFinite(imgObj.gapV) ? imgObj.gapV : appConfig.gapV),
+            borderW: Number.isFinite(imgObj.borderW) ? imgObj.borderW : appConfig.borderW,
+            borderR: Number.isFinite(imgObj.borderR) ? imgObj.borderR : appConfig.borderR,
+            borderStyle: (imgObj.borderStyle === 'solid' || imgObj.borderStyle === 'dotted')
+                ? imgObj.borderStyle
+                : appConfig.borderStyle,
+            borderPosition: (imgObj.styleOverride?.borderPosition === 'inside' || imgObj.borderPosition === 'inside') ? 'inside' : ((imgObj.styleOverride?.borderPosition === 'outside' || imgObj.borderPosition === 'outside') ? 'outside' : (appConfig.borderPosition || 'inside')),
+            borderC: normalizeHexColor(imgObj.borderC) || appConfig.borderC,
+            ...(imgObj.styleOverride || {}),
+            ...(isGroupedMember ? {
+                gapH: Number.isFinite(groupStyle.gapH) ? groupStyle.gapH : appConfig.gapH,
+                gapV: Number.isFinite(groupStyle.gapV) ? groupStyle.gapV : appConfig.gapV
+            } : {})
+        };
+    }
+    return {
+        gapH: appConfig.gapH,
+        gapV: appConfig.gapV,
+        borderW: appConfig.borderW,
+        borderR: appConfig.borderR,
+        borderStyle: appConfig.borderStyle,
+        borderPosition: appConfig.borderPosition || 'inside',
+        borderC: appConfig.borderC
+    };
+}
+
+function syncSpacingLockState(imageId = activeImageId) {
+    const locked = isIndividualGroupLayerSelected(imageId);
+    const groupSelected = !!getSelectedGroupPage();
+    document.body.classList.toggle('group-selected', groupSelected);
+    const gapHInput = document.getElementById('numGapH');
+    const gapVInput = document.getElementById('numGapV');
+    if (gapHInput) gapHInput.disabled = locked;
+    if (gapVInput) gapVInput.disabled = locked;
+
+    const bwInput = document.getElementById('numBorderW');
+    const brInput = document.getElementById('numBorderR');
+    const borderStyleSelect = document.getElementById('borderStyleSelect');
+    const borderPositionSelect = document.getElementById('borderPositionSelect');
+    const hexInput = document.getElementById('hexBorderC');
+    const colorInput = document.getElementById('setBorderC');
+    if (bwInput) bwInput.disabled = groupSelected;
+    if (brInput) brInput.disabled = groupSelected;
+    if (borderStyleSelect) borderStyleSelect.disabled = groupSelected;
+    if (borderPositionSelect) borderPositionSelect.disabled = groupSelected;
+    if (hexInput) hexInput.disabled = groupSelected;
+    if (colorInput) colorInput.disabled = groupSelected;
+
+    const spacingGroup = gapHInput?.closest('.spacing-control-group');
+    if (spacingGroup) spacingGroup.classList.toggle('spacing-locked', locked);
+}
+
+function syncSpacingBorderControls(imageId = activeImageId) {
+    const style = getEffectiveStyle(imageId);
+    const borderStyle = style.borderStyle === 'dotted' ? 'dotted' : 'solid';
+    const borderColor = normalizeHexColor(style.borderC) || '#E5E7EB';
+
+    const gapHInput = document.getElementById('numGapH');
+    const gapVInput = document.getElementById('numGapV');
+    const bwInput = document.getElementById('numBorderW');
+    const brInput = document.getElementById('numBorderR');
+    const colorPicker = document.getElementById('setBorderC');
+    const hexInput = document.getElementById('hexBorderC');
+
+    if (gapHInput) gapHInput.value = String(Math.round((style.gapH || 0) * MM_TO_PX));
+    if (gapVInput) gapVInput.value = String(Math.round((style.gapV || 0) * MM_TO_PX));
+    if (bwInput) bwInput.value = String(Math.round(style.borderW || 0));
+    if (brInput) brInput.value = String(Math.round(style.borderR || 0));
+    if (colorPicker) colorPicker.value = borderColor;
+    if (hexInput && document.activeElement !== hexInput) hexInput.value = borderColor;
+
+    const borderStyleSelect = document.getElementById('borderStyleSelect');
+    const borderPositionSelect = document.getElementById('borderPositionSelect');
+    if (borderStyleSelect) borderStyleSelect.value = borderStyle;
+    if (borderPositionSelect) borderPositionSelect.value = style.borderPosition === 'inside' ? 'inside' : 'outside';
+    syncSpacingLockState(imageId);
+    applyBorderCssVars(style);
+}
+
+function resetCurrentStyleOverride() {
+    const groupPage = getSelectedGroupPage();
+    if (groupPage) {
+        delete groupPage.styleOverride;
+    } else {
+        const targets = getSelectedBorderTargetImages();
+        if (targets.length) {
+            targets.forEach(imgObj => {
+                delete imgObj.styleOverride;
+                if (!isIndividualGroupLayerSelected(imgObj.id)) {
+                    imgObj.gapH = appConfig.gapH;
+                    imgObj.gapV = appConfig.gapV;
+                }
+                imgObj.borderW = appConfig.borderW;
+                imgObj.borderR = appConfig.borderR;
+                imgObj.borderStyle = appConfig.borderStyle;
+                imgObj.borderC = appConfig.borderC;
+            });
+        }
+    }
+    syncSpacingBorderControls(activeImageId);
+    renderCanvas();
 }
 function getImageTileSize(imageId = activeImageId) {
     const obj = uploadedImages.find(i => i.id === imageId);
@@ -1554,6 +1794,56 @@ function getImageFit(imageId = activeImageId) {
 }
 function fitObjectFit(imageId = activeImageId) {
     return getImageFit(imageId) === 'contain' ? 'contain' : 'cover';
+}
+function getLayerStyle(imageId = activeImageId) {
+    const pageForImage = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
+    const isGroupedMember = !!(pageForImage && (pageForImage.imageIds || []).length > 1);
+    const groupStyle = isGroupedMember ? (pageForImage.styleOverride || {}) : {};
+    const imgObj = uploadedImages.find(i => i.id === imageId);
+    if (!imgObj) return getEffectiveStyle(imageId);
+    // Keep spacing shared across the group while letting each grouped layer keep its own border settings.
+    const layerOverride = imgObj.styleOverride || {};
+    return {
+        ...appConfig,
+        gapH: isGroupedMember
+            ? (Number.isFinite(groupStyle.gapH) ? groupStyle.gapH : appConfig.gapH)
+            : (Number.isFinite(layerOverride.gapH) ? layerOverride.gapH : (Number.isFinite(imgObj.gapH) ? imgObj.gapH : appConfig.gapH)),
+        gapV: isGroupedMember
+            ? (Number.isFinite(groupStyle.gapV) ? groupStyle.gapV : appConfig.gapV)
+            : (Number.isFinite(layerOverride.gapV) ? layerOverride.gapV : (Number.isFinite(imgObj.gapV) ? imgObj.gapV : appConfig.gapV)),
+        borderW: Number.isFinite(layerOverride.borderW) ? layerOverride.borderW : (Number.isFinite(imgObj.borderW) ? imgObj.borderW : appConfig.borderW),
+        borderR: Number.isFinite(layerOverride.borderR) ? layerOverride.borderR : (Number.isFinite(imgObj.borderR) ? imgObj.borderR : appConfig.borderR),
+        borderStyle: (layerOverride.borderStyle === 'solid' || layerOverride.borderStyle === 'dotted')
+            ? layerOverride.borderStyle
+            : ((imgObj.borderStyle === 'solid' || imgObj.borderStyle === 'dotted') ? imgObj.borderStyle : appConfig.borderStyle),
+        borderPosition: layerOverride.borderPosition === 'inside' || imgObj.borderPosition === 'inside' ? 'inside' : (layerOverride.borderPosition === 'outside' || imgObj.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside')),
+        borderC: normalizeHexColor(layerOverride.borderC) || normalizeHexColor(imgObj.borderC) || appConfig.borderC
+    };
+}
+function syncSpacingAndBorderControls(imageId = activeImageId) {
+    syncSpacingBorderControls(imageId);
+}
+function syncSpacingAndBorderControls(imageId = activeImageId) {
+    const st = getLayerStyle(imageId);
+    const elGapH = document.getElementById('numGapH');
+    const elGapV = document.getElementById('numGapV');
+    const elBorderW = document.getElementById('numBorderW');
+    const elBorderR = document.getElementById('numBorderR');
+    const elSetC = document.getElementById('setBorderC');
+    const elHexC = document.getElementById('hexBorderC');
+
+    if (elGapH) elGapH.value = Math.round(st.gapH * MM_TO_PX);
+    if (elGapV) elGapV.value = Math.round(st.gapV * MM_TO_PX);
+    if (elBorderW) elBorderW.value = Math.round(st.borderW);
+    if (elBorderR) elBorderR.value = Math.round(st.borderR);
+    if (elSetC) elSetC.value = st.borderC;
+    if (elHexC && document.activeElement !== elHexC) elHexC.value = st.borderC.toUpperCase();
+
+    const borderStyleSelect = document.getElementById('borderStyleSelect');
+    const borderPositionSelect = document.getElementById('borderPositionSelect');
+    if (borderStyleSelect) borderStyleSelect.value = st.borderStyle === 'dotted' ? 'dotted' : 'solid';
+    if (borderPositionSelect) borderPositionSelect.value = st.borderPosition === 'inside' ? 'inside' : 'outside';
+    applyBorderCssVars(imageId);
 }
 function getCanvasAlign(pageOrImageId = null) {
     let page = null;
@@ -1586,6 +1876,7 @@ function syncFitControls(imageId = activeImageId) {
     document.getElementById('fitCoverBtn')?.classList.toggle('active', fit === 'cover');
     document.getElementById('fitContainBtn')?.classList.toggle('active', fit === 'contain');
     syncAlignControls(imageId);
+    syncSpacingAndBorderControls(imageId);
 }
 
 /* =========================================================
@@ -1614,8 +1905,8 @@ function loadConfig() {
 
     document.getElementById('numGapH').value = Math.round(appConfig.gapH * MM_TO_PX);
     document.getElementById('numGapV').value = Math.round(appConfig.gapV * MM_TO_PX);
-    document.getElementById('numBorderW').value = appConfig.borderW;
-    document.getElementById('numBorderR').value = appConfig.borderR;
+    document.getElementById('numBorderW').value = Math.round(appConfig.borderW);
+    document.getElementById('numBorderR').value = Math.round(appConfig.borderR);
     document.getElementById('setBorderC').value = appConfig.borderC;
     document.getElementById('hexBorderC').value = appConfig.borderC.toUpperCase();
     syncBorderStyleControls();
@@ -1747,44 +2038,204 @@ function onBorderHexBlur() {
 }
 
 function syncBorderStyleControls() {
-    const style = appConfig.borderStyle === 'dotted' ? 'dotted' : 'solid';
-    document.getElementById('borderSolidBtn')?.classList.toggle('active', style === 'solid');
-    document.getElementById('borderDottedBtn')?.classList.toggle('active', style === 'dotted');
+    const style = getEffectiveStyle(activeImageId).borderStyle === 'dotted' ? 'dotted' : 'solid';
+    const select = document.getElementById('borderStyleSelect');
+    if (select) select.value = style;
 }
 
 function setBorderStyle(style) {
-    appConfig.borderStyle = style === 'dotted' ? 'dotted' : 'solid';
+    const nextStyle = style === 'dotted' ? 'dotted' : 'solid';
+    const styleSelect = document.getElementById('borderStyleSelect');
+    if (styleSelect) styleSelect.value = nextStyle;
+    const groupPage = getSelectedGroupPage();
+    if (groupPage) {
+        groupPage.styleOverride = createStyleOverride(groupPage.styleOverride);
+        groupPage.styleOverride.borderStyle = nextStyle;
+    } else {
+        const targets = getSelectedBorderTargetImages();
+        if (targets.length) {
+            targets.forEach(imgObj => {
+                const current = getLayerStyle(imgObj.id);
+                imgObj.styleOverride = createStyleOverride({ ...current, borderStyle: nextStyle });
+                imgObj.borderStyle = nextStyle;
+            });
+        } else {
+            appConfig.borderStyle = nextStyle;
+        }
+    }
     syncBorderStyleControls();
     updateSettings();
 }
 
-function applyBorderCssVars() {
-    const style = appConfig.borderStyle === 'dotted' ? 'dotted' : 'solid';
-    document.documentElement.style.setProperty('--border-w', `${appConfig.borderW}px`);
-    document.documentElement.style.setProperty('--border-r', `${appConfig.borderR}px`);
+function setBorderPosition(position) {
+    const nextPosition = position === 'inside' ? 'inside' : 'outside';
+    const positionSelect = document.getElementById('borderPositionSelect');
+    if (positionSelect) positionSelect.value = nextPosition;
+    const groupPage = getSelectedGroupPage();
+    if (groupPage) {
+        groupPage.styleOverride = createStyleOverride({ ...(groupPage.styleOverride || {}), borderPosition: nextPosition });
+    } else {
+        const targets = getSelectedBorderTargetImages();
+        if (targets.length) targets.forEach(imgObj => {
+            imgObj.styleOverride = createStyleOverride({ ...(imgObj.styleOverride || {}), borderPosition: nextPosition });
+            imgObj.borderPosition = nextPosition;
+        });
+        else appConfig.borderPosition = nextPosition;
+    }
+    syncSpacingAndBorderControls(activeImageId);
+    renderCanvas();
+    renderImageQueue();
+}
+
+function applyBorderCssVars(overrideStyle = null) {
+    const effective = overrideStyle || getEffectiveStyle(activeImageId);
+    const style = effective.borderStyle === 'dotted' ? 'dotted' : 'solid';
+    const bw = Number(effective.borderW) || 0;
+    const br = Number(effective.borderR) || 0;
+    const bc = normalizeHexColor(effective.borderC) || '#E5E7EB';
+    document.documentElement.style.setProperty('--border-w', `${bw}px`);
+    document.documentElement.style.setProperty('--border-r', `${br}px`);
     document.documentElement.style.setProperty('--border-s', style);
-    document.documentElement.style.setProperty('--border-c', appConfig.borderC);
+    document.documentElement.style.setProperty('--border-c', bc);
     // Apply on body too, so the dark-theme variables cannot override the user's chosen tile border color.
-    document.body.style.setProperty('--border-w', `${appConfig.borderW}px`);
-    document.body.style.setProperty('--border-r', `${appConfig.borderR}px`);
+    document.body.style.setProperty('--border-w', `${bw}px`);
+    document.body.style.setProperty('--border-r', `${br}px`);
     document.body.style.setProperty('--border-s', style);
-    document.body.style.setProperty('--border-c', appConfig.borderC);
+    document.body.style.setProperty('--border-c', bc);
 }
 
 function updateSettings() {
-    const gapHPx     = Math.max(0, parseFloat(document.getElementById('numGapH').value) || 0);
-    const gapVPx     = Math.max(0, parseFloat(document.getElementById('numGapV').value) || 0);
-    appConfig.gapH     = gapHPx * PX_TO_MM;
-    appConfig.gapV     = gapVPx * PX_TO_MM;
-    appConfig.borderW  = Math.max(0, parseFloat(document.getElementById('numBorderW').value) || 0);
-    appConfig.borderR  = Math.max(0, parseFloat(document.getElementById('numBorderR').value) || 0);
-    appConfig.borderC  = document.getElementById('setBorderC').value;
-    appConfig.margin   = (parseFloat(document.getElementById('numMargin').value) || 0) * 25.4;
+    const gapHPx     = Math.max(0, Math.round(parseFloat(document.getElementById('numGapH').value) || 0));
+    const gapVPx     = Math.max(0, Math.round(parseFloat(document.getElementById('numGapV').value) || 0));
+    const nextGapH   = gapHPx * PX_TO_MM;
+    const nextGapV   = gapVPx * PX_TO_MM;
+    const nextBW     = Math.max(0, Math.round(parseFloat(document.getElementById('numBorderW').value) || 0));
+    const nextBR     = Math.max(0, Math.round(parseFloat(document.getElementById('numBorderR').value) || 0));
+    const rawColor   = document.getElementById('setBorderC').value;
+    const nextBC     = normalizeHexColor(rawColor) || rawColor || '#E5E7EB';
+    const nextStyle  = document.getElementById('borderStyleSelect')?.value === 'dotted' ? 'dotted' : 'solid';
+    const nextBorderPosition = document.getElementById('borderPositionSelect')?.value === 'inside' ? 'inside' : 'outside';
 
+    const groupPage = getSelectedGroupPage();
+    const activeImg = getActiveImage();
+    const borderTargets = getSelectedBorderTargetImages();
+    const isIndividualGroupLayer = !groupPage && borderTargets.length === 1 && isIndividualGroupLayerSelected(borderTargets[0]?.id);
+
+    if (groupPage) {
+        groupPage.styleOverride = {
+            gapH: nextGapH,
+            gapV: nextGapV,
+            borderW: nextBW,
+            borderR: nextBR,
+            borderStyle: nextStyle,
+            borderPosition: nextBorderPosition,
+            borderC: nextBC
+        };
+    } else if (borderTargets.length) {
+        borderTargets.forEach(targetImg => {
+            const current = getLayerStyle(targetImg.id);
+            const singleGroupMember = borderTargets.length === 1 && isIndividualGroupLayerSelected(targetImg.id);
+            const appliedGapH = singleGroupMember ? current.gapH : nextGapH;
+            const appliedGapV = singleGroupMember ? current.gapV : nextGapV;
+            targetImg.styleOverride = {
+                gapH: appliedGapH,
+                gapV: appliedGapV,
+                borderW: nextBW,
+                borderR: nextBR,
+                borderStyle: nextStyle,
+                borderPosition: nextBorderPosition,
+                borderC: nextBC
+            };
+            targetImg.gapH = appliedGapH;
+            targetImg.gapV = appliedGapV;
+            targetImg.borderW = nextBW;
+            targetImg.borderR = nextBR;
+            targetImg.borderStyle = nextStyle;
+            targetImg.borderPosition = nextBorderPosition;
+            targetImg.borderC = nextBC;
+        });
+    } else if (activeImg) {
+        const current = getLayerStyle(activeImg.id);
+        const appliedGapH = isIndividualGroupLayer ? current.gapH : nextGapH;
+        const appliedGapV = isIndividualGroupLayer ? current.gapV : nextGapV;
+        activeImg.styleOverride = {
+            gapH: appliedGapH,
+            gapV: appliedGapV,
+            borderW: nextBW,
+            borderR: nextBR,
+            borderStyle: nextStyle,
+            borderPosition: nextBorderPosition,
+            borderC: nextBC
+        };
+        activeImg.gapH = appliedGapH;
+        activeImg.gapV = appliedGapV;
+        activeImg.borderW = nextBW;
+        activeImg.borderR = nextBR;
+        activeImg.borderStyle = nextStyle;
+        activeImg.borderPosition = nextBorderPosition;
+        activeImg.borderC = nextBC;
+    } else {
+        appConfig.gapH        = nextGapH;
+        appConfig.gapV        = nextGapV;
+        appConfig.borderW     = nextBW;
+        appConfig.borderR     = nextBR;
+        appConfig.borderC     = nextBC;
+        appConfig.borderStyle = nextStyle;
+        appConfig.borderPosition = nextBorderPosition;
+    }
+
+    const rawMarginIn = parseFloat(document.getElementById('numMargin').value);
+    const safeZoneEnabled = Boolean(document.getElementById('safeZoneToggle')?.checked);
+    const minMarginMM = safeZoneEnabled ? 3 : 0;
+    const clampedMarginMM = Math.max(minMarginMM, (Number.isFinite(rawMarginIn) ? rawMarginIn : 0) * 25.4);
+    appConfig.margin = clampedMarginMM;
+
+    const marginInputEl = document.getElementById('numMargin');
+    if (marginInputEl && document.activeElement !== marginInputEl) {
+        marginInputEl.value = (clampedMarginMM / 25.4).toFixed(2);
+    }
+
+    syncSpacingLockState(activeImg?.id);
     applyBorderCssVars();
 
     saveConfig();
     renderCanvas();
+}
+
+function bindWholeNumberStepControls() {
+    ['numGapH', 'numGapV', 'numBorderW', 'numBorderR'].forEach(id => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        const adjust = delta => {
+            const min = input.min !== '' ? Number(input.min) : 0;
+            const max = input.max !== '' ? Number(input.max) : Infinity;
+            const current = Math.round(parseFloat(input.value) || 0);
+            const next = Math.min(max, Math.max(min, current + delta));
+            input.value = String(next);
+            updateSettings();
+        };
+        input.addEventListener('keydown', e => {
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                adjust(1);
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                adjust(-1);
+            }
+        });
+        input.addEventListener('wheel', e => {
+            if (document.activeElement !== input) return;
+            e.preventDefault();
+            adjust(e.deltaY < 0 ? 1 : -1);
+        }, { passive: false });
+        input.addEventListener('blur', () => {
+            const min = input.min !== '' ? Number(input.min) : 0;
+            const max = input.max !== '' ? Number(input.max) : Infinity;
+            const current = Math.round(parseFloat(input.value) || 0);
+            input.value = String(Math.min(max, Math.max(min, current)));
+            updateSettings();
+        });
+    });
 }
 
 function setFit(mode) {
@@ -1802,9 +2253,13 @@ function setFit(mode) {
 }
 
 function setAlign(mode) {
+    const groupMemberPage = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
+    const isIndividualGroupLayer = !!groupMemberPage && (groupMemberPage.imageIds || []).length > 1 && !selectedGroupPageId;
+    if (isIndividualGroupLayer) return;
+
     if (!['top', 'center', 'bottom'].includes(mode)) return;
     const page = (selectedGroupPageId && pages.find(pg => pg.id === selectedGroupPageId))
-        || pages.find(pg => (pg.imageIds || [pg.imageId]).includes(activeImageId))
+        || groupMemberPage
         || pages[activePageIndex]
         || null;
     if (page) {
@@ -1861,9 +2316,6 @@ function onCustomTile() {
     renderCanvas();
 }
 
-
-
-/* Match the tile height to the active image's real aspect ratio */
 function matchImageRatio() {
     const obj = getActiveImage();
     if (!obj) { showAlert('No Image', 'Please upload an image first.'); return; }
@@ -1877,7 +2329,7 @@ function matchImageRatio() {
         const activeObj = getActiveImage();
         if (activeObj) { activeObj.tileW = appConfig.tileW; activeObj.tileH = h; }
         document.getElementById('tileH').value = h;
-            saveConfig();
+        saveConfig();
         renderCanvas();
     };
     probe.onerror = () => showAlert('Error', 'Could not read the image dimensions.');
@@ -1885,10 +2337,17 @@ function matchImageRatio() {
 }
 
 /* =========================================================
-   PAPER SIZE
+   PAPER SIZE & VIEWPORT FIT
    ========================================================= */
 function setPaperSize(size) {
     if (!paperSizes[size]) return;
+    const page = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
+    const isIndividualGroupLayer = !!page && (page.imageIds || []).length > 1 && !selectedGroupPageId;
+    if (isIndividualGroupLayer) {
+        const sel = document.getElementById('paperSelect');
+        if (sel) sel.value = currentPaper;
+        return;
+    }
     currentPaper = size;
     appConfig.paper = size;
     saveConfig();
@@ -1900,7 +2359,6 @@ function setPaperSize(size) {
     document.documentElement.style.setProperty('--paper-width',  `${paper.w}mm`);
     document.documentElement.style.setProperty('--paper-height', `${paper.h}mm`);
 
-    // Reliable @page injection
     let st = document.getElementById('printPageStyle');
     if (!st) {
         st = document.createElement('style');
@@ -1914,18 +2372,24 @@ function setPaperSize(size) {
 }
 
 function toggleSafeZone() {
+    const page = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
+    const isIndividualGroupLayer = !!page && (page.imageIds || []).length > 1 && !selectedGroupPageId;
+    if (isIndividualGroupLayer) {
+        const cb = document.getElementById('safeZoneToggle');
+        if (cb) cb.checked = document.querySelectorAll('.paper-page.safe-zone-active').length > 0;
+        return;
+    }
     const on = document.getElementById('safeZoneToggle').checked;
     document.querySelectorAll('.paper-page').forEach(p => p.classList.toggle('safe-zone-active', on));
+    renderCanvas();
 }
 
-/* =========================================================
-   VIEWPORT FIT
-   ========================================================= */
 function fitToViewport() {
     const workspace = document.querySelector('.workspace');
     const paper = paperSizes[currentPaper];
+    if (!workspace || !paper) return;
     const availW = workspace.clientWidth - 80;
-    const availH = workspace.clientHeight - 110; // leave room for the pager
+    const availH = workspace.clientHeight - 110;
 
     const paperWpx = paper.w * 3.7795;
     const paperHpx = paper.h * 3.7795;
@@ -1934,14 +2398,16 @@ function fitToViewport() {
     document.documentElement.style.setProperty('--preview-scale', scale);
 
     const pw = document.getElementById('previewWrapper');
-    pw.style.width  = (paperWpx * scale) + 'px';
-    pw.style.height = (paperHpx * scale) + 'px';
+    if (pw) {
+        pw.style.width  = (paperWpx * scale) + 'px';
+        pw.style.height = (paperHpx * scale) + 'px';
+    }
 }
 
 window.addEventListener('resize', fitToViewport);
 
 /* =========================================================
-   IMAGE UPLOAD
+   IMAGE UPLOAD HELPERS & LISTENERS
    ========================================================= */
 const fileInput = document.getElementById('fileInput');
 const workspaceArea = document.getElementById('workspaceArea');
@@ -1966,8 +2432,6 @@ workspaceArea.addEventListener('drop', e => {
     if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
 });
 
-// Keep originals as Blob URLs (no Base64 copy in memory) and create a
-// small workspace preview using the browser's resize-during-decode support.
 async function makePreviewSrc(file, maxEdge = 1200) {
     let sourceBitmap = null;
     let previewBitmap = null;
@@ -1985,7 +2449,6 @@ async function makePreviewSrc(file, maxEdge = 1200) {
         canvas.width = previewBitmap.width;
         canvas.height = previewBitmap.height;
         const ctx = canvas.getContext('2d', { alpha: false });
-        // Flatten transparent images onto white so transparent pixels never turn black.
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(previewBitmap, 0, 0);
@@ -2040,7 +2503,14 @@ function handleFiles(files) {
                 tileH: appConfig.tileH,
                 quantityOverride: null,
                 fit: null,
-                align: null
+                align: null,
+                gapH: appConfig.gapH,
+                gapV: appConfig.gapV,
+                borderW: appConfig.borderW,
+                borderR: appConfig.borderR,
+                borderStyle: appConfig.borderStyle,
+                borderPosition: appConfig.borderPosition || 'inside',
+                borderC: appConfig.borderC
             };
             if (!uploadedImages.length) {
                 pages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
@@ -2061,6 +2531,17 @@ function handleFiles(files) {
 
 const eyeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
 const eyeOffIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+function getLayerStackIds() {
+    const ids = [];
+    pages.forEach(page => {
+        (page.imageIds || [page.imageId]).filter(Boolean).forEach(id => {
+            if (uploadedImages.some(img => img.id === id) && !ids.includes(id)) ids.push(id);
+        });
+    });
+    uploadedImages.forEach(img => { if (!ids.includes(img.id)) ids.push(img.id); });
+    return ids;
+}
 
 function renderImageQueue() {
     const queue = document.getElementById('imageQueue');
@@ -2154,7 +2635,7 @@ function renderImageQueue() {
         const grip = document.createElement('span');
         grip.className = 'layer-grip'; grip.textContent = '⠿'; row.appendChild(grip);
         const thumb = document.createElement('div'); thumb.className = 'layer-thumb';
-        const img = document.createElement('img'); img.src = obj.previewSrc || obj.croppedSrc || obj.src; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
+        const img = document.createElement('img'); img.src = obj.croppedSrc || obj.previewSrc || obj.src; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
         thumb.appendChild(img);
         const edit = document.createElement('button'); edit.className = 'layer-action layer-edit-overlay';
         edit.type = 'button'; edit.title = 'Edit image'; edit.setAttribute('aria-label', 'Edit image');
@@ -2203,7 +2684,7 @@ function renderImageQueue() {
             card.className = 'layer-group' + (groupInfo.ids.every(id => selectedImageIds.has(id)) ? ' multi-selected' : '') + (groupInfo.page.visible === false ? ' is-hidden' : '');
             const isCollapsed = collapsedGroupIds.has(groupInfo.page.id);
             const header = document.createElement('div');
-            header.className = 'layer-group-header' + (groupInfo.ids.every(id => selectedImageIds.has(id)) ? ' is-selected' : '');
+            header.className = 'layer-group-header' + (selectedGroupPageId === groupInfo.page.id ? ' group-selected' : '');
             header.setAttribute('role', 'button');
             header.setAttribute('aria-selected', String(groupInfo.ids.every(id => selectedImageIds.has(id))));
             header.tabIndex = 0;
@@ -2256,7 +2737,7 @@ function renderImageQueue() {
                 activeImageId = groupInfo.ids[0] || null;
                 const groupPageIndex = pages.findIndex(pg => pg.id === groupInfo.page.id);
                 if (groupPageIndex >= 0) activePageIndex = groupPageIndex;
-                if (activeImageId) { syncTileControls(activeImageId); syncQuantityControl(activeImageId); }
+                if (activeImageId) { syncTileControls(activeImageId); syncQuantityControl(activeImageId); syncSpacingBorderControls(activeImageId); }
                 renderImageQueue();
                 renderCanvas();
             };
@@ -2285,7 +2766,7 @@ function renderImageQueue() {
             };
             const icon = document.createElement('span'); icon.className = 'layer-group-icon'; icon.textContent = '▦';
             const title = document.createElement('span'); title.className = 'layer-group-title'; title.textContent = groupInfo.label;
-            const countLabel = document.createElement('span'); countLabel.className = 'layer-group-count'; countLabel.textContent = `${groupInfo.ids.length} layers`;
+            const countLabel = document.createElement('span'); countLabel.className = 'layer-group-count'; countLabel.textContent = `${groupInfo.ids.length}`;
             const tools = document.createElement('span'); tools.className = 'layer-group-tools';
             const groupEye = document.createElement('button'); groupEye.type = 'button';
             groupEye.className = 'layer-action visibility-action' + (groupInfo.page.visible === false ? ' is-hidden' : '');
@@ -2296,19 +2777,19 @@ function renderImageQueue() {
             groupEye.onclick = ev => { ev.stopPropagation(); toggleGroupVisibility(groupInfo.page.id); };
             // Keep the group size beside the visibility control; duplication remains on the keyboard shortcut.
             tools.append(countLabel, groupEye);
-            header.append(chevron, icon, title, tools);
+            header.append(chevron, icon, title); header.appendChild(tools);
             card.appendChild(header);
             const children = document.createElement('div'); children.className = 'layer-group-children' + (isCollapsed ? ' is-collapsed' : '');
             groupInfo.ids.forEach(id => {
                 const childObj = uploadedImages.find(img => img.id === id);
                 const childIndex = uploadedImages.indexOf(childObj);
-                if (childObj) children.appendChild(makeLayerRow(childObj, childIndex));
+                if (childObj) children.appendChild(makeLayerRow(childObj, getLayerStackIds().indexOf(childObj.id)));
             });
             card.appendChild(children);
             queue.appendChild(card);
         } else {
             const obj = uploadedImages.find(img => img.id === pageIds[0]);
-            if (obj) queue.appendChild(makeLayerRow(obj, uploadedImages.indexOf(obj)));
+            if (obj) queue.appendChild(makeLayerRow(obj, getLayerStackIds().indexOf(obj.id)));
         }
     });
     updateGroupButton();
@@ -2621,6 +3102,14 @@ function syncQuantityControl(imageId = activeImageId) {
     if (tileLayoutControls) {
         tileLayoutControls.style.setProperty('display', isIndividualGroupLayer ? 'none' : '', 'important');
     }
+
+    // Keep border controls enabled for individual grouped layers while locking spacing, paper, and alignment.
+    ['paperSelect', 'numMargin', 'safeZoneToggle', 'numGapH', 'numGapV', 'numBorderW', 'numBorderR', 'borderStyleSelect', 'borderPositionSelect', 'hexBorderC', 'setBorderC', 'alignTopBtn', 'alignCenterBtn', 'alignBottomBtn']
+        .forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = isIndividualGroupLayer;
+        });
+
     autoCheckbox.disabled = !isLayerSelected;
     autoCheckbox.checked = !(isLayerSelected && obj?.quantityOverride != null);
     input.disabled = !isLayerSelected || autoCheckbox.checked;
@@ -2631,25 +3120,35 @@ function syncQuantityControl(imageId = activeImageId) {
 }
 function selectLayer(id, index, ev) {
     selectedGroupPageId = null;
+    const stackIds = getLayerStackIds();
+    const clickedIndex = stackIds.indexOf(id);
     if (ev.ctrlKey || ev.metaKey) {
-        selectedImageIds.has(id) ? selectedImageIds.delete(id) : selectedImageIds.add(id);
-        layerAnchorIndex = index;
+        if (selectedImageIds.has(id)) {
+            selectedImageIds.delete(id);
+            if (activeImageId === id) activeImageId = [...selectedImageIds][0] || null;
+        } else {
+            selectedImageIds.add(id);
+            activeImageId = id;
+        }
+        layerAnchorIndex = clickedIndex;
     } else if (ev.shiftKey && layerAnchorIndex >= 0) {
-        const lo = Math.min(layerAnchorIndex, index), hi = Math.max(layerAnchorIndex, index);
-        selectedImageIds = new Set(uploadedImages.slice(lo, hi + 1).map(img => img.id));
+        const lo = Math.min(layerAnchorIndex, clickedIndex), hi = Math.max(layerAnchorIndex, clickedIndex);
+        selectedImageIds = new Set(stackIds.slice(lo, hi + 1));
+        activeImageId = id;
     } else {
         selectedImageIds = new Set([id]);
-        layerAnchorIndex = index;
+        activeImageId = id;
+        layerAnchorIndex = clickedIndex;
     }
-    activeImageId = id;
-    const pageIndex = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(id));
+    const pageIndex = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(activeImageId));
     if (pageIndex >= 0) {
         activePageIndex = pageIndex;
         if ((pages[pageIndex].imageIds || []).length > 1) collapsedGroupIds.delete(pages[pageIndex].id);
     }
-    syncTileControls(id);
-    syncQuantityControl(id);
-    renderCanvas(); // immediately switch the preview to the selected layer's page
+    syncTileControls(activeImageId);
+    syncQuantityControl(activeImageId);
+    syncSpacingBorderControls(activeImageId);
+    renderCanvas();
     renderImageQueue();
 }
 
@@ -2721,6 +3220,7 @@ function selectImage(imageId) {
     selectedImageIds = new Set([imageId]);
     syncTileControls(imageId);
     syncQuantityControl(imageId);
+    syncSpacingBorderControls(imageId);
     let idx = pages.findIndex(p => (p.imageIds || [p.imageId]).includes(imageId));
     if (idx === -1) {
         pages.push({ id: newPageId(), imageId });
@@ -2919,6 +3419,7 @@ function goToPage(idx) {
     activePageIndex = target;
     syncActiveFromPage();
     syncTileControls(activeImageId);
+    syncSpacingBorderControls(activeImageId);
     updatePageVisibility();
     updatePagerUI();
     renderImageQueue();
@@ -2961,27 +3462,81 @@ function updatePageVisibility() {
 /* =========================================================
    LAYOUT MATH
    ========================================================= */
-function computeLayout(imageId = activeImageId) {
+function snapLayoutBounds(imageId = activeImageId) {
     const paper = paperSizes[currentPaper];
-    const t = getTileMM(imageId);
-    const m = appConfig.margin;
-    const availW = paper.w - m * 2;
-    const availH = paper.h - m * 2;
-    const gh = appConfig.gapH;
-    const gv = appConfig.gapV;
+    const size = getImageTileSize(imageId);
+    const safeZoneEnabled = Boolean(document.getElementById('safeZoneToggle')?.checked);
+    const minMarginMM = safeZoneEnabled ? 3 : 0;
 
-    const cols = Math.floor((availW + gh) / (t.w + gh));
-    const rows = Math.floor((availH + gv) / (t.h + gv));
+    // Snap margin so it never pushes past half of the paper or inside the safe zone
+    const maxMarginMM = Math.max(minMarginMM, Math.min(paper.w, paper.h) * 0.45);
+    const m = Math.max(minMarginMM, Math.min(maxMarginMM, appConfig.margin));
+
+    const availW = Math.max(1, paper.w - m * 2);
+    const availH = Math.max(1, paper.h - m * 2);
+
+    const style = getEffectiveStyle(imageId);
+    // Snap border width so a single tile never exceeds available printable space
+    const maxBorderMMByW = Math.max(0, (availW - 2) / 4);
+    const maxBorderMMByH = Math.max(0, (availH - 2) / 4);
+    const maxBorderPx = Math.max(0, Math.floor(Math.min(20, maxBorderMMByW, maxBorderMMByH) * MM_TO_PX));
+    const snappedBorderW = Math.max(0, Math.min(maxBorderPx, Math.round(Number(style.borderW) || 0)));
+    const borderMM = snappedBorderW * PX_TO_MM;
+
+    // Snap tile dimensions so at least 1 tile fits cleanly without overlapping bounds
+    const maxTileInW = Math.max(0.2, (availW - borderMM * 2) / 25.4);
+    const maxTileInH = Math.max(0.2, (availH - borderMM * 2) / 25.4);
+    const snappedTileW = Math.max(0.2, Math.min(size.w, Math.floor(maxTileInW * 100) / 100));
+    const snappedTileH = Math.max(0.2, Math.min(size.h, Math.floor(maxTileInH * 100) / 100));
+
+    const tileWMM = snappedTileW * 25.4;
+    const tileHMM = snappedTileH * 25.4;
+    const effectiveTileW = tileWMM + borderMM * 2;
+    const effectiveTileH = tileHMM + borderMM * 2;
+
+    const rawCols = Math.max(1, Math.floor(availW / effectiveTileW));
+    const rawRows = Math.max(1, Math.floor(availH / effectiveTileH));
+
+    // Keep requested spacing/border/tile values intact and reduce columns or rows
+    // so only tiles that fit cleanly within bounds are placed.
+    const snappedGapH = Math.max(0, Number(style.gapH) || 0);
+    const snappedGapV = Math.max(0, Number(style.gapV) || 0);
+
+    const cols = effectiveTileW > availW
+        ? 0
+        : Math.max(1, Math.floor((availW + snappedGapH) / (effectiveTileW + snappedGapH)));
+    const rows = effectiveTileH > availH
+        ? 0
+        : Math.max(1, Math.floor((availH + snappedGapV) / (effectiveTileH + snappedGapV)));
+
+    const totalW = cols > 0 ? cols * effectiveTileW + Math.max(0, cols - 1) * snappedGapH : 0;
+    const totalH = rows > 0 ? rows * effectiveTileH + Math.max(0, rows - 1) * snappedGapV : 0;
 
     return {
-        cols: Math.max(0, cols),
-        rows: Math.max(0, rows),
-        t, paper, m,
-        tileW: getImageTileSize(imageId).w,
-        tileH: getImageTileSize(imageId).h,
-        totalW: Math.max(0, cols) * t.w + Math.max(0, cols - 1) * gh,
-        totalH: Math.max(0, rows) * t.h + Math.max(0, rows - 1) * gv
+        cols,
+        rows,
+        t: { w: tileWMM, h: tileHMM },
+        paper,
+        m,
+        gapH: snappedGapH,
+        gapV: snappedGapV,
+        borderW: snappedBorderW,
+        borderR: Number(style.borderR) || 0,
+        borderStyle: style.borderStyle,
+        borderPosition: style.borderPosition || 'inside',
+        borderC: style.borderC,
+        borderMM,
+        tileW: size.w,
+        tileH: size.h,
+        totalW,
+        totalH,
+        didSnap: false,
+        exceedsSafeZone: false
     };
+}
+
+function computeLayout(imageId = activeImageId) {
+    return snapLayoutBounds(imageId);
 }
 
 /* =========================================================
@@ -2991,7 +3546,10 @@ function renderCanvas() {
     const pagesWrapper = document.getElementById('pagesWrapper');
     const warning = document.getElementById('overflowWarning');
     pagesWrapper.innerHTML = '';
-    if (warning) warning.style.display = 'none';
+    if (warning) {
+        warning.textContent = '';
+        warning.style.display = 'none';
+    }
 
     // Remove stale/blank page records whenever real images exist.
     if (uploadedImages.length) {
@@ -3006,12 +3564,9 @@ function renderCanvas() {
     }
 
     const activePage = pages[activePageIndex];
-    const activeLayout = computeLayout(activePage ? (activePage.imageIds?.[0] || activePage.imageId) : null);
+    const activeImageKey = activePage ? (activePage.imageIds?.[0] || activePage.imageId) : null;
+    const activeLayout = computeLayout(activeImageKey);
     updateLayoutInfo(activeLayout);
-
-    if (activePage && (activeLayout.cols === 0 || activeLayout.rows === 0)) {
-        if (warning) warning.style.display = 'block';
-    }
     visiblePageIndices.forEach((pageIndex, visibleIndex) => {
         const pg = pages[pageIndex];
         const pageLayout = computeLayout(pg.imageIds?.[0] || pg.imageId);
@@ -3052,12 +3607,17 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
     inner.style.alignItems = canvasAlignItems(pg);
     inner.dataset.canvasAlign = getCanvasAlign(pg);
 
+    const isGroupPage = pageImageIds.length > 1;
+    const groupStyle = isGroupPage ? getEffectiveStyle(pg.imageIds?.[0]) : null;
+    const pageGapH = groupStyle ? groupStyle.gapH : (imgObj ? getLayerStyle(imgObj.id).gapH : appConfig.gapH);
+    const pageGapV = groupStyle ? groupStyle.gapV : (imgObj ? getLayerStyle(imgObj.id).gapV : appConfig.gapV);
+
     const grid = document.createElement('div');
     grid.className = 'tile-grid';
     grid.style.gridTemplateColumns = `repeat(${layout.cols}, ${layout.t.w}mm)`;
     grid.style.gridAutoRows = `${layout.t.h}mm`;
-    grid.style.columnGap = `${appConfig.gapH}mm`;
-    grid.style.rowGap = `${appConfig.gapV}mm`;
+    grid.style.columnGap = `${pageGapH}mm`;
+    grid.style.rowGap = `${pageGapV}mm`;
 
     const capacity = layout.cols * layout.rows;
     // Every selected layer can have its own quantity. Auto-fill uses the full
@@ -3100,29 +3660,41 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
         const row = Math.floor(i / layout.cols);
         const col = i % layout.cols;
 
+        const imageIndex = allocationEnds.findIndex(end => i < end);
+        const tileImage = pageImages[Math.max(0, imageIndex)] || imgObj;
+        const tileStyle = getLayerStyle(tileImage.id);
+        const tileBW = Math.max(0, Number(tileStyle.borderW) || 0);
+        const tileBR = Math.max(0, Number(tileStyle.borderR) || 0);
+        const tileBS = tileStyle.borderStyle === 'dotted' ? 'dotted' : 'solid';
+        const tileBC = normalizeHexColor(tileStyle.borderC) || '#E5E7EB';
+        const tileGH = isGroupPage ? pageGapH : tileStyle.gapH;
+        const tileGV = isGroupPage ? pageGapV : tileStyle.gapV;
+
         const tile = document.createElement('div');
         tile.className = 'tile';
 
         const media = document.createElement('div');
         media.className = 'tile-media';
+        media.style.borderRadius = `${tileBR}px`;
 
         const borderRing = document.createElement('div');
         borderRing.className = 'tile-border';
+        borderRing.style.inset = tileStyle.borderPosition === 'inside' ? '0' : `${-tileBW}px`;
+        borderRing.style.border = `${tileBW}px ${tileBS} ${tileBC}`;
+        borderRing.style.borderRadius = `${tileBR + (tileStyle.borderPosition === 'inside' ? 0 : tileBW)}px`;
 
         // Collapse doubled outside borders when there is no spacing between tiles
-        if (appConfig.gapH === 0 && col > 0) {
+        if (tileStyle.borderPosition !== 'inside' && tileGH === 0 && col > 0) {
             borderRing.style.borderLeftWidth = '0';
             borderRing.style.left = '0';
         }
-        if (appConfig.gapV === 0 && row > 0) {
+        if (tileStyle.borderPosition !== 'inside' && tileGV === 0 && row > 0) {
             borderRing.style.borderTopWidth = '0';
             borderRing.style.top = '0';
         }
 
-        const imageIndex = allocationEnds.findIndex(end => i < end);
-        const tileImage = pageImages[Math.max(0, imageIndex)] || imgObj;
         const img = document.createElement('img');
-        img.src = tileImage.previewSrc || tileImage.croppedSrc || tileImage.src;
+        img.src = tileImage.croppedSrc || tileImage.previewSrc || tileImage.src;
         img.dataset.imageId = tileImage.id;
         img.alt = '';
         img.loading = 'lazy';
@@ -3134,7 +3706,7 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
 
         media.appendChild(img);
         tile.appendChild(media);
-        if (appConfig.borderW > 0) {
+        if (tileBW > 0) {
             tile.appendChild(borderRing);
         }
         grid.appendChild(tile);
@@ -3274,6 +3846,7 @@ async function prepareExportClone(doc, targetPageIndex) {
         const media = tile.querySelector('.tile-media') || tile;
         const img = media.querySelector('img');
         if (!img || !img.naturalWidth || !img.naturalHeight) return;
+        const tileStyle = getLayerStyle(img.dataset.imageId);
         const boxW = tile.clientWidth;
         const boxH = tile.clientHeight;
         if (!boxW || !boxH) return;
@@ -3296,21 +3869,24 @@ async function prepareExportClone(doc, targetPageIndex) {
             media.style.position = 'absolute';
             media.style.inset = '0';
             media.style.overflow = 'hidden';
-            media.style.borderRadius = `${appConfig.borderR}px`;
+            media.style.borderRadius = media.style.borderRadius || `${appConfig.borderR}px`;
         }
 
         const borderRing = tile.querySelector('.tile-border');
         if (borderRing) {
-            const bw = appConfig.borderW;
-            const style = appConfig.borderStyle === 'dotted' ? 'dotted' : 'solid';
+            const imgId = img.dataset.imageId;
+            const st = getEffectiveStyle(imgId);
+            const bw = st.borderW;
+            const style = st.borderStyle === 'dotted' ? 'dotted' : 'solid';
             borderRing.style.position = 'absolute';
-            borderRing.style.top = borderRing.style.top || `${-bw}px`;
-            borderRing.style.left = borderRing.style.left || `${-bw}px`;
-            borderRing.style.right = `${-bw}px`;
-            borderRing.style.bottom = `${-bw}px`;
+            const borderInset = st.borderPosition === 'inside' ? '0px' : `${-bw}px`;
+            borderRing.style.top = borderInset;
+            borderRing.style.left = borderInset;
+            borderRing.style.right = borderInset;
+            borderRing.style.bottom = borderInset;
             borderRing.style.borderStyle = style;
-            borderRing.style.borderColor = appConfig.borderC;
-            borderRing.style.borderRadius = `${appConfig.borderR + bw}px`;
+            borderRing.style.borderColor = st.borderC;
+            borderRing.style.borderRadius = `${st.borderR + (st.borderPosition === 'inside' ? 0 : bw)}px`;
         }
 
         img.style.position = 'absolute';
@@ -3432,8 +4008,51 @@ const cropImg     = document.getElementById('cropImg');
 const cropBoxRect = document.getElementById('cropBoxRect');
 
 function setCropZoomInputValue(val) {
-    const el = document.getElementById('cropZoom');
-    if (el) el.value = Number(val).toFixed(2).replace(/\.00$/, '');
+    const value = document.getElementById('cropZoomValue');
+    if (value) value.textContent = Number(val).toFixed(2).replace(/\.00$/, '') + '×';
+    const slider = document.getElementById('cropZoomSlider');
+    if (slider) { slider.value = String(val); updateRangeTrack(slider); }
+}
+
+function updateRangeTrack(el) {
+    if (!el) return;
+    const min = Number(el.min || 0), max = Number(el.max || 100), val = Number(el.value || 0);
+    const pct = max === min ? 0 : ((val - min) / (max - min)) * 100;
+    el.style.setProperty('--range-progress', pct + '%');
+}
+
+function getCropFilter() {
+    if (!crop) return 'none';
+    const a = crop.adjustments || { brightness: 100, hue: 0, colorMode: 'color' };
+    return `${a.colorMode === 'bw' ? 'grayscale(1) ' : ''}brightness(${a.brightness}%) contrast(${a.contrast ?? 100}%) hue-rotate(${a.hue}deg)`;
+}
+
+function resetCropSlider(sliderId) {
+    const defaults = { cropZoomSlider: 1, cropBrightness: 100, cropContrast: 100, cropHue: 0 };
+    if (!(sliderId in defaults)) return;
+    const defaultValue = defaults[sliderId];
+    if (sliderId === 'cropZoomSlider') {
+        setCropZoom(defaultValue);
+        return;
+    }
+    const slider = document.getElementById(sliderId);
+    if (!slider) return;
+    slider.value = String(defaultValue);
+    updateCropAdjustments();
+}
+
+function updateCropAdjustments() {
+    if (!crop) return;
+    const brightness = Number(document.getElementById('cropBrightness').value);
+    const hue = Number(document.getElementById('cropHue').value);
+    const contrast = Number(document.getElementById('cropContrast').value);
+    const colorMode = document.getElementById('cropColorMode').value;
+    crop.adjustments = { brightness, contrast, hue, colorMode };
+    cropImg.style.filter = getCropFilter();
+    document.getElementById('cropBrightnessValue').textContent = brightness + '%';
+    document.getElementById('cropHueValue').textContent = hue + '°';
+    document.getElementById('cropContrastValue').textContent = contrast + '%';
+    ['cropZoomSlider','cropBrightness','cropContrast','cropHue'].forEach(id => updateRangeTrack(document.getElementById(id)));
 }
 
 function initFreeCropBox() {
@@ -3462,8 +4081,8 @@ function syncCropModeUI() {
             ? 'Drag box or corners for free-form crop · Enter zoom'
             : 'Drag to reposition · Scroll or enter zoom';
     }
-    const zoomInput = document.getElementById('cropZoom');
-    if (zoomInput) zoomInput.disabled = isFree;
+    const zoomRow = document.getElementById('cropZoomRow');
+    if (zoomRow) zoomRow.style.display = isFree ? 'block' : 'block';
 }
 
 function openCropModal(imgId) {
@@ -3472,18 +4091,24 @@ function openCropModal(imgId) {
 
     crop = {
         obj,
-        aspectMode: 'tile',
+        aspectMode: 'image',
         zoom: 1, x: 0, y: 0,
         natW: 0, natH: 0,
         vw: 0, vh: 0, base: 1, dw: 0, dh: 0,
         freeRect: null,
+        adjustments: { brightness: obj.imageAdjustments?.brightness ?? 100, contrast: obj.imageAdjustments?.contrast ?? 100, hue: obj.imageAdjustments?.hue ?? 0, colorMode: obj.imageAdjustments?.colorMode ?? 'color' },
         dragging: false, dragMode: null, handle: null,
         startX: 0, startY: 0, origX: 0, origY: 0, origRect: null
     };
 
-    document.querySelectorAll('#cropAspectCtrl button').forEach(b =>
-        b.classList.toggle('active', b.dataset.aspect === 'tile'));
+    document.getElementById('cropAspectSelect').value = 'image';
     setCropZoomInputValue(1);
+    const savedAdj = crop.adjustments;
+    document.getElementById('cropBrightness').value = savedAdj.brightness;
+    document.getElementById('cropHue').value = savedAdj.hue;
+    document.getElementById('cropContrast').value = savedAdj.contrast ?? 100;
+    document.getElementById('cropColorMode').value = savedAdj.colorMode;
+    updateCropAdjustments();
     syncCropModeUI();
 
     cropImg.onload = () => {
@@ -3541,7 +4166,8 @@ function computeCropStage(keepCenter) {
     const prev = (keepCenter && crop.vw) ? getCropCenterSource() : null;
 
     const aspect = getCropAspect();
-    const MAXW = 380, MAXH = 340;
+    const MAXW = Math.max(180, Math.min(620, Math.floor(window.innerWidth * (window.innerWidth <= 700 ? 0.82 : 0.58))));
+    const MAXH = Math.max(180, Math.min(620, Math.floor(window.innerHeight * 0.66)));
 
     let vw, vh;
     if (aspect >= 1) { vw = MAXW; vh = Math.round(MAXW / aspect); }
@@ -3557,13 +4183,12 @@ function computeCropStage(keepCenter) {
     cropStage.style.height = vh + 'px';
 
     if (crop.aspectMode === 'free') {
-        crop.zoom = 1;
-        setCropZoomInputValue(1);
         crop.base = Math.min(vw / crop.natW, vh / crop.natH);
-        const s = crop.base;
+        const s = crop.base * crop.zoom;
         crop.x = (vw - crop.natW * s) / 2;
         crop.y = (vh - crop.natH * s) / 2;
-        initFreeCropBox();
+        setCropZoomInputValue(crop.zoom);
+        if (!crop.freeRect) initFreeCropBox();
     } else {
         crop.base = Math.max(vw / crop.natW, vh / crop.natH);
         if (prev) {
@@ -3617,7 +4242,7 @@ function layoutCrop() {
 }
 
 function setCropZoom(z) {
-    if (!crop || crop.aspectMode === 'free') return;
+    if (!crop) return;
     const oldS = crop.base * crop.zoom;
     const cx = crop.vw / 2, cy = crop.vh / 2;
     const sx = (cx - crop.x) / oldS;
@@ -3634,7 +4259,7 @@ function setCropZoom(z) {
 }
 
 function onCropZoomInput(rawVal, clampOnBlur = false) {
-    if (!crop || crop.aspectMode === 'free') return;
+    if (!crop) return;
     if (String(rawVal).trim() === '') {
         if (clampOnBlur) setCropZoom(1);
         return;
@@ -3652,8 +4277,8 @@ function onCropZoomInput(rawVal, clampOnBlur = false) {
 function setCropAspect(mode) {
     if (!crop) return;
     crop.aspectMode = mode;
-    document.querySelectorAll('#cropAspectCtrl button').forEach(b =>
-        b.classList.toggle('active', b.dataset.aspect === mode));
+    const modeSelect = document.getElementById('cropAspectSelect');
+    if (modeSelect) modeSelect.value = mode;
     syncCropModeUI();
     computeCropStage(true);
     layoutCrop();
@@ -3730,7 +4355,7 @@ cropStage.addEventListener('pointermove', e => {
 
 /* --- wheel to zoom --- */
 cropStage.addEventListener('wheel', e => {
-    if (!crop || crop.aspectMode === 'free') return;
+    if (!crop) return;
     e.preventDefault();
     const delta = -e.deltaY * 0.0016;
     setCropZoom(crop.zoom + delta);
@@ -3741,9 +4366,17 @@ function resetCrop() {
     if (!crop) return;
     crop.obj.croppedSrc = null;
     crop.obj.cropRect = null;
+    crop.adjustments = { brightness: 100, contrast: 100, hue: 0, colorMode: 'color' };
+    document.getElementById('cropBrightness').value = 100;
+    document.getElementById('cropHue').value = 0;
+    document.getElementById('cropContrast').value = 100;
+    document.getElementById('cropColorMode').value = 'color';
+    updateCropAdjustments();
 
     if (crop.aspectMode === 'free') {
         crop.zoom = 1;
+        crop.x = (crop.vw - crop.natW * crop.base) / 2;
+        crop.y = (crop.vh - crop.natH * crop.base) / 2;
         setCropZoomInputValue(1);
         initFreeCropBox();
     } else {
@@ -3758,6 +4391,14 @@ function resetCrop() {
     renderImageQueue();
     renderCanvas();
 }
+
+
+window.addEventListener('resize', () => {
+    if (crop && document.getElementById('cropModal').classList.contains('active')) {
+        computeCropStage(true);
+        layoutCrop();
+    }
+});
 
 function closeCrop() {
     document.getElementById('cropModal').classList.remove('active');
@@ -3803,9 +4444,12 @@ function applyCrop() {
     const ctx = cv.getContext('2d');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
+    ctx.filter = getCropFilter();
     ctx.drawImage(cropImg, sx, sy, sw, sh, 0, 0, outW, outH);
+    ctx.filter = 'none';
 
     crop.obj.croppedSrc = cv.toDataURL('image/png');
+    crop.obj.imageAdjustments = { ...crop.adjustments };
     crop.obj.cropRect = {
         nx: sx / crop.natW,
         ny: sy / crop.natH,
@@ -3826,11 +4470,47 @@ document.getElementById('customModal').addEventListener('click', e => {
     if (e.target.id === 'customModal') closeModal(false);
 });
 
+/* Toggle the selected layer(s) between square and fully rounded corners. */
+function toggleSelectedLayerBorderRadius() {
+    const groupPage = getSelectedGroupPage();
+    const borderTargets = getSelectedBorderTargetImages();
+    const activeImg = getActiveImage();
+    const targets = borderTargets.length ? borderTargets : (activeImg ? [activeImg] : []);
+
+    const currentRadii = groupPage
+        ? [Number.isFinite(groupPage.styleOverride?.borderR) ? groupPage.styleOverride.borderR : appConfig.borderR]
+        : targets.map(img => getLayerStyle(img.id).borderR);
+    const shouldSquare = currentRadii.length > 0 && currentRadii.every(radius => Number(radius) >= 999);
+    const nextRadius = shouldSquare ? 0 : 999;
+
+    if (groupPage) {
+        groupPage.styleOverride = { ...(groupPage.styleOverride || {}), borderR: nextRadius };
+    } else if (targets.length) {
+        targets.forEach(img => {
+            img.styleOverride = { ...(img.styleOverride || {}), borderR: nextRadius };
+            img.borderR = nextRadius;
+        });
+    } else {
+        appConfig.borderR = nextRadius;
+    }
+
+    const radiusInput = document.getElementById('numBorderR');
+    if (radiusInput) radiusInput.value = String(nextRadius);
+    syncSpacingBorderControls(activeImageId);
+    renderImageQueue();
+    renderCanvas();
+}
+
 /* Keyboard shortcuts */
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         if (document.getElementById('cropModal').classList.contains('active')) closeCrop();
         else if (document.getElementById('customModal').classList.contains('active')) closeModal(false);
+        return;
+    }
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'q') {
+        e.preventDefault();
+        toggleSelectedLayerBorderRadius();
         return;
     }
     if (e.target.matches('input, select, textarea, [contenteditable="true"]')) return;
@@ -3846,13 +4526,14 @@ document.addEventListener('keydown', e => {
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
         e.preventDefault();
-        const allImageIds = uploadedImages.map(img => img.id);
-        const allAlreadySelected = allImageIds.length > 0 &&
-            allImageIds.every(id => selectedImageIds.has(id));
-
-        // Toggle: Ctrl+A selects every layer; pressing it again clears the selection.
-        selectedImageIds = allAlreadySelected ? new Set() : new Set(allImageIds);
+        const allImageIds = getLayerStackIds();
+        selectedImageIds = new Set(allImageIds);
         selectedGroupPageId = null;
+        if (!activeImageId || !selectedImageIds.has(activeImageId)) activeImageId = allImageIds[0] || null;
+        layerAnchorIndex = activeImageId ? allImageIds.indexOf(activeImageId) : -1;
+        syncTileControls(activeImageId);
+        syncQuantityControl(activeImageId);
+        syncSpacingBorderControls(activeImageId);
         renderImageQueue();
         renderCanvas();
         return;
@@ -3879,6 +4560,7 @@ document.addEventListener('keydown', e => {
 function initApp() {
     try {
         loadConfig();
+        bindWholeNumberStepControls();
         loadUIPreferences();
         bindUIPreferencePersistence();
         // Keep the initial canvas available, but it is not an exportable page.
