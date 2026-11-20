@@ -32,7 +32,9 @@
         --paper-height: 297mm;
         --preview-scale: 1;
 
-        --border-w: 0.1px;
+        --border-w: 0px;
+        --border-r: 0px;
+        --border-s: solid;
         --border-c: #E5E7EB;
     }
 
@@ -379,39 +381,96 @@
 
     .setting-row { margin-bottom: 16px; }
     .setting-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .setting-label { font-size: .75rem; font-weight: 600; color: var(--text-muted); }
+    .setting-label { font-size: .75rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
     .compact-setting-row {
-        display: flex; align-items: center; justify-content: space-between;
-        gap: 10px; min-height: 34px; margin-bottom: 8px;
+        display: grid;
+        grid-template-columns: 78px minmax(0, 1fr);
+        align-items: center;
+        column-gap: 12px;
+        min-height: 34px;
+        margin-bottom: 10px;
     }
-    .compact-setting-row:last-of-type { margin-bottom: 12px; }
-    .compact-setting-row .setting-value-wrapper { flex-shrink: 0; }
+    .compact-setting-row:last-of-type { margin-bottom: 4px; }
+    .compact-setting-row .setting-value-wrapper {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 16px;
+        align-items: center;
+        column-gap: 4px;
+        min-width: 0;
+    }
     .compact-setting-row .setting-value-wrapper input {
-        width: 58px; height: 30px; background: var(--input-bg);
+        width: 100%;
+        min-width: 0;
+        height: 30px;
+        background: var(--input-bg);
+    }
+    .compact-setting-row .setting-value-wrapper span {
+        text-align: left;
     }
     .spacing-control-group {
-        display: flex; align-items: center; justify-content: flex-end;
-        gap: 12px; min-width: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: center;
+        column-gap: 10px;
+        min-width: 0;
+        width: 100%;
     }
     .icon-number-control {
-        display: inline-flex; align-items: center; gap: 5px; min-width: 0;
+        display: grid;
+        grid-template-columns: 16px minmax(0, 1fr);
+        align-items: center;
+        column-gap: 5px;
+        min-width: 0;
     }
     .control-icon {
-        width: 16px; height: 16px; color: var(--text-muted); flex: 0 0 auto;
+        width: 15px; height: 15px; color: var(--text-muted); justify-self: center;
     }
-    .border-control-group {
-        display: flex; align-items: center; justify-content: flex-end; gap: 7px;
+    .border-stroke-control {
+        width: 100%;
+        min-width: 0;
     }
-    .border-control-group input[type="color"] {
-        width: 30px; height: 28px; padding: 2px; border: 1px solid var(--border);
-        border-radius: 5px; cursor: pointer; background: var(--input-bg);
+    .border-color-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-width: 0;
     }
-    .border-control-group .setting-value-wrapper input { width: 52px; }
-    .border-control-group .setting-value-wrapper { gap: 3px; }
+    .border-color-group input[type="text"] {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: auto;
+        height: 30px;
+        padding: 2px 8px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: var(--input-bg);
+        color: var(--text-main);
+        text-align: center;
+        font-weight: 600;
+        outline: none;
+        font-size: .78rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        text-transform: uppercase;
+        transition: border-color .2s;
+    }
+    .border-color-group input[type="text"]:focus {
+        border-color: var(--brand-blue);
+    }
+    .border-color-group input[type="color"] {
+        width: 30px;
+        height: 30px;
+        padding: 2px;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        cursor: pointer;
+        background: var(--input-bg);
+        flex: 0 0 30px;
+    }
     @media (max-width: 360px) {
-        .spacing-control-group { gap: 7px; }
-        .icon-number-control { gap: 3px; }
-        .icon-number-control .setting-value-wrapper input { width: 50px; }
+        .compact-setting-row { grid-template-columns: 72px minmax(0, 1fr); column-gap: 8px; }
+        .spacing-control-group { column-gap: 6px; }
+        .icon-number-control { column-gap: 4px; }
     }
     .printer-check {
         display: flex; align-items: center; gap: 8px;
@@ -421,12 +480,15 @@
     }
     .printer-check:hover { background: transparent; color: var(--text-main); }
     .printer-check input[type="checkbox"] { width: 14px; height: 14px; }
-    .setting-value-wrapper { display: flex; align-items: center; gap: 4px; }
+    .setting-value-wrapper { display: flex; align-items: center; gap: 3px; }
     .setting-value-wrapper input {
         width: 52px; height: 28px; padding: 2px 4px;
         border: 1px solid var(--border); border-radius: 4px;
         background: var(--bg-workspace); color: var(--text-main);
         text-align: center; font-weight: 600; outline: none; font-size: .8rem;
+    }
+    .setting-value-wrapper input:focus {
+        border-color: var(--brand-blue);
     }
     .setting-value-wrapper span { font-size: .7rem; color: var(--text-muted); font-weight: 600; }
 
@@ -526,11 +588,27 @@
 
     .tile {
         position: relative;
-        overflow: hidden;
+        overflow: visible;
         box-sizing: border-box;
-        border: var(--border-w) solid var(--border-c);
         background: #fff;
         display: flex; align-items: center; justify-content: center;
+    }
+    .tile-media {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        border-radius: var(--border-r, 0px);
+        background: #fff;
+        z-index: 1;
+    }
+    .tile-border {
+        position: absolute;
+        inset: calc(-1 * var(--border-w, 0px));
+        border: var(--border-w, 0px) var(--border-s, solid) var(--border-c);
+        border-radius: calc(var(--border-r, 0px) + var(--border-w, 0px));
+        pointer-events: none;
+        box-sizing: border-box;
+        z-index: 2;
     }
     .tile img {
         display: block;
@@ -1028,36 +1106,65 @@ body.group-child-layer-selected #matchRatioControl {
             <summary>Spacing &amp; Border</summary>
             <div class="details-content">
                 <div class="compact-setting-row">
-                    <span class="setting-label">Gap</span>
+                    <span class="setting-label">Spacing</span>
                     <div class="spacing-control-group" aria-label="Tile spacing">
-                        <div class="icon-number-control" title="Horizontal gap">
+                        <div class="icon-number-control" title="Horizontal spacing">
                             <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/>
                             </svg>
                             <div class="setting-value-wrapper">
-                                <input type="number" id="numGapH" step="0.01" min="0" max="0.4" value="0.02" oninput="updateSettings()" aria-label="Horizontal gap">
-                                <span>in</span>
+                                <input type="number" id="numGapH" step="1" min="0" max="200" value="2" oninput="updateSettings()" aria-label="Horizontal spacing">
+                                <span>px</span>
                             </div>
                         </div>
-                        <div class="icon-number-control" title="Vertical gap">
+                        <div class="icon-number-control" title="Vertical spacing">
                             <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>
                             </svg>
                             <div class="setting-value-wrapper">
-                                <input type="number" id="numGapV" step="0.01" min="0" max="0.4" value="0.02" oninput="updateSettings()" aria-label="Vertical gap">
-                                <span>in</span>
+                                <input type="number" id="numGapV" step="1" min="0" max="200" value="2" oninput="updateSettings()" aria-label="Vertical spacing">
+                                <span>px</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="compact-setting-row">
                     <span class="setting-label">Border</span>
-                    <div class="border-control-group">
-                        <input type="color" id="setBorderC" value="#E5E7EB" oninput="updateSettings()" onchange="updateSettings()" aria-label="Border color">
-                        <div class="setting-value-wrapper">
-                            <input type="number" id="numBorderW" step="0.1" min="0" max="5" value="0" oninput="updateSettings()" aria-label="Border width">
-                            <span>px</span>
+                    <div class="spacing-control-group" aria-label="Tile border">
+                        <div class="icon-number-control" title="Border width">
+                            <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="4" y1="6" x2="20" y2="6" stroke-width="1.5"/>
+                                <line x1="4" y1="12" x2="20" y2="12" stroke-width="2.5"/>
+                                <line x1="4" y1="18" x2="20" y2="18" stroke-width="3.5"/>
+                            </svg>
+                            <div class="setting-value-wrapper">
+                                <input type="number" id="numBorderW" step="0.1" min="0" max="20" value="0" oninput="updateSettings()" aria-label="Border width">
+                                <span>px</span>
+                            </div>
                         </div>
+                        <div class="icon-number-control" title="Border radius">
+                            <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M4 18V10a6 6 0 0 1 6-6h8"/>
+                            </svg>
+                            <div class="setting-value-wrapper">
+                                <input type="number" id="numBorderR" step="0.5" min="0" max="200" value="0" oninput="updateSettings()" aria-label="Border radius">
+                                <span>px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="compact-setting-row">
+                    <span class="setting-label">Border Stroke</span>
+                    <div class="segmented-control border-stroke-control" role="group" aria-label="Border stroke">
+                        <button type="button" id="borderSolidBtn" class="active" onclick="setBorderStyle('solid')" title="Solid line border">Line</button>
+                        <button type="button" id="borderDottedBtn" onclick="setBorderStyle('dotted')" title="Dotted cutting line border">Dotted</button>
+                    </div>
+                </div>
+                <div class="compact-setting-row">
+                    <span class="setting-label">Border Color</span>
+                    <div class="border-color-group">
+                        <input type="text" id="hexBorderC" value="#E5E7EB" maxlength="7" spellcheck="false" autocomplete="off" oninput="onBorderHexInput(this.value)" onchange="onBorderHexBlur()" aria-label="Border color hex">
+                        <input type="color" id="setBorderC" value="#E5E7EB" oninput="onBorderColorPicker(this.value)" onchange="onBorderColorPicker(this.value)" aria-label="Border color picker">
                     </div>
                 </div>
             </div>
@@ -1345,11 +1452,13 @@ const paperSizes = {
     'Legal':  { w: 215.9, h: 355.6, label: 'Legal',  css: 'legal portrait' },
     '5R':     { w: 127,   h: 178,   label: '5R',     css: '127mm 178mm' }
 };
+const PX_TO_MM = 25.4 / 96;
+const MM_TO_PX = 96 / 25.4;
 
 const DEFAULT_CONFIG = {
     tileW: 1.5, tileH: 1.5,
-    gapH: 0.508, gapV: 0.508,
-    borderW: 0, borderC: '#E5E7EB',
+    gapH: 2 * PX_TO_MM, gapV: 2 * PX_TO_MM,
+    borderW: 0, borderR: 0, borderStyle: 'solid', borderC: '#E5E7EB',
     margin: 0,
     fit: 'cover',
     align: 'center',
@@ -1467,6 +1576,8 @@ function loadConfig() {
         appConfig.gapH = DEFAULT_CONFIG.gapH;
         appConfig.gapV = DEFAULT_CONFIG.gapV;
         appConfig.borderW = DEFAULT_CONFIG.borderW;
+        appConfig.borderR = DEFAULT_CONFIG.borderR;
+        appConfig.borderStyle = DEFAULT_CONFIG.borderStyle;
         appConfig.borderC = DEFAULT_CONFIG.borderC;
     } catch (e) { appConfig = { ...DEFAULT_CONFIG }; }
 
@@ -1475,15 +1586,16 @@ function loadConfig() {
     document.getElementById('tileW').value = appConfig.tileW;
     document.getElementById('tileH').value = appConfig.tileH;
 
-    document.getElementById('numGapH').value = (appConfig.gapH / 25.4).toFixed(2);
-    document.getElementById('numGapV').value = (appConfig.gapV / 25.4).toFixed(2);
+    document.getElementById('numGapH').value = Math.round(appConfig.gapH * MM_TO_PX);
+    document.getElementById('numGapV').value = Math.round(appConfig.gapV * MM_TO_PX);
     document.getElementById('numBorderW').value = appConfig.borderW;
+    document.getElementById('numBorderR').value = appConfig.borderR;
     document.getElementById('setBorderC').value = appConfig.borderC;
+    document.getElementById('hexBorderC').value = appConfig.borderC.toUpperCase();
+    syncBorderStyleControls();
+
     // Apply the fresh default spacing/border values immediately on every reload.
-    document.documentElement.style.setProperty('--border-w', `${appConfig.borderW}px`);
-    document.documentElement.style.setProperty('--border-c', appConfig.borderC);
-    document.body.style.setProperty('--border-w', `${appConfig.borderW}px`);
-    document.body.style.setProperty('--border-c', appConfig.borderC);
+    applyBorderCssVars();
 
     document.getElementById('numMargin').value = (appConfig.margin / 25.4).toFixed(2);
 
@@ -1563,20 +1675,87 @@ function toggleTheme() {
 }
 
 /* =========================================================
-   SETTINGS SYNC
+   SETTINGS & BORDER COLOR SYNC
    ========================================================= */
-function updateSettings() {
-    appConfig.gapH     = (parseFloat(document.getElementById('numGapH').value) || 0) * 25.4;
-    appConfig.gapV     = (parseFloat(document.getElementById('numGapV').value) || 0) * 25.4;
-    appConfig.borderW  = parseFloat(document.getElementById('numBorderW').value) || 0;
-    appConfig.borderC  = document.getElementById('setBorderC').value;
-    appConfig.margin   = (parseFloat(document.getElementById('numMargin').value) || 0) * 25.4;
+function normalizeHexColor(val) {
+    if (!val) return null;
+    let clean = String(val).trim();
+    if (!clean.startsWith('#')) clean = '#' + clean;
+    if (/^#[0-9A-Fa-f]{6}$/.test(clean)) return clean.toUpperCase();
+    if (/^#[0-9A-Fa-f]{3}$/.test(clean)) {
+        const r = clean[1], g = clean[2], b = clean[3];
+        return ('#' + r + r + g + g + b + b).toUpperCase();
+    }
+    return null;
+}
 
+function onBorderColorPicker(val) {
+    const normalized = normalizeHexColor(val) || '#E5E7EB';
+    const hexInput = document.getElementById('hexBorderC');
+    if (hexInput && document.activeElement !== hexInput) {
+        hexInput.value = normalized;
+    }
+    updateSettings();
+}
+
+function onBorderHexInput(val) {
+    const normalized = normalizeHexColor(val);
+    if (!normalized) return;
+    const picker = document.getElementById('setBorderC');
+    if (picker) picker.value = normalized;
+    updateSettings();
+}
+
+function onBorderHexBlur() {
+    const hexInput = document.getElementById('hexBorderC');
+    if (!hexInput) return;
+    const normalized = normalizeHexColor(hexInput.value);
+    if (normalized) {
+        hexInput.value = normalized;
+        const picker = document.getElementById('setBorderC');
+        if (picker) picker.value = normalized;
+    } else {
+        hexInput.value = (appConfig.borderC || '#E5E7EB').toUpperCase();
+    }
+    updateSettings();
+}
+
+function syncBorderStyleControls() {
+    const style = appConfig.borderStyle === 'dotted' ? 'dotted' : 'solid';
+    document.getElementById('borderSolidBtn')?.classList.toggle('active', style === 'solid');
+    document.getElementById('borderDottedBtn')?.classList.toggle('active', style === 'dotted');
+}
+
+function setBorderStyle(style) {
+    appConfig.borderStyle = style === 'dotted' ? 'dotted' : 'solid';
+    syncBorderStyleControls();
+    updateSettings();
+}
+
+function applyBorderCssVars() {
+    const style = appConfig.borderStyle === 'dotted' ? 'dotted' : 'solid';
     document.documentElement.style.setProperty('--border-w', `${appConfig.borderW}px`);
+    document.documentElement.style.setProperty('--border-r', `${appConfig.borderR}px`);
+    document.documentElement.style.setProperty('--border-s', style);
     document.documentElement.style.setProperty('--border-c', appConfig.borderC);
     // Apply on body too, so the dark-theme variables cannot override the user's chosen tile border color.
     document.body.style.setProperty('--border-w', `${appConfig.borderW}px`);
+    document.body.style.setProperty('--border-r', `${appConfig.borderR}px`);
+    document.body.style.setProperty('--border-s', style);
     document.body.style.setProperty('--border-c', appConfig.borderC);
+}
+
+function updateSettings() {
+    const gapHPx     = Math.max(0, parseFloat(document.getElementById('numGapH').value) || 0);
+    const gapVPx     = Math.max(0, parseFloat(document.getElementById('numGapV').value) || 0);
+    appConfig.gapH     = gapHPx * PX_TO_MM;
+    appConfig.gapV     = gapVPx * PX_TO_MM;
+    appConfig.borderW  = Math.max(0, parseFloat(document.getElementById('numBorderW').value) || 0);
+    appConfig.borderR  = Math.max(0, parseFloat(document.getElementById('numBorderR').value) || 0);
+    appConfig.borderC  = document.getElementById('setBorderC').value;
+    appConfig.margin   = (parseFloat(document.getElementById('numMargin').value) || 0) * 25.4;
+
+    applyBorderCssVars();
 
     saveConfig();
     renderCanvas();
@@ -1711,7 +1890,6 @@ function setPaperSize(size) {
 function toggleSafeZone() {
     const on = document.getElementById('safeZoneToggle').checked;
     document.querySelectorAll('.paper-page').forEach(p => p.classList.toggle('safe-zone-active', on));
-    renderCanvas();
 }
 
 /* =========================================================
@@ -2113,7 +2291,7 @@ function renderImageQueue() {
 let draggedLayerIds = [];
 let draggedGroupPageId = null;
 function startGroupDrag(ev, pageId) { draggedGroupPageId = pageId; draggedLayerIds = []; ev.dataTransfer.effectAllowed='move'; ev.dataTransfer.setData('text/plain','group:'+pageId); requestAnimationFrame(()=>ev.currentTarget.classList.add('is-dragging')); }
-function moveGroupBeforeGroup(sourceId,targetId,after=false) { const a=pages.findIndex(p=>p.id===sourceId), b=pages.findIndex(p=>p.id===targetId); if(a<0||b<0||a===b)return; const [g]=pages.splice(a,1); let at=pages.findIndex(p=>p.id===targetId); if(after)at++; pages.splice(at,0,g); activePageIndex=pages.findIndex(p=>p.id===sourceId); clearLayerDragStyles(); renderImageQueue(); renderCanvas(); }
+function moveGroupBeforeGroup(sourceId,targetId,after=false) { const a=pages.findIndex(p=>p.id===sourceId), b=pages.findIndex(p=>p.id===targetId); if(a<0||b<0||a===b)return; const [g]=pages.splice(a,1); let at=pages.findIndex(p=>p.id===targetId); if(after)at++; pages.splice(at,0,g); activePageIndex=pages.indexOf(g); clearLayerDragStyles(); renderImageQueue(); renderCanvas(); }
 function moveGroupToLayerPosition(sourceId,targetLayerId,after) { const a=pages.findIndex(p=>p.id===sourceId), target=pages.findIndex(p=>(p.imageIds||[p.imageId]).includes(targetLayerId)); if(a<0||target<0||a===target)return; const [g]=pages.splice(a,1); let at=pages.findIndex(p=>(p.imageIds||[p.imageId]).includes(targetLayerId)); if(after)at++; pages.splice(at,0,g); activePageIndex=pages.indexOf(g); clearLayerDragStyles(); renderImageQueue(); renderCanvas(); }
 function toggleLayerVisibility(id) {
     const obj = uploadedImages.find(x => x.id === id);
@@ -2760,11 +2938,7 @@ function updatePageVisibility() {
 function computeLayout(imageId = activeImageId) {
     const paper = paperSizes[currentPaper];
     const t = getTileMM(imageId);
-    // The red safe-zone guide is 3mm from each paper edge. When enabled,
-    // treat it as a real layout boundary so no tile crosses into that area.
-    const safeZoneOn = document.getElementById('safeZoneToggle')?.checked ?? false;
-    const safeInset = safeZoneOn ? 3 : 0;
-    const m = Math.max(appConfig.margin, safeInset);
+    const m = appConfig.margin;
     const availW = paper.w - m * 2;
     const availH = paper.h - m * 2;
     const gh = appConfig.gapH;
@@ -2903,9 +3077,21 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
         const tile = document.createElement('div');
         tile.className = 'tile';
 
-        // Collapse doubled borders when there is no gap
-        if (appConfig.gapH === 0 && col > 0) tile.style.borderLeftWidth = '0';
-        if (appConfig.gapV === 0 && row > 0) tile.style.borderTopWidth = '0';
+        const media = document.createElement('div');
+        media.className = 'tile-media';
+
+        const borderRing = document.createElement('div');
+        borderRing.className = 'tile-border';
+
+        // Collapse doubled outside borders when there is no spacing between tiles
+        if (appConfig.gapH === 0 && col > 0) {
+            borderRing.style.borderLeftWidth = '0';
+            borderRing.style.left = '0';
+        }
+        if (appConfig.gapV === 0 && row > 0) {
+            borderRing.style.borderTopWidth = '0';
+            borderRing.style.top = '0';
+        }
 
         const imageIndex = allocationEnds.findIndex(end => i < end);
         const tileImage = pageImages[Math.max(0, imageIndex)] || imgObj;
@@ -2920,7 +3106,11 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
         tile.style.cursor = 'pointer';
         tile.onclick = () => selectImage(tileImage.id);
 
-        tile.appendChild(img);
+        media.appendChild(img);
+        tile.appendChild(media);
+        if (appConfig.borderW > 0) {
+            tile.appendChild(borderRing);
+        }
         grid.appendChild(tile);
     }
 
@@ -2960,9 +3150,7 @@ function updateLayoutInfo(layout) {
     const groupNote = groupIds.length > 1
         ? ` · ${groupIds.length} layers · quantities auto-split unless overridden`
         : '';
-    const safeOn = document.getElementById('safeZoneToggle')?.checked ?? false;
-    const boundaryNote = safeOn ? ' · 3mm safe zone applied' : '';
-    sub.innerText = `${layout.tileW} × ${layout.tileH} in · ${layout.paper.label} · ${(layout.paper.w / 25.4).toFixed(2)} × ${(layout.paper.h / 25.4).toFixed(2)} in${groupNote}${boundaryNote}`;
+    sub.innerText = `${layout.tileW} × ${layout.tileH} in · ${layout.paper.label} · ${(layout.paper.w / 25.4).toFixed(2)} × ${(layout.paper.h / 25.4).toFixed(2)} in${groupNote}`;
 }
 
 /* =========================================================
@@ -3057,7 +3245,8 @@ async function prepareExportClone(doc, targetPageIndex) {
 
     // html2canvas does not reliably reproduce object-fit; size the decoded image explicitly.
     doc.querySelectorAll('.tile').forEach(tile => {
-        const img = tile.querySelector('img');
+        const media = tile.querySelector('.tile-media') || tile;
+        const img = media.querySelector('img');
         if (!img || !img.naturalWidth || !img.naturalHeight) return;
         const boxW = tile.clientWidth;
         const boxH = tile.clientHeight;
@@ -3075,7 +3264,29 @@ async function prepareExportClone(doc, targetPageIndex) {
         }
         tile.style.display = 'block';
         tile.style.position = 'relative';
-        tile.style.overflow = 'hidden';
+        tile.style.overflow = 'visible';
+
+        if (media !== tile) {
+            media.style.position = 'absolute';
+            media.style.inset = '0';
+            media.style.overflow = 'hidden';
+            media.style.borderRadius = `${appConfig.borderR}px`;
+        }
+
+        const borderRing = tile.querySelector('.tile-border');
+        if (borderRing) {
+            const bw = appConfig.borderW;
+            const style = appConfig.borderStyle === 'dotted' ? 'dotted' : 'solid';
+            borderRing.style.position = 'absolute';
+            borderRing.style.top = borderRing.style.top || `${-bw}px`;
+            borderRing.style.left = borderRing.style.left || `${-bw}px`;
+            borderRing.style.right = `${-bw}px`;
+            borderRing.style.bottom = `${-bw}px`;
+            borderRing.style.borderStyle = style;
+            borderRing.style.borderColor = appConfig.borderC;
+            borderRing.style.borderRadius = `${appConfig.borderR + bw}px`;
+        }
+
         img.style.position = 'absolute';
         img.style.maxWidth = 'none';
         img.style.maxHeight = 'none';
