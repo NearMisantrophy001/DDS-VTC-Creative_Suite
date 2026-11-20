@@ -9,7 +9,7 @@
     :root {
         --bg-workspace: #F3F4F6;
         --bg-panel: #FFFFFF;
-        --text-main: #111827;
+        --text-main: #6B7280;
         --text-muted: #6B7280;
 
         --brand-blue: #2563EB;
@@ -39,7 +39,7 @@
     [data-theme="dark"] {
         --bg-workspace: #1E1E1E;
         --bg-panel: #2C2C2C;
-        --text-main: #E5E5E5;
+        --text-main: #B8B8B8;
         --text-muted: #A3A3A3;
 
         --primary: #2563EB;
@@ -81,8 +81,8 @@
         height: 100vh;
         transition: background-color .3s, border-color .3s;
     }
-    .sidebar { width: 290px; border-right: 1px solid var(--border); }
-    .right-sidebar { width: 300px; border-left: 1px solid var(--border); }
+    .sidebar { width: 280px; flex: 0 0 280px; border-right: 1px solid var(--border); }
+    .right-sidebar { width: 300px; flex: 0 0 300px; border-left: 1px solid var(--border); }
 
     .header {
         padding: 12px 16px;
@@ -234,7 +234,9 @@
     .layer-thumb .layer-edit-overlay:hover { background:rgba(15,23,42,.82); color:#fff; }
     .layer-thumb .layer-edit-overlay svg { width:15px; height:15px; }
     .layer-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-    .layer-name { flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:.68rem; font-weight:500; color:var(--text-main); }
+    .layer-name { display:flex; align-items:center; flex:1; min-width:0; overflow:hidden; white-space:nowrap; font-size:.68rem; font-weight:500; color:var(--text-main); }
+    .layer-name-base { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .layer-name-suffix { flex:0 0 auto; white-space:nowrap; margin-left:4px; color:var(--text-muted); font-weight:700; }
     .layer-item.active .layer-name { color:var(--primary); }
     .layer-action { width:19px; height:22px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--text-muted); cursor:pointer; border-radius:3px; font-size:12px; opacity:0; }
     .layer-item:hover .layer-action, .layer-item:focus-within .layer-action { opacity:1; }
@@ -278,9 +280,9 @@
         gap: 6px; margin-bottom: 12px;
     }
     .input-group:last-child { margin-bottom: 0; }
-    .quantity-input-group { gap: 8px; }
-    .quantity-input-group .static-label { flex: 1 1 auto; min-width: 0; }
-    .quantity-controls { display: flex; align-items: center; gap: 6px; flex: 0 1 66%; min-width: 0; }
+    .quantity-input-group { gap: 10px; }
+    .quantity-input-group .static-label { flex: 0 0 78px; min-width: 0; }
+    .quantity-controls { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; }
     .quantity-controls .setting-value-wrapper { flex: 1 1 0; min-width: 0; gap: 5px; }
     .quantity-controls .setting-value-wrapper input { width: 100%; min-width: 0; flex: 1 1 auto; height: 30px; }
     .quantity-controls .toggle-label { flex: 0 0 auto; padding: 7px 8px; gap: 6px; white-space: nowrap; }
@@ -372,10 +374,53 @@
     .select-wrapper.full { width: 100%; }
     .select-wrapper.full select { padding: 8px 20px 8px 8px; font-size: .8rem; }
     #presetSelect, #presetSelect option { color: var(--text-main); background-color: var(--bg-panel); }
+    #presetSelect:invalid { color: var(--text-muted); }
+    #presetSelect option[value=""] { color: var(--text-muted); }
 
     .setting-row { margin-bottom: 16px; }
     .setting-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .setting-label { font-size: .75rem; font-weight: 600; color: var(--text-muted); }
+    .compact-setting-row {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; min-height: 34px; margin-bottom: 8px;
+    }
+    .compact-setting-row:last-of-type { margin-bottom: 12px; }
+    .compact-setting-row .setting-value-wrapper { flex-shrink: 0; }
+    .compact-setting-row .setting-value-wrapper input {
+        width: 58px; height: 30px; background: var(--input-bg);
+    }
+    .spacing-control-group {
+        display: flex; align-items: center; justify-content: flex-end;
+        gap: 12px; min-width: 0;
+    }
+    .icon-number-control {
+        display: inline-flex; align-items: center; gap: 5px; min-width: 0;
+    }
+    .control-icon {
+        width: 16px; height: 16px; color: var(--text-muted); flex: 0 0 auto;
+    }
+    .border-control-group {
+        display: flex; align-items: center; justify-content: flex-end; gap: 7px;
+    }
+    .border-control-group input[type="color"] {
+        width: 30px; height: 28px; padding: 2px; border: 1px solid var(--border);
+        border-radius: 5px; cursor: pointer; background: var(--input-bg);
+    }
+    .border-control-group .setting-value-wrapper input { width: 52px; }
+    .border-control-group .setting-value-wrapper { gap: 3px; }
+    @media (max-width: 360px) {
+        .spacing-control-group { gap: 7px; }
+        .icon-number-control { gap: 3px; }
+        .icon-number-control .setting-value-wrapper input { width: 50px; }
+    }
+    .printer-check {
+        display: flex; align-items: center; gap: 8px;
+        padding: 2px 0; margin: 0; border: 0; border-radius: 0;
+        background: transparent; color: var(--text-muted);
+        font-size: .72rem; font-weight: 500; cursor: pointer;
+    }
+    .printer-check:hover { background: transparent; color: var(--text-main); }
+    .printer-check input[type="checkbox"] { width: 14px; height: 14px; }
     .setting-value-wrapper { display: flex; align-items: center; gap: 4px; }
     .setting-value-wrapper input {
         width: 52px; height: 28px; padding: 2px 4px;
@@ -762,10 +807,102 @@
     .layer-group-header.drop-files-target, .layer-item.drop-files-target { outline:2px dashed var(--brand-blue); outline-offset:2px; background:rgba(37,99,235,.08); }
 
 /* Hide tile sizing controls while editing one child layer in a group. */
-body.group-child-layer-selected #tileLayoutControls {
+body.group-child-layer-selected #tileLayoutControls,
+body.group-child-layer-selected #matchRatioControl {
     display: none !important;
 }
 
+
+    /* Compact two-column printer controls */
+    .printer-options-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 92px;
+        gap: 10px;
+        align-items: end;
+        margin-bottom: 12px;
+    }
+    .printer-option { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .printer-option .setting-label { display: block; }
+    .printer-option .select-wrapper { width: 100%; min-width: 0; }
+    .printer-option .select-wrapper select { width: 100%; min-width: 0; }
+    .margin-value-wrapper { display: flex; align-items: center; gap: 5px; min-height: 34px; }
+    .margin-value-wrapper input { width: 100%; min-width: 0; height: 30px; text-align: center; }
+
+    /* Consistent two-column alignment for all Adjust Layout controls */
+    #acc-adjust .details-content .input-group,
+    #acc-adjust .details-content .quantity-input-group {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 150px;
+        align-items: center;
+        column-gap: 10px;
+        width: 100%;
+    }
+    #acc-adjust .details-content .static-label {
+        min-width: 0;
+        flex: none;
+    }
+    #acc-adjust .details-content .segmented-control {
+        width: 100% !important;
+        min-width: 0;
+    }
+    #acc-adjust .details-content .select-wrapper {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0;
+    }
+    #acc-adjust .details-content .quantity-controls {
+        width: 100%;
+        min-width: 0;
+        flex: none;
+        gap: 8px;
+    }
+    #acc-adjust .details-content .quantity-controls .setting-value-wrapper {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    #acc-adjust .details-content .input-wrapper {
+        width: 150px;
+        min-width: 0;
+        justify-content: space-between;
+        gap: 4px;
+    }
+    #acc-adjust .details-content .input-wrapper input {
+        width: 58px;
+        min-width: 0;
+        flex: 1 1 0;
+    }
+    @media (max-width: 390px) {
+        #acc-adjust .details-content .input-group,
+        #acc-adjust .details-content .quantity-input-group {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 150px);
+            column-gap: 8px;
+        }
+    }
+
+    /* Even vertical rhythm for Dimension, Quantity, and Match Ratio. */
+    #tileLayoutControls > .input-group {
+        margin-bottom: 12px !important;
+    }
+    #quantitySection {
+        margin-top: 12px !important;
+    }
+    #quantitySetting {
+        margin-bottom: 0 !important;
+    }
+    .quantity-match-divider {
+        margin: 12px 0 !important;
+    }
+    #matchRatioControl {
+        margin-top: 0 !important;
+    }
+    /* Keep primary adjustment labels white while the helper action stays muted gray. */
+    #acc-adjust #tileLayoutControls .static-label,
+    #acc-adjust #quantitySetting .static-label {
+        color: #FFFFFF !important;
+    }
+    #matchRatioControl .match-ratio-btn {
+        color: var(--text-muted) !important;
+    }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -857,40 +994,32 @@ body.group-child-layer-selected #tileLayoutControls {
     </div>
 
     <div class="sidebar-content">
-        <!-- PAPER & MARGINS -->
+        <!-- PRINTER -->
         <details open id="acc-paper">
-            <summary>Paper &amp; Margins</summary>
+            <summary>Printer</summary>
             <div class="details-content">
-                
-                <div class="setting-row" style="margin-bottom:14px;">
-                    <div class="setting-header" style="margin-bottom:6px;">
+                <div class="printer-options-grid">
+                    <div class="printer-option">
                         <span class="setting-label">Paper Size</span>
+                        <div class="select-wrapper full">
+                            <select id="paperSelect" onchange="setPaperSize(this.value)">
+                                <option value="A4">A4</option>
+                                <option value="Letter">Letter</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="select-wrapper full">
-                        <select id="paperSelect" onchange="setPaperSize(this.value)">
-                            <option value="A4">A4 — 8.27 × 11.69 in</option>
-                            <option value="Letter">Letter — 8.5 × 11 in</option>
-                            <option value="Legal">Legal — 8.5 × 14 in</option>
-                            <option value="5R">5R — 5 × 7 in</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="setting-row" style="margin-bottom:0;">
-                    <div class="setting-header">
+                    <div class="printer-option">
                         <span class="setting-label">Page Margin</span>
-                        <div class="setting-value-wrapper">
-                            <input type="number" id="numMargin" step="0.01" min="0" max="1.2" value="0" oninput="updateSettings()">
+                        <div class="setting-value-wrapper margin-value-wrapper">
+                            <input type="number" id="numMargin" step="0.01" min="0" max="1.2" value="0.00" oninput="updateSettings()" aria-label="Page margin">
                             <span>in</span>
                         </div>
                     </div>
                 </div>
-                <div class="setting-row" style="margin-bottom:14px;">
-                    <label class="toggle-label">
-                        <input type="checkbox" id="safeZoneToggle" checked onchange="toggleSafeZone()">
-                        Show printer safe zone
-                    </label>
-                </div>
+                <label class="toggle-label printer-check">
+                    <input type="checkbox" id="safeZoneToggle" checked onchange="toggleSafeZone()">
+                    Show printer safe zone
+                </label>
             </div>
         </details>
 
@@ -898,43 +1027,38 @@ body.group-child-layer-selected #tileLayoutControls {
         <details id="acc-spacing">
             <summary>Spacing &amp; Border</summary>
             <div class="details-content">
-                <div class="setting-row">
-                    <div class="setting-header">
-                        <span class="setting-label">Horizontal Gap</span>
-                        <div class="setting-value-wrapper">
-                            <input type="number" id="numGapH" step="0.01" min="0" max="0.4" value="0.02" oninput="syncSlider('numGapH','sliderGapH'); updateSettings()">
-                            <span>in</span>
+                <div class="compact-setting-row">
+                    <span class="setting-label">Gap</span>
+                    <div class="spacing-control-group" aria-label="Tile spacing">
+                        <div class="icon-number-control" title="Horizontal gap">
+                            <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/>
+                            </svg>
+                            <div class="setting-value-wrapper">
+                                <input type="number" id="numGapH" step="0.01" min="0" max="0.4" value="0.02" oninput="updateSettings()" aria-label="Horizontal gap">
+                                <span>in</span>
+                            </div>
+                        </div>
+                        <div class="icon-number-control" title="Vertical gap">
+                            <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>
+                            </svg>
+                            <div class="setting-value-wrapper">
+                                <input type="number" id="numGapV" step="0.01" min="0" max="0.4" value="0.02" oninput="updateSettings()" aria-label="Vertical gap">
+                                <span>in</span>
+                            </div>
                         </div>
                     </div>
-                    <input type="range" id="sliderGapH" class="setting-slider" step="0.01" min="0" max="0.4" value="0.02" oninput="syncNumber('sliderGapH','numGapH'); updateSettings()">
                 </div>
-
-                <div class="setting-row">
-                    <div class="setting-header">
-                        <span class="setting-label">Vertical Gap</span>
+                <div class="compact-setting-row">
+                    <span class="setting-label">Border</span>
+                    <div class="border-control-group">
+                        <input type="color" id="setBorderC" value="#E5E7EB" oninput="updateSettings()" onchange="updateSettings()" aria-label="Border color">
                         <div class="setting-value-wrapper">
-                            <input type="number" id="numGapV" step="0.01" min="0" max="0.4" value="0.02" oninput="syncSlider('numGapV','sliderGapV'); updateSettings()">
-                            <span>in</span>
-                        </div>
-                    </div>
-                    <input type="range" id="sliderGapV" class="setting-slider" step="0.01" min="0" max="0.4" value="0.02" oninput="syncNumber('sliderGapV','numGapV'); updateSettings()">
-                </div>
-
-                <div class="setting-row">
-                    <div class="setting-header">
-                        <span class="setting-label">Border Width</span>
-                        <div class="setting-value-wrapper">
-                            <input type="number" id="numBorderW" step="0.1" min="0" max="5" value="0" oninput="syncSlider('numBorderW','sliderBorderW'); updateSettings()">
+                            <input type="number" id="numBorderW" step="0.1" min="0" max="5" value="0" oninput="updateSettings()" aria-label="Border width">
                             <span>px</span>
                         </div>
                     </div>
-                    <input type="range" id="sliderBorderW" class="setting-slider" step="0.1" min="0" max="5" value="0" oninput="syncNumber('sliderBorderW','numBorderW'); updateSettings()">
-                </div>
-
-                <div class="setting-header" style="margin-top:2px;margin-bottom:0;">
-                    <span class="setting-label">Border Color</span>
-                    <input type="color" id="setBorderC" value="#E5E7EB" oninput="updateSettings()" onchange="updateSettings()"
-                           style="width:36px;height:28px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--bg-workspace);">
                 </div>
             </div>
         </details>
@@ -943,25 +1067,6 @@ body.group-child-layer-selected #tileLayoutControls {
         <details open id="acc-adjust">
             <summary>Adjust Layout</summary>
             <div class="details-content">
-                <div id="quantitySection" style="display:none;">
-                    <div class="input-group quantity-input-group" id="quantitySetting" style="margin-bottom:12px;">
-                        <div class="static-label">Quantity</div>
-                        <div class="quantity-controls">
-                            <div class="setting-value-wrapper" id="layerQuantityValueWrap">
-                                <input type="number" id="layerQuantity" min="0" max="500" step="1" value="1"
-                                       onfocus="if (this.disabled === false) updateLayerQuantityMode('fixed')"
-                                       oninput="updateLayerQuantity(this.value)">
-                                <span>pcs</span>
-                            </div>
-                            <label class="toggle-label" for="layerQuantityAuto">
-                                <input type="checkbox" id="layerQuantityAuto" checked
-                                       onchange="updateLayerQuantityMode(this.checked ? 'auto' : 'fixed')">
-                                <span>Auto-fill</span>
-                            </label>
-                        </div>
-                    </div>
-                    <hr class="divider" id="quantityDivider" style="margin:12px 0;">
-                </div>
                 <div class="input-group" style="margin-bottom:10px;">
                     <div class="static-label">Position</div>
                     <div class="segmented-control" style="width:132px;">
@@ -999,46 +1104,63 @@ body.group-child-layer-selected #tileLayoutControls {
                 <hr class="divider" style="margin:12px 0;">
 
                 <div id="tileLayoutControls">
-                <div class="setting-row" style="margin-bottom:12px;">
-                    <div class="setting-header" style="margin-bottom:6px;">
-                        <span class="setting-label tile-layout-label">Tile Layout</span>
+                    <div class="input-group" style="margin-bottom:12px;">
+                        <div class="static-label">Preset</div>
+                        <div class="select-wrapper" style="width:150px; max-width:58%;">
+                            <select id="presetSelect" aria-label="Select preset" required>
+                                <option value="" selected>Select Preset</option>
+                                <option value="5,5">5 × 5</option>
+                                <option value="4.5,4.5">4.5 × 4.5</option>
+                                <option value="4,4">4 × 4</option>
+                                <option value="3.5,3.5">3.5 × 3.5</option>
+                                <option value="3,3">3 × 3</option>
+                                <option value="2.5,2.5">2.5 × 2.5</option>
+                                <option value="2,2">2 × 2</option>
+                                <option value="1.5,1.5">1.5 × 1.5</option>
+                                <option value="1,1">1 × 1</option>
+                                <option value="3.5,2">3.5 × 2</option>
+                                <option value="3,2">3 × 2</option>
+                                <option value="2,1.5">2 × 1.5</option>
+                                <option value="2,1">2 × 1</option>
+                                <option value="4,3">4 × 3</option>
+                                <option value="5,3.5">5 × 3.5</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="select-wrapper full">
-                        <select id="presetSelect" aria-label="Tile layout preset">
-                            <option value="" selected>Select Preset Layout</option>
-                            <option value="5,5">5 × 5</option>
-                            <option value="4.5,4.5">4.5 × 4.5</option>
-                            <option value="4,4">4 × 4</option>
-                            <option value="3.5,3.5">3.5 × 3.5</option>
-                            <option value="3,3">3 × 3</option>
-                            <option value="2.5,2.5">2.5 × 2.5</option>
-                            <option value="2,2">2 × 2</option>
-                            <option value="1.5,1.5">1.5 × 1.5</option>
-                            <option value="1,1">1 × 1</option>
-                            <option value="3.5,2">3.5 × 2</option>
-                            <option value="3,2">3 × 2</option>
-                            <option value="2,1.5">2 × 1.5</option>
-                            <option value="2,1">2 × 1</option>
-                            <option value="4,3">4 × 3</option>
-                            <option value="5,3.5">5 × 3.5</option>
-                        </select>
+
+                    <div class="input-group" style="margin-bottom:0;">
+                        <div class="static-label">Dimension</div>
+                        <div class="input-wrapper" style="gap:4px;">
+                            <input type="number" id="tileW" step="0.1" min="0.2" max="12" value="1.5" oninput="onCustomTile()">
+                            <span class="dim-tag">W</span>
+                            <span class="times">×</span>
+                            <input type="number" id="tileH" step="0.1" min="0.2" max="12" value="1.5" oninput="onCustomTile()">
+                            <span class="dim-tag">H</span>
+                        </div>
                     </div>
+
                 </div>
 
-                <div class="input-group" style="margin-bottom:0;">
-                    <div class="static-label">Custom (in)</div>
-                    <div class="input-wrapper" style="gap:4px;">
-                        <input type="number" id="tileW" step="0.1" min="0.2" max="12" value="1.5" oninput="onCustomTile()">
-                        <span class="dim-tag">W</span>
-                        <span class="times">×</span>
-                        <input type="number" id="tileH" step="0.1" min="0.2" max="12" value="1.5" oninput="onCustomTile()">
-                        <span class="dim-tag">H</span>
+                <div id="quantitySection" style="display:none; margin-top:12px;">
+                    <div class="input-group quantity-input-group" id="quantitySetting" style="margin-bottom:0;">
+                        <div class="static-label">Quantity</div>
+                        <div class="quantity-controls">
+                            <div class="setting-value-wrapper" id="layerQuantityValueWrap">
+                                <input type="number" id="layerQuantity" min="0" max="500" step="1" value="1"
+                                       onfocus="if (this.disabled === false) updateLayerQuantityMode('fixed')"
+                                       oninput="updateLayerQuantity(this.value)">
+                            </div>
+                            <label class="toggle-label" for="layerQuantityAuto">
+                                <input type="checkbox" id="layerQuantityAuto" checked
+                                       onchange="updateLayerQuantityMode(this.checked ? 'auto' : 'fixed')">
+                                <span>Auto</span>
+                            </label>
+                        </div>
                     </div>
+                    <hr class="divider quantity-match-divider">
                 </div>
-
-                <hr class="divider">
-
-                <button class="text-btn" onclick="matchImageRatio()" title="Set the tile height so the tile ratio matches the image">⤢ Match tile ratio to image</button>
+                <div id="matchRatioControl" style="margin-top:0;">
+                    <button class="text-btn match-ratio-btn" onclick="matchImageRatio()" title="Set the tile height so the tile ratio matches the image">⤢ Match tile ratio to image</button>
                 </div>
             </div>
         </details>
@@ -1354,12 +1476,8 @@ function loadConfig() {
     document.getElementById('tileH').value = appConfig.tileH;
 
     document.getElementById('numGapH').value = (appConfig.gapH / 25.4).toFixed(2);
-    document.getElementById('sliderGapH').value = (appConfig.gapH / 25.4).toFixed(2);
     document.getElementById('numGapV').value = (appConfig.gapV / 25.4).toFixed(2);
-    document.getElementById('sliderGapV').value = (appConfig.gapV / 25.4).toFixed(2);
-
     document.getElementById('numBorderW').value = appConfig.borderW;
-    document.getElementById('sliderBorderW').value = appConfig.borderW;
     document.getElementById('setBorderC').value = appConfig.borderC;
     // Apply the fresh default spacing/border values immediately on every reload.
     document.documentElement.style.setProperty('--border-w', `${appConfig.borderW}px`);
@@ -1447,9 +1565,6 @@ function toggleTheme() {
 /* =========================================================
    SETTINGS SYNC
    ========================================================= */
-function syncSlider(numId, sliderId) { document.getElementById(sliderId).value = document.getElementById(numId).value; }
-function syncNumber(sliderId, numId) { document.getElementById(numId).value = document.getElementById(sliderId).value; }
-
 function updateSettings() {
     appConfig.gapH     = (parseFloat(document.getElementById('numGapH').value) || 0) * 25.4;
     appConfig.gapV     = (parseFloat(document.getElementById('numGapV').value) || 0) * 25.4;
@@ -1843,7 +1958,21 @@ function renderImageQueue() {
         edit.onclick = ev => { ev.stopPropagation(); selectImage(obj.id); openCropModal(obj.id); };
         thumb.appendChild(edit); row.appendChild(thumb);
         const name = document.createElement('span'); name.className = 'layer-name';
-        name.textContent = obj.name || `Image ${index + 1}`; row.appendChild(name);
+        const fullLayerName = obj.name || `Image ${index + 1}`;
+        // Keep duplicate identifiers visible even when the original filename is long.
+        const copyMatch = fullLayerName.match(/^(.*?)(\s+copy\s+\d+)$/i);
+        const nameBase = document.createElement('span');
+        nameBase.className = 'layer-name-base';
+        nameBase.textContent = copyMatch ? copyMatch[1] : fullLayerName;
+        name.appendChild(nameBase);
+        if (copyMatch) {
+            const nameSuffix = document.createElement('span');
+            nameSuffix.className = 'layer-name-suffix';
+            nameSuffix.textContent = copyMatch[2].replace(/^\s+/, '');
+            name.appendChild(nameSuffix);
+        }
+        name.title = fullLayerName;
+        row.appendChild(name);
         const eye = document.createElement('button'); eye.className = 'layer-action visibility-action' + (obj.visible === false ? ' is-hidden' : '');
         eye.type = 'button'; eye.title = obj.visible === false ? 'Show layer' : 'Hide layer';
         eye.setAttribute('aria-label', eye.title); eye.innerHTML = obj.visible === false ? eyeOffIcon : eyeIcon;
@@ -2499,6 +2628,7 @@ function deleteSelectedLayers() {
     syncTileControls(activeImageId);
     renderImageQueue();
     renderCanvas();
+    syncQuantityControl(activeImageId);
 }
 
 function removeImage(id) {
@@ -2517,6 +2647,7 @@ function removeImage(id) {
     syncTileControls(activeImageId);
     renderImageQueue();
     renderCanvas();
+    syncQuantityControl(activeImageId);
 }
 
 function clearAll() {
@@ -2529,6 +2660,7 @@ function clearAll() {
     activePageIndex = 0;
     renderImageQueue();
     renderCanvas();
+    syncQuantityControl(null);
 }
 
 async function resetAll() {
@@ -2541,13 +2673,15 @@ async function resetAll() {
     collapsedGroupIds.clear(); draggedLayerIds = [];
     pages = [{ id: newPageId(), imageId: null }];
     activePageIndex = 0;
-    appConfig = { ...DEFAULT_CONFIG };
+    appConfig = { ...DEFAULT_CONFIG, margin: 0 };
     currentPaper = 'A4';
     saveConfig();
     loadConfig();
+    document.getElementById('numMargin').value = '0.00';
     setPaperSize('A4');
     renderImageQueue();
     renderCanvas();
+    syncQuantityControl(null);
 }
 
 /* =========================================================
@@ -3474,7 +3608,17 @@ document.addEventListener('keydown', e => {
         return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
-        e.preventDefault(); selectedImageIds = new Set(uploadedImages.map(img => img.id)); renderImageQueue(); return;
+        e.preventDefault();
+        const allImageIds = uploadedImages.map(img => img.id);
+        const allAlreadySelected = allImageIds.length > 0 &&
+            allImageIds.every(id => selectedImageIds.has(id));
+
+        // Toggle: Ctrl+A selects every layer; pressing it again clears the selection.
+        selectedImageIds = allAlreadySelected ? new Set() : new Set(allImageIds);
+        selectedGroupPageId = null;
+        renderImageQueue();
+        renderCanvas();
+        return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
         e.preventDefault();
