@@ -384,18 +384,42 @@
     .setting-label { font-size: .75rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
     .compact-setting-row {
         display: grid;
-        grid-template-columns: 78px minmax(0, 1fr);
+        grid-template-columns: 84px minmax(0, 1fr);
         align-items: center;
-        column-gap: 12px;
-        min-height: 34px;
-        margin-bottom: 10px;
+        column-gap: 14px;
+        min-height: 36px;
+        margin-bottom: 14px;
     }
-    .compact-setting-row:last-of-type { margin-bottom: 4px; }
+    .compact-setting-row:last-of-type { margin-bottom: 8px; }
     .compact-setting-row .setting-value-wrapper {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 16px;
+        grid-template-columns: minmax(0, 1fr) 18px;
         align-items: center;
-        column-gap: 4px;
+        column-gap: 6px;
+        min-width: 0;
+    }
+    .compact-setting-row .setting-value-wrapper input {
+        width: 100%;
+        min-width: 0;
+        height: 30px;
+        background: var(--input-bg);
+    }
+    .compact-setting-row .setting-value-wrapper span {
+        text-align: left;
+    }
+    .spacing-control-group {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: center;
+        column-gap: 14px;
+        min-width: 0;
+        width: 100%;
+    }
+    .icon-number-control {
+        display: grid;
+        grid-template-columns: 16px minmax(0, 1fr);
+        align-items: center;
+        column-gap: 7px;
         min-width: 0;
     }
     .compact-setting-row .setting-value-wrapper input {
@@ -1083,6 +1107,8 @@ body.group-child-layer-selected #matchRatioControl {
                             <select id="paperSelect" onchange="setPaperSize(this.value)">
                                 <option value="A4">A4</option>
                                 <option value="Letter">Letter</option>
+                                <option value="Legal">Legal</option>
+                                <option value="5R">5R</option>
                             </select>
                         </div>
                     </div>
@@ -1449,7 +1475,7 @@ function closeModal(ok) {
 const paperSizes = {
     'A4':     { w: 210,   h: 297,   label: 'A4',     css: 'A4 portrait' },
     'Letter': { w: 215.9, h: 279.4, label: 'Letter', css: 'letter portrait' },
-    'Legal':  { w: 215.9, h: 355.6, label: 'Legal',  css: 'legal portrait' },
+    'Legal':  { w: 215.9, h: 330.2, label: 'Legal',  css: '215.9mm 330.2mm' },
     '5R':     { w: 127,   h: 178,   label: '5R',     css: '127mm 178mm' }
 };
 const PX_TO_MM = 25.4 / 96;
