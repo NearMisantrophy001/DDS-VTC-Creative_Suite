@@ -348,6 +348,58 @@
         box-shadow: 0 1px 3px rgba(0,0,0,.3);
     }
 
+    /* Alignment group in Spacing & Border */
+    .alignment-block {
+        margin-bottom: 14px;
+    }
+    .alignment-block .setting-label {
+        display: block;
+        margin-bottom: 8px;
+    }
+    .alignment-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .alignment-group {
+        display: flex;
+        background: var(--bg-workspace);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 2px;
+        gap: 2px;
+        height: 30px;
+    }
+    .alignment-group button {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        border: none;
+        background: transparent;
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: all .15s ease;
+    }
+    .alignment-group button:hover {
+        color: var(--text-main);
+        background: var(--hover-bg);
+    }
+    .alignment-group button.active {
+        background: var(--primary) !important;
+        color: #fff !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,.28);
+    }
+    .alignment-group button svg {
+        width: 14px;
+        height: 14px;
+        display: block;
+    }
+
     .toggle-label {
         display: flex; align-items: center; gap: 8px; font-size: .75rem; font-weight: 600;
         background: var(--bg-workspace); padding: 8px; border-radius: 4px;
@@ -453,6 +505,15 @@
     .stroke-select-group .select-wrapper select {
         height: 30px;
         padding: 5px 18px 5px 7px;
+        font-size: .72rem;
+    }
+    .fit-control-group {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        height: 30px;
+    }
+    .fit-control-group button {
         font-size: .72rem;
     }
     .border-color-group {
@@ -953,7 +1014,7 @@
             page-break-after: always;
             break-after: page;
         }
-        .paper-page:last-child { page-break-after: auto; break-after: auto; }
+        .paper-page:last-child { page-break-after: auto; break-after: page; }
         .safe-zone-overlay, .paper-label { display: none !important; }
     }
 
@@ -1028,7 +1089,7 @@
     }
 
     /* Lock group-level sheet settings when a single child layer inside a group is selected,
-       while keeping Position, border controls and (when unlocked) size/preset enabled per layer. */
+       while keeping alignment, border controls and (when unlocked) size/preset enabled per layer. */
     body.group-child-layer-selected #acc-paper .details-content,
     body.group-child-layer-selected #acc-spacing .compact-setting-row:has(#numGapH) {
         opacity: 0.45;
@@ -1128,7 +1189,7 @@
         }
     }
 
-    /* Even vertical rhythm for Dimension, Quantity, and Match Ratio. */
+    /* Even vertical rhythm for Dimension, Quantity, Image Fit, and Match Ratio. */
     #tileLayoutControls > .input-group {
         margin-bottom: 12px !important;
     }
@@ -1146,11 +1207,13 @@
     }
     /* Keep primary adjustment labels readable while helper action stays muted gray. */
     #acc-adjust #tileLayoutControls .static-label,
-    #acc-adjust #quantitySetting .static-label {
+    #acc-adjust #quantitySetting .static-label,
+    #acc-adjust .fit-setting-row .static-label {
         color: var(--text-main) !important;
     }
     [data-theme="dark"] #acc-adjust #tileLayoutControls .static-label,
-    [data-theme="dark"] #acc-adjust #quantitySetting .static-label {
+    [data-theme="dark"] #acc-adjust #quantitySetting .static-label,
+    [data-theme="dark"] #acc-adjust .fit-setting-row .static-label {
         color: #FFFFFF !important;
     }
     #matchRatioControl .match-ratio-btn {
@@ -1315,9 +1378,62 @@
         </details>
 
         <!-- SPACING & BORDER -->
-        <details id="acc-spacing">
+        <details open id="acc-spacing">
             <summary>Spacing &amp; Border</summary>
             <div class="details-content">
+                <div class="alignment-block">
+                    <span class="setting-label">Alignment</span>
+                    <div class="alignment-row">
+                        <!-- Independent Horizontal Alignment: Left / Center H / Right -->
+                        <div class="alignment-group" role="group" aria-label="Horizontal alignment">
+                            <button id="alignLeftBtn" type="button" onclick="setAlignH('left')" title="Align horizontal left" aria-label="Align horizontal left">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="2.5" y1="2" x2="2.5" y2="14"></line>
+                                    <rect x="4.5" y="4.5" width="8" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="4.5" y="8.5" width="5.5" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
+                            <button id="alignCenterHBtn" type="button" onclick="setAlignH('center')" title="Align horizontal center" aria-label="Align horizontal center">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="8" y1="2" x2="8" y2="14"></line>
+                                    <rect x="3.5" y="4.5" width="9" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="5" y="8.5" width="6" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
+                            <button id="alignRightBtn" type="button" onclick="setAlignH('right')" title="Align horizontal right" aria-label="Align horizontal right">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="13.5" y1="2" x2="13.5" y2="14"></line>
+                                    <rect x="3.5" y="4.5" width="8" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="6" y="8.5" width="5.5" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- Independent Vertical Alignment: Top / Center V / Bottom -->
+                        <div class="alignment-group" role="group" aria-label="Vertical alignment">
+                            <button id="alignTopBtn" type="button" onclick="setAlignV('top')" title="Align vertical top" aria-label="Align vertical top">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="2" y1="2.5" x2="14" y2="2.5"></line>
+                                    <rect x="4.5" y="4.5" width="3" height="8" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="8.5" y="4.5" width="3" height="5.5" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
+                            <button id="alignCenterBtn" type="button" onclick="setAlignV('center')" title="Align vertical center" aria-label="Align vertical center">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="2" y1="8" x2="14" y2="8"></line>
+                                    <rect x="4.5" y="3.5" width="3" height="9" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="8.5" y="5" width="3" height="6" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
+                            <button id="alignBottomBtn" type="button" onclick="setAlignV('bottom')" title="Align vertical bottom" aria-label="Align vertical bottom">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="2" y1="13.5" x2="14" y2="13.5"></line>
+                                    <rect x="4.5" y="3.5" width="3" height="8" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="8.5" y="6" width="3" height="5.5" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <div class="compact-setting-row">
                     <span class="setting-label">Spacing</span>
                     <div class="spacing-control-group" aria-label="Tile spacing">
@@ -1326,7 +1442,7 @@
                                 <path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/>
                             </svg>
                             <div class="setting-value-wrapper">
-                                <input type="number" id="numGapH" step="1" min="0" max="200" value="2" oninput="updateSettings()" aria-label="Horizontal spacing">
+                                <input type="number" id="numGapH" step="1" min="0" max="200" value="5" oninput="updateSettings()" aria-label="Horizontal spacing">
                                 <span>px</span>
                             </div>
                         </div>
@@ -1335,7 +1451,7 @@
                                 <path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>
                             </svg>
                             <div class="setting-value-wrapper">
-                                <input type="number" id="numGapV" step="1" min="0" max="200" value="2" oninput="updateSettings()" aria-label="Vertical spacing">
+                                <input type="number" id="numGapV" step="1" min="0" max="200" value="5" oninput="updateSettings()" aria-label="Vertical spacing">
                                 <span>px</span>
                             </div>
                         </div>
@@ -1400,41 +1516,14 @@
         <details open id="acc-adjust">
             <summary>Adjust Layout</summary>
             <div class="details-content">
-                <div class="input-group" style="margin-bottom:10px;">
-                    <div class="static-label">Position</div>
-                    <div class="segmented-control" style="width:132px;">
-                        <button id="alignTopBtn" onclick="setAlign('top')" title="Align canvas top" aria-label="Align canvas top">
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <line x1="2" y1="2.5" x2="14" y2="2.5"></line>
-                                <rect x="4.5" y="4.5" width="3" height="8" rx="0.75" fill="currentColor" stroke="none"></rect>
-                                <rect x="8.5" y="4.5" width="3" height="5.5" rx="0.75" fill="currentColor" stroke="none"></rect>
-                            </svg>
-                        </button>
-                        <button id="alignCenterBtn" class="active" onclick="setAlign('center')" title="Align canvas center" aria-label="Align canvas center">
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <line x1="2" y1="8" x2="14" y2="8"></line>
-                                <rect x="4.5" y="3.5" width="3" height="9" rx="0.75" fill="currentColor" stroke="none"></rect>
-                                <rect x="8.5" y="5" width="3" height="6" rx="0.75" fill="currentColor" stroke="none"></rect>
-                            </svg>
-                        </button>
-                        <button id="alignBottomBtn" onclick="setAlign('bottom')" title="Align canvas bottom" aria-label="Align canvas bottom">
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <line x1="2" y1="13.5" x2="14" y2="13.5"></line>
-                                <rect x="4.5" y="3.5" width="3" height="8" rx="0.75" fill="currentColor" stroke="none"></rect>
-                                <rect x="8.5" y="6" width="3" height="5.5" rx="0.75" fill="currentColor" stroke="none"></rect>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="input-group" style="margin-bottom:0;">
-                    <div class="static-label">Image Fit</div>
-                    <div class="segmented-control" style="width:132px;">
-                        <button id="fitCoverBtn" class="active" onclick="setFit('cover')" title="Fill the tile (may crop)">Fill</button>
-                        <button id="fitContainBtn" onclick="setFit('contain')" title="Fit inside the tile (no crop)">Fit</button>
-                    </div>
-                </div>
 
-                <hr class="divider" style="margin:12px 0;">
+                   <div class="input-group fit-setting-row" style="margin-bottom:12px;">
+                    <div class="static-label">Image</div>
+                    <div class="segmented-control fit-control-group">
+                        <button id="fitCoverBtn" type="button" class="active" onclick="setFit('cover')" title="Fill the tile (may crop)">Fill</button>
+                        <button id="fitContainBtn" type="button" onclick="setFit('contain')" title="Fit inside the tile (no crop)">Fit</button>
+                    </div>
+                </div>
 
                 <div id="tileLayoutControls">
                     <div class="input-group" style="margin-bottom:12px;">
@@ -1442,7 +1531,7 @@
                         <div class="preset-control-row" style="width:150px;">
                             <div class="select-wrapper">
                                 <select id="presetSelect" aria-label="Select preset" required>
-                                    <option value="" selected>Select Preset</option>
+                                    <option value="">Select Preset</option>
                                     <option value="5,5">5 × 5</option>
                                     <option value="4.5,4.5">4.5 × 4.5</option>
                                     <option value="4,4">4 × 4</option>
@@ -1450,7 +1539,7 @@
                                     <option value="3,3">3 × 3</option>
                                     <option value="2.5,2.5">2.5 × 2.5</option>
                                     <option value="2,2">2 × 2</option>
-                                    <option value="1.5,1.5">1.5 × 1.5</option>
+                                    <option value="1.5,1.5" selected>1.5 × 1.5</option>
                                     <option value="1,1">1 × 1</option>
                                     <option value="3.5,2">3.5 × 2</option>
                                     <option value="3,2">3 × 2</option>
@@ -1492,8 +1581,10 @@
                             </label>
                         </div>
                     </div>
-                    <hr class="divider quantity-match-divider">
                 </div>
+
+                <hr class="divider quantity-match-divider">
+
                 <div id="matchRatioControl" style="margin-top:0;">
                     <button class="text-btn match-ratio-btn" onclick="matchImageRatio()" title="Set the tile height so the tile ratio matches the image">⤢ Match tile ratio to image</button>
                 </div>
@@ -1502,7 +1593,7 @@
 
         <!-- LAYOUT INFO -->
         <details open id="acc-info">
-            <summary>Layout Preview</summary>
+            <summary>Summary</summary>
             <div class="details-content">
                 <div class="info-card">
                     <div class="info-main" id="layoutInfo">—</div>
@@ -1762,16 +1853,61 @@ const MM_TO_PX = 96 / 25.4;
 
 const DEFAULT_CONFIG = {
     tileW: 1.5, tileH: 1.5,
-    gapH: 2 * PX_TO_MM, gapV: 2 * PX_TO_MM,
+    gapH: 5 * PX_TO_MM, gapV: 5 * PX_TO_MM,
     borderW: 0, borderR: 0, borderStyle: 'solid', borderPosition: 'inside', borderC: '#E5E7EB',
     margin: 0,
     fit: 'cover',
+    alignH: 'center',
+    alignV: 'center',
     align: 'center',
     paper: 'A4'
 };
 
 let appConfig = { ...DEFAULT_CONFIG };
 let uploadedImages = [];
+
+// Fast lookup caches used by the preview renderer. Rebuilt once per render,
+// instead of scanning every layer/page for every individual tile.
+let renderImageById = new Map();
+let renderPageByImageId = new Map();
+let renderStyleByImageId = new Map();
+let settingsRenderTimer = null;
+let settingsQueueRenderPending = false;
+
+function rebuildRenderCaches() {
+    renderImageById = new Map(uploadedImages.map(img => [img.id, img]));
+    renderPageByImageId = new Map();
+    renderStyleByImageId = new Map();
+    pages.forEach(page => {
+        (page.imageIds || [page.imageId]).filter(Boolean).forEach(id => {
+            renderPageByImageId.set(id, page);
+        });
+    });
+}
+
+// Settings controls fire repeatedly while the user types/drags. Keep state
+// updates immediate, but batch the expensive page rebuild until input settles.
+function scheduleSettingsCanvasRender(updateQueue = false) {
+    settingsQueueRenderPending = settingsQueueRenderPending || updateQueue;
+    if (settingsRenderTimer) clearTimeout(settingsRenderTimer);
+    settingsRenderTimer = setTimeout(() => {
+        settingsRenderTimer = null;
+        const refreshQueue = settingsQueueRenderPending;
+        settingsQueueRenderPending = false;
+        renderCanvas();
+        if (refreshQueue) renderImageQueue();
+    }, 65);
+}
+
+function flushScheduledEditorRender() {
+    if (!settingsRenderTimer) return;
+    clearTimeout(settingsRenderTimer);
+    settingsRenderTimer = null;
+    const refreshQueue = settingsQueueRenderPending;
+    settingsQueueRenderPending = false;
+    renderCanvas();
+    if (refreshQueue) renderImageQueue();
+}
 let activeImageId = null;
 let selectedImageIds = new Set();
 let selectedGroupPageId = null;
@@ -2122,7 +2258,7 @@ function resetCurrentStyleOverride() {
     renderCanvas();
 }
 function getImageTileSize(imageId = activeImageId) {
-    const obj = uploadedImages.find(i => i.id === imageId);
+    const obj = renderImageById.get(imageId) || uploadedImages.find(i => i.id === imageId);
     return {
         w: obj && Number.isFinite(obj.tileW) ? obj.tileW : appConfig.tileW,
         h: obj && Number.isFinite(obj.tileH) ? obj.tileH : appConfig.tileH
@@ -2144,7 +2280,7 @@ function getTileAspect() {
     return appConfig.tileW / appConfig.tileH;
 }
 function getImageFit(imageId = activeImageId) {
-    const obj = uploadedImages.find(img => img.id === imageId);
+    const obj = renderImageById.get(imageId) || uploadedImages.find(img => img.id === imageId);
     const fit = obj?.fit || appConfig.fit;
     return fit === 'contain' ? 'contain' : 'cover';
 }
@@ -2152,13 +2288,15 @@ function fitObjectFit(imageId = activeImageId) {
     return getImageFit(imageId) === 'contain' ? 'contain' : 'cover';
 }
 function getLayerStyle(imageId = activeImageId) {
-    const pageForImage = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
+    const cached = renderStyleByImageId.get(imageId);
+    if (cached) return cached;
+    const pageForImage = renderPageByImageId.get(imageId) || pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
     const isGroupedMember = !!(pageForImage && (pageForImage.imageIds || []).length > 1);
     const groupStyle = isGroupedMember ? (pageForImage.styleOverride || {}) : {};
-    const imgObj = uploadedImages.find(i => i.id === imageId);
+    const imgObj = renderImageById.get(imageId) || uploadedImages.find(i => i.id === imageId);
     if (!imgObj) return getEffectiveStyle(imageId);
     const layerOverride = imgObj.styleOverride || {};
-    return {
+    const resolved = {
         ...appConfig,
         gapH: isGroupedMember
             ? (Number.isFinite(groupStyle.gapH) ? groupStyle.gapH : appConfig.gapH)
@@ -2174,6 +2312,8 @@ function getLayerStyle(imageId = activeImageId) {
         borderPosition: layerOverride.borderPosition === 'inside' || imgObj.borderPosition === 'inside' ? 'inside' : (layerOverride.borderPosition === 'outside' || imgObj.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside')),
         borderC: normalizeHexColor(layerOverride.borderC) || normalizeHexColor(imgObj.borderC) || appConfig.borderC
     };
+    renderStyleByImageId.set(imageId, resolved);
+    return resolved;
 }
 function syncSpacingAndBorderControls(imageId = activeImageId) {
     const st = getLayerStyle(imageId);
@@ -2198,31 +2338,45 @@ function syncSpacingAndBorderControls(imageId = activeImageId) {
     syncSpacingLockState(imageId);
     applyBorderCssVars(st);
 }
-function getCanvasAlign(pageOrImageId = null) {
-    let page = null;
-    if (pageOrImageId && typeof pageOrImageId === 'object') {
-        page = pageOrImageId;
-    } else if (typeof pageOrImageId === 'string') {
-        page = pages.find(pg => pg.id === pageOrImageId || (pg.imageIds || [pg.imageId]).includes(pageOrImageId));
+function resolvePageForAlign(pageOrImageId = null) {
+    if (pageOrImageId && typeof pageOrImageId === 'object') return pageOrImageId;
+    if (typeof pageOrImageId === 'string') {
+        const match = pages.find(pg => pg.id === pageOrImageId || (pg.imageIds || [pg.imageId]).includes(pageOrImageId));
+        if (match) return match;
     }
-    if (!page) {
-        page = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(activeImageId)) || pages[activePageIndex] || null;
-    }
-    const align = page?.canvasAlign || appConfig.align;
-    if (align === 'top' || align === 'bottom') return align;
+    return pages.find(pg => (pg.imageIds || [pg.imageId]).includes(activeImageId)) || pages[activePageIndex] || null;
+}
+function getCanvasAlignH(pageOrImageId = null) {
+    const page = resolvePageForAlign(pageOrImageId);
+    const alignH = page?.canvasAlignH || appConfig.alignH || (['left', 'right'].includes(page?.canvasAlign) ? page.canvasAlign : 'center');
+    return ['left', 'center', 'right'].includes(alignH) ? alignH : 'center';
+}
+function getCanvasAlignV(pageOrImageId = null) {
+    const page = resolvePageForAlign(pageOrImageId);
+    const alignV = page?.canvasAlignV || appConfig.alignV || (['top', 'bottom'].includes(page?.canvasAlign) ? page.canvasAlign : 'center');
+    return ['top', 'center', 'bottom'].includes(alignV) ? alignV : 'center';
+}
+function canvasJustifyContent(pageOrImageId = null) {
+    const alignH = getCanvasAlignH(pageOrImageId);
+    if (alignH === 'left') return 'flex-start';
+    if (alignH === 'right') return 'flex-end';
     return 'center';
 }
 function canvasAlignItems(pageOrImageId = null) {
-    const align = getCanvasAlign(pageOrImageId);
-    if (align === 'top') return 'flex-start';
-    if (align === 'bottom') return 'flex-end';
+    const alignV = getCanvasAlignV(pageOrImageId);
+    if (alignV === 'top') return 'flex-start';
+    if (alignV === 'bottom') return 'flex-end';
     return 'center';
 }
 function syncAlignControls(imageId = activeImageId) {
-    const align = getCanvasAlign(imageId);
-    document.getElementById('alignTopBtn')?.classList.toggle('active', align === 'top');
-    document.getElementById('alignCenterBtn')?.classList.toggle('active', align === 'center');
-    document.getElementById('alignBottomBtn')?.classList.toggle('active', align === 'bottom');
+    const alignH = getCanvasAlignH(imageId);
+    const alignV = getCanvasAlignV(imageId);
+    document.getElementById('alignLeftBtn')?.classList.toggle('active', alignH === 'left');
+    document.getElementById('alignCenterHBtn')?.classList.toggle('active', alignH === 'center');
+    document.getElementById('alignRightBtn')?.classList.toggle('active', alignH === 'right');
+    document.getElementById('alignTopBtn')?.classList.toggle('active', alignV === 'top');
+    document.getElementById('alignCenterBtn')?.classList.toggle('active', alignV === 'center');
+    document.getElementById('alignBottomBtn')?.classList.toggle('active', alignV === 'bottom');
 }
 function syncFitControls(imageId = activeImageId) {
     const fit = getImageFit(imageId);
@@ -2256,6 +2410,7 @@ function loadConfig() {
 
     document.getElementById('tileW').value = appConfig.tileW;
     document.getElementById('tileH').value = appConfig.tileH;
+    updatePresetActiveState();
 
     document.getElementById('numGapH').value = Math.round(appConfig.gapH * MM_TO_PX);
     document.getElementById('numGapV').value = Math.round(appConfig.gapV * MM_TO_PX);
@@ -2270,7 +2425,10 @@ function loadConfig() {
     document.getElementById('numMargin').value = (appConfig.margin / 25.4).toFixed(2);
 
     if (appConfig.fit !== 'cover' && appConfig.fit !== 'contain') appConfig.fit = 'cover';
-    if (!['top', 'center', 'bottom'].includes(appConfig.align)) appConfig.align = 'center';
+    if (!['left', 'center', 'right'].includes(appConfig.alignH)) appConfig.alignH = 'center';
+    if (!['top', 'center', 'bottom'].includes(appConfig.alignV)) {
+        appConfig.alignV = ['top', 'center', 'bottom'].includes(appConfig.align) ? appConfig.align : 'center';
+    }
     document.getElementById('fitCoverBtn').classList.toggle('active', appConfig.fit === 'cover');
     document.getElementById('fitContainBtn').classList.toggle('active', appConfig.fit === 'contain');
     syncAlignControls(activeImageId);
@@ -2561,7 +2719,10 @@ function updateSettings() {
     applyBorderCssVars();
 
     saveConfig();
-    renderCanvas();
+    // A setting can fire many input events per second. Rebuild once after the
+    // short interaction burst rather than regenerating every tile each time.
+    renderStyleByImageId.clear();
+    scheduleSettingsCanvasRender();
 }
 
 function bindWholeNumberStepControls() {
@@ -2601,6 +2762,7 @@ function bindWholeNumberStepControls() {
 }
 
 function setFit(mode) {
+    if (mode !== 'cover' && mode !== 'contain') return;
     const targets = selectedImageIds.size > 0
         ? [...selectedImageIds].map(id => uploadedImages.find(img => img.id === id)).filter(Boolean)
         : (getActiveImage() ? [getActiveImage()] : []);
@@ -2613,17 +2775,35 @@ function setFit(mode) {
     renderCanvas();
 }
 
-function setAlign(mode) {
+/* Independent Horizontal & Vertical Alignment setters */
+function setAlignH(mode) {
+    if (!['left', 'center', 'right'].includes(mode)) return;
+    const groupMemberPage = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
+    const page = (selectedGroupPageId && pages.find(pg => pg.id === selectedGroupPageId))
+        || groupMemberPage
+        || pages[activePageIndex]
+        || null;
+
+    if (page) page.canvasAlignH = mode;
+    appConfig.alignH = mode;
+
+    syncAlignControls(activeImageId);
+    saveConfig();
+    renderCanvas();
+}
+
+function setAlignV(mode) {
     if (!['top', 'center', 'bottom'].includes(mode)) return;
     const groupMemberPage = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
     const page = (selectedGroupPageId && pages.find(pg => pg.id === selectedGroupPageId))
         || groupMemberPage
         || pages[activePageIndex]
         || null;
-    if (page) {
-        page.canvasAlign = mode;
-    }
+
+    if (page) page.canvasAlignV = mode;
+    appConfig.alignV = mode;
     appConfig.align = mode;
+
     syncAlignControls(activeImageId);
     saveConfig();
     renderCanvas();
@@ -2666,8 +2846,7 @@ function onCustomTile() {
     applyTileSizeToSelection(w, h);
     saveConfig();
     updatePresetActiveState();
-    renderImageQueue();
-    renderCanvas();
+    scheduleSettingsCanvasRender(true);
 }
 
 function matchImageRatio() {
@@ -2888,13 +3067,26 @@ const eyeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const eyeOffIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
 function getLayerStackIds() {
+    // Build the layer order in linear time. The previous implementation repeatedly
+    // scanned uploadedImages and the growing ids array, becoming expensive in groups.
+    const validIds = new Set(uploadedImages.map(img => img.id));
+    const seen = new Set();
     const ids = [];
     pages.forEach(page => {
-        (page.imageIds || [page.imageId]).filter(Boolean).forEach(id => {
-            if (uploadedImages.some(img => img.id === id) && !ids.includes(id)) ids.push(id);
+        const pageIds = page.imageIds || [page.imageId];
+        pageIds.forEach(id => {
+            if (id && validIds.has(id) && !seen.has(id)) {
+                seen.add(id);
+                ids.push(id);
+            }
         });
     });
-    uploadedImages.forEach(img => { if (!ids.includes(img.id)) ids.push(img.id); });
+    uploadedImages.forEach(img => {
+        if (!seen.has(img.id)) {
+            seen.add(img.id);
+            ids.push(img.id);
+        }
+    });
     return ids;
 }
 
@@ -2940,6 +3132,10 @@ function renderImageQueue() {
     }
 
     const groupPages = pages.filter(pg => (pg.imageIds || []).length > 1);
+    // Reuse these lookups for every row; do not rebuild the full stack per child.
+    const layerStackIds = getLayerStackIds();
+    const layerStackIndex = new Map(layerStackIds.map((id, index) => [id, index]));
+    const imageById = new Map(uploadedImages.map(img => [img.id, img]));
 
     const makeLayerRow = (obj, index, showSizeBadge = false) => {
         const row = document.createElement('div');
@@ -3146,14 +3342,14 @@ function renderImageQueue() {
             card.appendChild(header);
             const children = document.createElement('div'); children.className = 'layer-group-children' + (isCollapsed ? ' is-collapsed' : '');
             groupInfo.ids.forEach(id => {
-                const childObj = uploadedImages.find(img => img.id === id);
-                if (childObj) children.appendChild(makeLayerRow(childObj, getLayerStackIds().indexOf(childObj.id), !locked));
+                const childObj = imageById.get(id);
+                if (childObj) children.appendChild(makeLayerRow(childObj, layerStackIndex.get(childObj.id) ?? -1, !locked));
             });
             card.appendChild(children);
             queue.appendChild(card);
         } else {
-            const obj = uploadedImages.find(img => img.id === pageIds[0]);
-            if (obj) queue.appendChild(makeLayerRow(obj, getLayerStackIds().indexOf(obj.id), false));
+            const obj = imageById.get(pageIds[0]);
+            if (obj) queue.appendChild(makeLayerRow(obj, layerStackIndex.get(obj.id) ?? -1, false));
         }
     });
     updateGroupButton();
@@ -3583,31 +3779,77 @@ function computeGroupTilePlan(page, layout) {
     const counts = layerSpecs.map(s => s.qty != null ? s.qty : 0);
     const autoIndices = layerSpecs.map((s, i) => s.qty == null ? i : -1).filter(i => i >= 0);
 
-    if (autoIndices.length > 0) {
+    // Mixed-size groups used to repack the entire collage after every single
+    // auto-quantity increment. That made changing one layer's dimensions
+    // increasingly expensive as the group grew. Place fixed-quantity tiles
+    // once, then add auto tiles incrementally against the existing rectangles.
+    // This preserves the round-robin auto allocation while avoiding hundreds
+    // of full repacks during a single preview render.
+    const minW = Math.min(...layerSpecs.map(spec => spec.wMM));
+    const minH = Math.min(...layerSpecs.map(spec => spec.hMM));
+    const colStep = minW + gapH;
+    const rowStep = minH + gapV;
+    const placedRects = [];
+    let fixedOverflow = false;
+    const makeRect = (spec, slot) => ({
+        img: spec.img,
+        x: slot.x,
+        y: slot.y,
+        w: spec.wMM,
+        h: spec.hMM
+    });
+
+    for (let i = 0; i < layerSpecs.length; i++) {
+        const spec = layerSpecs[i];
+        if (spec.qty == null) continue;
+        for (let n = 0; n < counts[i]; n++) {
+            const slot = findCollageSlot(
+                placedRects, spec.wMM, spec.hMM, availW, availH,
+                gapH, gapV, colStep, rowStep
+            );
+            if (!slot) {
+                fixedOverflow = true;
+                break;
+            }
+            placedRects.push(makeRect(spec, slot));
+        }
+        if (fixedOverflow) break;
+    }
+
+    if (!fixedOverflow && autoIndices.length > 0) {
         let added = true;
         let guard = 0;
         while (added && guard < 600) {
             added = false;
             guard++;
             for (const ai of autoIndices) {
-                counts[ai]++;
-                const test = packCollageItems(
-                    layerSpecs.map((s, idx) => ({ ...s, count: counts[idx] })),
-                    availW, availH, gapH, gapV
+                const spec = layerSpecs[ai];
+                const slot = findCollageSlot(
+                    placedRects, spec.wMM, spec.hMM, availW, availH,
+                    gapH, gapV, colStep, rowStep
                 );
-                if (test.overflow) {
-                    counts[ai]--;
-                } else {
+                if (slot) {
+                    placedRects.push(makeRect(spec, slot));
+                    counts[ai]++;
                     added = true;
                 }
             }
         }
     }
 
-    const finalPack = packCollageItems(
-        layerSpecs.map((s, idx) => ({ ...s, count: counts[idx] })),
-        availW, availH, gapH, gapV
-    );
+    let maxRight = 0;
+    let maxBottom = 0;
+    for (const rect of placedRects) {
+        maxRight = Math.max(maxRight, rect.x + rect.w);
+        maxBottom = Math.max(maxBottom, rect.y + rect.h);
+    }
+    const finalPack = {
+        rects: placedRects,
+        visibleItems: placedRects.map(rect => rect.img),
+        boundsW: maxRight,
+        boundsH: maxBottom,
+        overflow: fixedOverflow || placedRects.length < counts.reduce((sum, qty) => sum + qty, 0)
+    };
     const totalRequested = counts.reduce((a, b) => a + b, 0);
 
     return {
@@ -3662,8 +3904,7 @@ function updateLayerQuantity(value) {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return;
     obj.quantityOverride = Math.max(0, Math.min(500, Math.floor(parsed)));
-    renderCanvas();
-    renderImageQueue();
+    scheduleSettingsCanvasRender(true);
 }
 
 function syncQuantityControl(imageId = activeImageId) {
@@ -3697,7 +3938,7 @@ function syncQuantityControl(imageId = activeImageId) {
             if (el) el.disabled = isIndividualGroupLayer;
         });
 
-    ['alignTopBtn', 'alignCenterBtn', 'alignBottomBtn'].forEach(id => {
+    ['alignLeftBtn', 'alignCenterHBtn', 'alignRightBtn', 'alignTopBtn', 'alignCenterBtn', 'alignBottomBtn'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.disabled = false;
     });
@@ -4196,6 +4437,7 @@ function renderCanvas() {
         pages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
     }
     ensurePages();
+    rebuildRenderCaches();
 
     const visiblePageIndices = getVisiblePageIndices();
     if (!visiblePageIndices.includes(activePageIndex)) {
@@ -4278,7 +4520,7 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
     if (document.getElementById('safeZoneToggle').checked) page.classList.add('safe-zone-active');
 
     const pageImageIds = (pg.imageIds || [pg.imageId]).filter(Boolean);
-    const pageImages = pg.visible === false ? [] : pageImageIds.map(id => uploadedImages.find(i => i.id === id)).filter(i => i && i.visible !== false);
+    const pageImages = pg.visible === false ? [] : pageImageIds.map(id => renderImageById.get(id)).filter(i => i && i.visible !== false);
     const imgObj = pageImages[0] || null;
 
     if (!imgObj) {
@@ -4296,8 +4538,11 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
     const inner = document.createElement('div');
     inner.className = 'page-inner';
     inner.style.padding = `${layout.m}mm`;
+    inner.style.justifyContent = canvasJustifyContent(pg);
     inner.style.alignItems = canvasAlignItems(pg);
-    inner.dataset.canvasAlign = getCanvasAlign(pg);
+    inner.dataset.canvasAlignH = getCanvasAlignH(pg);
+    inner.dataset.canvasAlignV = getCanvasAlignV(pg);
+    inner.dataset.canvasAlign = getCanvasAlignV(pg);
 
     const isGroupPage = pageImageIds.length > 1;
     const groupStyle = isGroupPage ? getEffectiveStyle(pg.imageIds?.[0]) : null;
@@ -4414,6 +4659,7 @@ function updateLayoutInfo(layout) {
    PRINT
    ========================================================= */
 async function triggerPrint() {
+    flushScheduledEditorRender();
     if (!uploadedImages.length) {
         await showAlert('Nothing to Print', 'Please upload an image first.');
         return;
@@ -4446,7 +4692,7 @@ function generateFilename(ext) {
     const pad = n => String(n).padStart(2, '0');
     const stamp = `${pad(now.getDate())}${pad(now.getMonth() + 1)}${now.getFullYear()}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
     const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
-    return `TileLayout_${stamp}_${rand}.${ext}`;
+    return `PrintGrid_${stamp}_${rand}.${ext}`;
 }
 
 async function prepareExportClone(doc, targetPageIndex) {
@@ -4491,95 +4737,62 @@ async function prepareExportClone(doc, targetPageIndex) {
     }
 
     doc.querySelectorAll('.page-inner').forEach(inner => {
-        const cAlign = inner.dataset.canvasAlign || 'center';
+        const cAlignH = inner.dataset.canvasAlignH || 'center';
+        const cAlignV = inner.dataset.canvasAlignV || inner.dataset.canvasAlign || 'center';
         inner.style.display = 'flex';
-        inner.style.justifyContent = 'center';
-        inner.style.alignItems = cAlign === 'top' ? 'flex-start' : (cAlign === 'bottom' ? 'flex-end' : 'center');
+        inner.style.justifyContent = cAlignH === 'left' ? 'flex-start' : (cAlignH === 'right' ? 'flex-end' : 'center');
+        inner.style.alignItems = cAlignV === 'top' ? 'flex-start' : (cAlignV === 'bottom' ? 'flex-end' : 'center');
     });
 
     doc.querySelectorAll('.tile').forEach(tile => {
-        const media = tile.querySelector('.tile-media') || tile;
-        const img = media.querySelector('img');
-        if (!img || !img.naturalWidth || !img.naturalHeight) return;
-        const boxW = tile.clientWidth;
-        const boxH = tile.clientHeight;
-        if (!boxW || !boxH) return;
-        const fit = img.style.objectFit || 'cover';
-        const imgRatio = img.naturalWidth / img.naturalHeight;
-        const boxRatio = boxW / boxH;
-        let renderW, renderH;
-        if (fit === 'contain') {
-            if (imgRatio > boxRatio) { renderW = boxW; renderH = boxW / imgRatio; }
-            else { renderH = boxH; renderW = boxH * imgRatio; }
-        } else {
-            if (imgRatio > boxRatio) { renderH = boxH; renderW = boxH * imgRatio; }
-            else { renderW = boxW; renderH = boxW / imgRatio; }
-        }
-        tile.style.display = 'block';
-        tile.style.position = tile.style.position || 'relative';
-        tile.style.overflow = 'visible';
-
-        if (media !== tile) {
-            media.style.position = 'absolute';
-            media.style.inset = '0';
-            media.style.overflow = 'hidden';
-            media.style.borderRadius = media.style.borderRadius || `${appConfig.borderR}px`;
-        }
-
-        const borderRing = tile.querySelector('.tile-border');
-        if (borderRing) {
-            const imgId = img.dataset.imageId;
-            const st = getEffectiveStyle(imgId);
-            const bw = st.borderW;
-            const style = st.borderStyle === 'dotted' ? 'dotted' : 'solid';
-            borderRing.style.position = 'absolute';
-            const borderInset = st.borderPosition === 'inside' ? '0px' : `${-bw}px`;
-            borderRing.style.top = borderInset;
-            borderRing.style.left = borderInset;
-            borderRing.style.right = borderInset;
-            borderRing.style.bottom = borderInset;
-            borderRing.style.borderStyle = style;
-            borderRing.style.borderColor = st.borderC;
-            borderRing.style.borderRadius = `${st.borderR + (st.borderPosition === 'inside' ? 0 : bw)}px`;
-        }
-
-        img.style.position = 'absolute';
-        img.style.maxWidth = 'none';
-        img.style.maxHeight = 'none';
-        img.style.width = renderW + 'px';
-        img.style.height = renderH + 'px';
-        img.style.left = ((boxW - renderW) / 2) + 'px';
-        img.style.top = ((boxH - renderH) / 2) + 'px';
-        img.style.objectFit = 'fill';
+        const media = tile.querySelector('.tile-media');
+        const img = media ? media.querySelector('img') : tile.querySelector('img');
+        if (!img) return;
+        const fitMode = fitObjectFit(img.dataset.imageId);
+        img.style.objectFit = fitMode;
     });
 }
 
-async function capturePageEl(el) {
-    const wasHidden = !el.classList.contains('active-page');
-    if (wasHidden) el.style.display = 'block';
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    try {
-        return await html2canvas(el, {
-            scale: 4,
-            useCORS: true,
-            backgroundColor: '#ffffff',
-            scrollX: 0,
-            scrollY: 0,
-            onclone: doc => prepareExportClone(doc, el.dataset.pageIndex)
-        });
-    } finally {
-        if (wasHidden) el.style.display = '';
-    }
+async function renderPageToCanvas(pageIndex, scale) {
+    const paper = paperSizes[currentPaper];
+    return await html2canvas(document.getElementById('captureArea'), {
+        scale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: paper.w * 3.7795,
+        height: paper.h * 3.7795,
+        windowWidth: paper.w * 3.7795,
+        windowHeight: paper.h * 3.7795,
+        onclone: doc => prepareExportClone(doc, pageIndex)
+    });
+}
+
+function getExportScale() {
+    const paper = paperSizes[currentPaper];
+    const maxCanvasSide = 8192;
+    const widthScale = maxCanvasSide / Math.max(1, paper.w * 3.7795);
+    const heightScale = maxCanvasSide / Math.max(1, paper.h * 3.7795);
+    return Math.max(1, Math.min(2, widthScale, heightScale));
 }
 
 async function exportFile() {
+    flushScheduledEditorRender();
     if (!uploadedImages.length) {
-        await showAlert('Empty Canvas', 'Please upload an image before exporting.');
+        await showAlert('Nothing to Export', 'Please upload an image first.');
         return;
     }
-
-    const printablePages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
-    const hasInvalidPage = printablePages.some(pg => {
+    const exportPages = pages
+        .map((pg, idx) => ({ pg, idx }))
+        .filter(({ pg }) => {
+            if (pg.visible === false) return false;
+            const ids = (pg.imageIds || [pg.imageId]).filter(Boolean);
+            return ids.some(id => {
+                const layer = uploadedImages.find(item => item.id === id);
+                return layer && layer.visible !== false;
+            });
+        });
+    const hasInvalidPage = exportPages.some(({ pg }) => {
         const layout = computeLayout(pg.imageIds?.[0] || pg.imageId);
         const plan = computeGroupTilePlan(pg, layout);
         return !plan.isMixedSize && (layout.cols === 0 || layout.rows === 0);
@@ -4588,187 +4801,299 @@ async function exportFile() {
         await showAlert('Tile Too Large', 'At least one image tile size does not fit on the selected paper. Select that image and reduce its tile size.');
         return;
     }
-
-    if (!printablePages.length) {
-        await showAlert('Empty Canvas', 'There are no pages with images to export.');
+    if (!exportPages.length) {
+        await showAlert('Nothing to Export', 'There are no visible pages with images to export.');
         return;
     }
 
     const format = document.getElementById('exportFormat').value;
-    const cap = document.getElementById('captureArea');
-    const originalTransform = cap.style.transform;
-    const originalPosition = cap.style.position;
-    const originalLeft = cap.style.left;
-    cap.style.transform = 'none';
-    cap.style.position = 'static';
-    cap.style.left = '0';
-
-    showLoading('Rendering page...');
-    await new Promise(r => setTimeout(r, 140));
+    showLoading(`Exporting ${exportPages.length} page${exportPages.length > 1 ? 's' : ''} as ${format.toUpperCase()}...`);
+    await new Promise(r => setTimeout(r, 80));
 
     try {
-        const pageEls = Array.from(document.querySelectorAll('#pagesWrapper .paper-page'))
-            .filter(el => {
-                const idx = Number(el.dataset.pageIndex);
-                const pg = pages[idx];
-                return pg && (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)) && el.querySelector('.tile');
-            });
-        if (!pageEls.length) throw new Error('No printable pages were rendered.');
         const paper = paperSizes[currentPaper];
-        const baseName = generateFilename(format === 'jpg' ? 'jpg' : format);
+        const scale = getExportScale();
+        const savedPageIndex = activePageIndex;
+        const pageCanvases = [];
+
+        for (let i = 0; i < exportPages.length; i++) {
+            const { idx } = exportPages[i];
+            activePageIndex = idx;
+            updatePageVisibility();
+            setLoadingText(`Rendering page ${i + 1} of ${exportPages.length}...`);
+            pageCanvases.push(await renderPageToCanvas(idx, scale));
+        }
+
+        activePageIndex = savedPageIndex;
+        updatePageVisibility();
 
         if (format === 'pdf') {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                throw new Error('PDF library is not loaded.');
+            }
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', [paper.w, paper.h]);
+            const pdf = new jsPDF({
+                orientation: paper.w > paper.h ? 'l' : 'p',
+                unit: 'mm',
+                format: [paper.w, paper.h]
+            });
 
-            for (let i = 0; i < pageEls.length; i++) {
-                setLoadingText(`Rendering page ${i + 1} of ${pageEls.length}...`);
-                const canvas = await capturePageEl(pageEls[i]);
-                if (i > 0) pdf.addPage([paper.w, paper.h], 'portrait');
-                pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, paper.w, paper.h);
-            }
-            setLoadingText('Generating PDF...');
-            pdf.save(baseName);
+            pageCanvases.forEach((canvas, idx) => {
+                if (idx > 0) pdf.addPage([paper.w, paper.h], paper.w > paper.h ? 'l' : 'p');
+                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                pdf.addImage(imgData, 'JPEG', 0, 0, paper.w, paper.h, undefined, 'FAST');
+            });
+
+            pdf.save(generateFilename('pdf'));
         } else {
-            for (let i = 0; i < pageEls.length; i++) {
-                setLoadingText(`Saving page ${i + 1} of ${pageEls.length}...`);
-                const canvas = await capturePageEl(pageEls[i]);
-                const link = document.createElement('a');
-                link.download = pageEls.length > 1
-                    ? baseName.replace(/\.(\w+)$/, `_p${i + 1}.$1`)
-                    : baseName;
-                link.href = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 0.98);
-                link.click();
-                await new Promise(r => setTimeout(r, 220));
-            }
+            const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
+            const quality = format === 'jpg' ? 0.92 : 1;
+
+            pageCanvases.forEach((canvas, idx) => {
+                const a = document.createElement('a');
+                const base = generateFilename(format);
+                a.download = exportPages.length > 1
+                    ? base.replace(`.${format}`, `_p${idx + 1}.${format}`)
+                    : base;
+                a.href = canvas.toDataURL(mime, quality);
+                a.click();
+            });
         }
-    } catch (err) {
-        console.error(err);
-        showAlert('Export Failed', 'Something went wrong while exporting. Please try again.');
+    } catch (e) {
+        console.error('Export failed:', e);
+        await showAlert('Export Error', e?.message || 'Could not export the layout. Please try again.');
     } finally {
         hideLoading();
-        cap.style.transform = originalTransform;
-        cap.style.position = originalPosition;
-        cap.style.left = originalLeft;
-        fitToViewport();
     }
 }
 
 /* =========================================================
-   CROP / EDIT IMAGE
+   CROP MODAL
    ========================================================= */
-const cropStage   = document.getElementById('cropStage');
-const cropImg     = document.getElementById('cropImg');
-const cropBoxRect = document.getElementById('cropBoxRect');
-
-function setCropZoomSliderValue(zoom, syncInput = true) {
-    const slider = document.getElementById('cropZoomSlider');
-    const label = document.getElementById('cropZoomValue');
-    const min = Number(slider?.min) || 1;
-    const max = Number(slider?.max) || 4;
-    const clamped = Math.min(max, Math.max(min, Number(zoom) || 1));
-    if (slider && syncInput) slider.value = clamped.toFixed(2);
-    if (slider) {
-        const pct = ((clamped - min) / (max - min)) * 100;
-        slider.style.setProperty('--range-progress', `${pct.toFixed(2)}%`);
-    }
-    if (label) {
-        const rounded = Math.round(clamped * 100) / 100;
-        label.textContent = `${Number.isInteger(rounded) ? rounded : rounded.toFixed(2).replace(/0+$/, '')}×`;
-    }
-}
-
-function getCropFilterString(adj = crop?.adjustments) {
-    const brightness = adj?.brightness ?? 100;
-    const contrast = adj?.contrast ?? 100;
-    const hue = adj?.hue ?? 0;
-    const bw = adj?.colorMode === 'bw' ? ' grayscale(100%)' : '';
-    return `brightness(${brightness}%) contrast(${contrast}%) hue-rotate(${hue}deg)${bw}`;
-}
-
-function syncCropAdjustmentUI(adj) {
-    const sliders = [
-        { id: 'cropBrightness', valueId: 'cropBrightnessValue', val: adj.brightness, suffix: '%' },
-        { id: 'cropContrast', valueId: 'cropContrastValue', val: adj.contrast, suffix: '%' },
-        { id: 'cropHue', valueId: 'cropHueValue', val: adj.hue, suffix: '°' }
-    ];
-    sliders.forEach(({ id, valueId, val, suffix }) => {
-        const input = document.getElementById(id);
-        const label = document.getElementById(valueId);
-        const min = Number(input?.min) || 0;
-        const max = Number(input?.max) || 100;
-        if (input) {
-            input.value = val;
-            const pct = ((val - min) / (max - min)) * 100;
-            input.style.setProperty('--range-progress', `${pct.toFixed(2)}%`);
-        }
-        if (label) label.textContent = `${val}${suffix}`;
-    });
-    const modeSelect = document.getElementById('cropColorMode');
-    if (modeSelect) modeSelect.value = adj.colorMode || 'color';
-    if (cropImg) cropImg.style.filter = getCropFilterString(adj);
-}
-
-function updateCropAdjustments() {
-    if (!crop) return;
-    crop.adjustments = {
-        brightness: Number(document.getElementById('cropBrightness')?.value ?? 100),
-        contrast: Number(document.getElementById('cropContrast')?.value ?? 100),
-        hue: Number(document.getElementById('cropHue')?.value ?? 0),
-        colorMode: document.getElementById('cropColorMode')?.value === 'bw' ? 'bw' : 'color'
-    };
-    syncCropAdjustmentUI(crop.adjustments);
-}
-
-function resetCropSlider(sliderId) {
-    if (!crop) return;
-    const defaults = { cropZoomSlider: 1, cropBrightness: 100, cropContrast: 100, cropHue: 0 };
-    if (sliderId === 'cropZoomSlider') {
-        onCropZoomInput(defaults[sliderId], true);
-        return;
-    }
-    const input = document.getElementById(sliderId);
-    if (input && defaults[sliderId] !== undefined) {
-        input.value = defaults[sliderId];
-        updateCropAdjustments();
-    }
-}
-
 function openCropModal(imageId) {
     const obj = uploadedImages.find(i => i.id === imageId);
     if (!obj) return;
-    const existing = obj.cropRect;
-    const initialMode = (existing && ['image', 'free', 'tile', 'square'].includes(existing.mode)) ? existing.mode : 'image';
-    crop = {
-        imageId,
-        src: obj.src,
-        natW: 0, natH: 0,
-        stageW: 0, stageH: 0,
-        dispW: 0, dispH: 0,
-        imgX: 0, imgY: 0,
-        zoom: existing?.zoom || 1,
-        aspect: initialMode,
-        box: null,
-        savedBox: existing?.box || null,
-        adjustments: {
-            brightness: existing?.adjustments?.brightness ?? 100,
-            contrast: existing?.adjustments?.contrast ?? 100,
-            hue: existing?.adjustments?.hue ?? 0,
-            colorMode: existing?.adjustments?.colorMode === 'bw' ? 'bw' : 'color'
-        },
-        drag: null
+
+    const stage = document.getElementById('cropStage');
+    const img   = document.getElementById('cropImg');
+
+    const probe = new Image();
+    probe.onload = () => {
+        const natW = probe.naturalWidth || 800;
+        const natH = probe.naturalHeight || 600;
+        const aspect = natW / natH;
+
+        const maxW = Math.min(620, window.innerWidth * 0.56);
+        const maxH = Math.min(440, window.innerHeight * 0.55);
+        let stageW = maxW;
+        let stageH = stageW / aspect;
+        if (stageH > maxH) { stageH = maxH; stageW = stageH * aspect; }
+        stageW = Math.max(120, Math.round(stageW));
+        stageH = Math.max(120, Math.round(stageH));
+
+        stage.style.width  = stageW + 'px';
+        stage.style.height = stageH + 'px';
+        img.src = obj.src;
+
+        const saved = obj.cropRect;
+        crop = {
+            imageId,
+            natW, natH,
+            stageW, stageH,
+            zoom: saved ? saved.zoom : 1,
+            panX: saved ? saved.panX : 0,
+            panY: saved ? saved.panY : 0,
+            brightness: Number.isFinite(obj.brightness) ? obj.brightness : 100,
+            contrast: Number.isFinite(obj.contrast) ? obj.contrast : 100,
+            hue: Number.isFinite(obj.hue) ? obj.hue : 0,
+            colorMode: obj.colorMode === 'bw' ? 'bw' : 'color',
+            aspectMode: 'image',
+            box: { x: 0, y: 0, w: stageW, h: stageH },
+            freeRect: obj.freeCropRect ? { ...obj.freeCropRect } : null,
+            drag: null
+        };
+
+        document.getElementById('cropAspectSelect').value = 'image';
+        document.getElementById('cropZoomSlider').value = crop.zoom;
+        document.getElementById('cropBrightness').value = crop.brightness;
+        document.getElementById('cropContrast').value = crop.contrast;
+        document.getElementById('cropHue').value = crop.hue;
+        document.getElementById('cropColorMode').value = crop.colorMode;
+        updateCropAdjustments();
+        syncCropAspectUI();
+        layoutCrop();
+        document.getElementById('cropModal').classList.add('active');
     };
-    document.getElementById('cropAspectSelect').value = initialMode;
-    setCropZoomSliderValue(crop.zoom, true);
-    syncCropAdjustmentUI(crop.adjustments);
-    cropImg.onload = () => {
-        if (!crop || crop.src !== cropImg.src) return;
-        crop.natW = cropImg.naturalWidth;
-        crop.natH = cropImg.naturalHeight;
-        setCropAspect(initialMode, true);
-    };
-    cropImg.src = obj.src;
-    document.getElementById('cropModal').classList.add('active');
+    probe.src = obj.src;
+}
+
+function getTargetAspect() {
+    if (!crop) return crop ? crop.natW / crop.natH : 1;
+    if (crop.aspectMode === 'square') return 1;
+    if (crop.aspectMode === 'tile') return getTileAspect();
+    return crop.natW / crop.natH;
+}
+
+function syncCropAspectUI() {
+    if (!crop) return;
+    const stage = document.getElementById('cropStage');
+    const zoomRow = document.getElementById('cropZoomRow');
+    const hint = document.getElementById('cropSubHint');
+    const isFree = crop.aspectMode === 'free';
+    stage.classList.toggle('free-crop-active', isFree);
+    if (zoomRow) zoomRow.style.display = isFree ? 'none' : '';
+    if (hint) {
+        hint.textContent = isFree
+            ? 'Drag inside the crop box to move or drag its edges/corners to resize freely'
+            : 'Drag to pan · Scroll or use slider to zoom';
+    }
+}
+
+function setCropAspect(mode) {
+    if (!crop) return;
+    crop.aspectMode = mode;
+    if (mode === 'free') {
+        crop.zoom = 1; crop.panX = 0; crop.panY = 0;
+        document.getElementById('cropZoomSlider').value = 1;
+        crop.box = crop.freeRect
+            ? { ...crop.freeRect }
+            : { x: crop.stageW * 0.1, y: crop.stageH * 0.1, w: crop.stageW * 0.8, h: crop.stageH * 0.8 };
+    } else {
+        const aspect = getTargetAspect();
+        let bw = crop.stageW, bh = bw / aspect;
+        if (bh > crop.stageH) { bh = crop.stageH; bw = bh * aspect; }
+        crop.box = { x: (crop.stageW - bw) / 2, y: (crop.stageH - bh) / 2, w: bw, h: bh };
+    }
+    syncCropAspectUI();
+    layoutCrop();
+}
+
+function layoutCrop() {
+    if (!crop) return;
+    if (crop.aspectMode === 'free') {
+        const img = document.getElementById('cropImg');
+        img.style.width = crop.stageW + 'px';
+        img.style.height = crop.stageH + 'px';
+        img.style.left = '0px';
+        img.style.top = '0px';
+        const boxEl = document.getElementById('cropBoxRect');
+        const minSize = 24;
+        crop.box.w = Math.max(minSize, Math.min(crop.stageW, crop.box.w));
+        crop.box.h = Math.max(minSize, Math.min(crop.stageH, crop.box.h));
+        crop.box.x = Math.max(0, Math.min(crop.stageW - crop.box.w, crop.box.x));
+        crop.box.y = Math.max(0, Math.min(crop.stageH - crop.box.h, crop.box.y));
+        boxEl.style.left = crop.box.x + 'px';
+        boxEl.style.top = crop.box.y + 'px';
+        boxEl.style.width = crop.box.w + 'px';
+        boxEl.style.height = crop.box.h + 'px';
+        crop.freeRect = { ...crop.box };
+        return;
+    }
+
+    const aspect = getTargetAspect();
+    let bw = crop.stageW, bh = bw / aspect;
+    if (bh > crop.stageH) { bh = crop.stageH; bw = bh * aspect; }
+    const bx = (crop.stageW - bw) / 2, by = (crop.stageH - bh) / 2;
+    crop.box = { x: bx, y: by, w: bw, h: bh };
+
+    let baseW = bw, baseH = baseW / (crop.natW / crop.natH);
+    if (baseH < bh) { baseH = bh; baseW = baseH * (crop.natW / crop.natH); }
+
+    const imgW = baseW * crop.zoom, imgH = baseH * crop.zoom;
+
+    const minX = bx + bw - imgW, maxX = bx;
+    const minY = by + bh - imgH, maxY = by;
+    const cx = bx + bw / 2 - imgW / 2 + crop.panX;
+    const cy = by + bh / 2 - imgH / 2 + crop.panY;
+    const clampedX = Math.max(minX, Math.min(maxX, cx));
+    const clampedY = Math.max(minY, Math.min(maxY, cy));
+    crop.panX = clampedX - (bx + bw / 2 - imgW / 2);
+    crop.panY = clampedY - (by + bh / 2 - imgH / 2);
+
+    const img = document.getElementById('cropImg');
+    img.style.width  = imgW + 'px';
+    img.style.height = imgH + 'px';
+    img.style.left   = clampedX + 'px';
+    img.style.top    = clampedY + 'px';
+}
+
+function onCropZoomInput(val, syncSlider) {
+    if (!crop) return;
+    crop.zoom = Math.max(1, Math.min(4, parseFloat(val) || 1));
+    if (syncSlider) document.getElementById('cropZoomSlider').value = crop.zoom;
+    layoutCrop();
+    updateCropAdjustments();
+}
+
+function updateRangeProgress(el) {
+    if (!el) return;
+    const min = parseFloat(el.min) || 0;
+    const max = parseFloat(el.max) || 100;
+    const val = parseFloat(el.value) || 0;
+    const pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
+    el.style.setProperty('--range-progress', `${Math.max(0, Math.min(100, pct))}%`);
+}
+
+function updateCropAdjustments() {
+    const zoomSlider = document.getElementById('cropZoomSlider');
+    const bSlider = document.getElementById('cropBrightness');
+    const cSlider = document.getElementById('cropContrast');
+    const hSlider = document.getElementById('cropHue');
+    const modeSelect = document.getElementById('cropColorMode');
+    const img = document.getElementById('cropImg');
+
+    const zoom = zoomSlider ? parseFloat(zoomSlider.value) || 1 : 1;
+    const brightness = bSlider ? parseInt(bSlider.value, 10) : 100;
+    const contrast = cSlider ? parseInt(cSlider.value, 10) : 100;
+    const hue = hSlider ? parseInt(hSlider.value, 10) : 0;
+    const colorMode = modeSelect ? modeSelect.value : 'color';
+
+    if (crop) {
+        crop.zoom = zoom;
+        crop.brightness = brightness;
+        crop.contrast = contrast;
+        crop.hue = hue;
+        crop.colorMode = colorMode;
+    }
+
+    document.getElementById('cropZoomValue').textContent = `${+zoom.toFixed(2)}×`;
+    document.getElementById('cropBrightnessValue').textContent = `${brightness}%`;
+    document.getElementById('cropContrastValue').textContent = `${contrast}%`;
+    document.getElementById('cropHueValue').textContent = `${hue}°`;
+
+    updateRangeProgress(zoomSlider);
+    updateRangeProgress(bSlider);
+    updateRangeProgress(cSlider);
+    updateRangeProgress(hSlider);
+
+    if (img) {
+        const bwFilter = colorMode === 'bw' ? ' grayscale(100%)' : '';
+        img.style.filter = `brightness(${brightness}%) contrast(${contrast}%) hue-rotate(${hue}deg)${bwFilter}`;
+    }
+}
+
+function resetCropSlider(sliderId) {
+    const defaults = { cropZoomSlider: 1, cropBrightness: 100, cropContrast: 100, cropHue: 0 };
+    const slider = document.getElementById(sliderId);
+    if (!slider || !(sliderId in defaults)) return;
+    slider.value = defaults[sliderId];
+    if (sliderId === 'cropZoomSlider') onCropZoomInput(defaults[sliderId], false);
+    updateCropAdjustments();
+}
+
+function resetCrop() {
+    if (!crop) return;
+    crop.zoom = 1; crop.panX = 0; crop.panY = 0;
+    crop.brightness = 100; crop.contrast = 100; crop.hue = 0; crop.colorMode = 'color';
+    crop.freeRect = null;
+    document.getElementById('cropZoomSlider').value = 1;
+    document.getElementById('cropBrightness').value = 100;
+    document.getElementById('cropContrast').value = 100;
+    document.getElementById('cropHue').value = 0;
+    document.getElementById('cropColorMode').value = 'color';
+    if (crop.aspectMode === 'free') setCropAspect('free');
+    else layoutCrop();
+    updateCropAdjustments();
 }
 
 function closeCrop() {
@@ -4776,287 +5101,198 @@ function closeCrop() {
     crop = null;
 }
 
-function getAspectRatioValue(mode) {
-    if (mode === 'square') return 1;
-    if (mode === 'tile') return getTileAspect();
-    if (mode === 'image' && crop && crop.natW && crop.natH) return crop.natW / crop.natH;
-    return null;
-}
-
-function updateCropHint() {
-    const hint = document.getElementById('cropSubHint');
-    if (!hint || !crop) return;
-    hint.textContent = crop.aspect === 'free'
-        ? 'Drag the crop box or its handles to choose any area'
-        : 'Drag the image to position and use Zoom to scale';
-}
-
-function setCropAspect(mode, keepSavedBox = false) {
-    if (!crop || !crop.natW) return;
-    crop.aspect = mode;
-    updateCropHint();
-    const isFree = mode === 'free';
-    cropStage.classList.toggle('free-crop-active', isFree);
-    document.getElementById('cropZoomRow').style.display = isFree ? 'none' : '';
-
-    const wrap = cropStage.parentElement;
-    const maxW = Math.max(240, (wrap.clientWidth || 640) - 24);
-    const maxH = Math.max(200, (wrap.clientHeight || 420) - 24);
-
-    if (isFree) {
-        const fitScale = Math.min(maxW / crop.natW, maxH / crop.natH);
-        crop.stageW = Math.max(120, Math.round(crop.natW * fitScale));
-        crop.stageH = Math.max(90,  Math.round(crop.natH * fitScale));
-        crop.dispW = crop.stageW;
-        crop.dispH = crop.stageH;
-        crop.imgX = 0;
-        crop.imgY = 0;
-
-        if (keepSavedBox && crop.savedBox) {
-            crop.box = {
-                x: Math.max(0, Math.min(crop.stageW - 24, crop.savedBox.x * crop.stageW)),
-                y: Math.max(0, Math.min(crop.stageH - 24, crop.savedBox.y * crop.stageH)),
-                w: Math.max(24, Math.min(crop.stageW, crop.savedBox.w * crop.stageW)),
-                h: Math.max(24, Math.min(crop.stageH, crop.savedBox.h * crop.stageH))
-            };
-        } else {
-            const pad = 0.1;
-            crop.box = {
-                x: Math.round(crop.stageW * pad),
-                y: Math.round(crop.stageH * pad),
-                w: Math.round(crop.stageW * (1 - pad * 2)),
-                h: Math.round(crop.stageH * (1 - pad * 2))
-            };
-        }
-    } else {
-        const ratio = getAspectRatioValue(mode) || (crop.natW / crop.natH);
-        let sw = maxW, sh = sw / ratio;
-        if (sh > maxH) { sh = maxH; sw = sh * ratio; }
-        crop.stageW = Math.max(120, Math.round(sw));
-        crop.stageH = Math.max(90,  Math.round(sh));
-        crop.box = null;
-        if (!keepSavedBox) crop.zoom = 1;
-        setCropZoomSliderValue(crop.zoom, true);
-        computeCoverSize(keepSavedBox);
-    }
-
-    layoutCropStage();
-}
-
-function computeCoverSize(keepSavedCenter = false) {
-    if (!crop) return;
-    const natRatio = crop.natW / crop.natH;
-    const stageRatio = crop.stageW / crop.stageH;
-    let baseW, baseH;
-    if (natRatio > stageRatio) {
-        baseH = crop.stageH;
-        baseW = baseH * natRatio;
-    } else {
-        baseW = crop.stageW;
-        baseH = baseW / natRatio;
-    }
-    crop.dispW = baseW * crop.zoom;
-    crop.dispH = baseH * crop.zoom;
-
-    if (keepSavedCenter && crop.savedBox) {
-        const cx = (crop.savedBox.x + crop.savedBox.w / 2) * crop.dispW;
-        const cy = (crop.savedBox.y + crop.savedBox.h / 2) * crop.dispH;
-        crop.imgX = crop.stageW / 2 - cx;
-        crop.imgY = crop.stageH / 2 - cy;
-    } else {
-        crop.imgX = (crop.stageW - crop.dispW) / 2;
-        crop.imgY = (crop.stageH - crop.dispH) / 2;
-    }
-    clampImagePan();
-}
-
-function clampImagePan() {
-    if (!crop) return;
-    if (crop.dispW <= crop.stageW) {
-        crop.imgX = (crop.stageW - crop.dispW) / 2;
-    } else {
-        crop.imgX = Math.min(0, Math.max(crop.stageW - crop.dispW, crop.imgX));
-    }
-    if (crop.dispH <= crop.stageH) {
-        crop.imgY = (crop.stageH - crop.dispH) / 2;
-    } else {
-        crop.imgY = Math.min(0, Math.max(crop.stageH - crop.dispH, crop.imgY));
-    }
-}
-
-function onCropZoomInput(val, fromSlider = false) {
-    if (!crop || crop.aspect === 'free') return;
-    const nextZoom = Math.min(4, Math.max(1, parseFloat(val) || 1));
-    const cx = (crop.stageW / 2 - crop.imgX) / crop.dispW;
-    const cy = (crop.stageH / 2 - crop.imgY) / crop.dispH;
-    crop.zoom = nextZoom;
-    computeCoverSize(false);
-    crop.imgX = crop.stageW / 2 - cx * crop.dispW;
-    crop.imgY = crop.stageH / 2 - cy * crop.dispH;
-    clampImagePan();
-    setCropZoomSliderValue(nextZoom, !fromSlider);
-    layoutCropStage();
-}
-
-function layoutCropStage() {
-    if (!crop) return;
-    cropStage.style.width  = crop.stageW + 'px';
-    cropStage.style.height = crop.stageH + 'px';
-    cropImg.style.width  = crop.dispW + 'px';
-    cropImg.style.height = crop.dispH + 'px';
-    cropImg.style.left   = crop.imgX + 'px';
-    cropImg.style.top    = crop.imgY + 'px';
-    if (crop.box) {
-        cropBoxRect.style.left   = crop.box.x + 'px';
-        cropBoxRect.style.top    = crop.box.y + 'px';
-        cropBoxRect.style.width  = crop.box.w + 'px';
-        cropBoxRect.style.height = crop.box.h + 'px';
-    }
-}
-
-function resetCrop() {
-    if (!crop) return;
-    crop.savedBox = null;
-    crop.zoom = 1;
-    crop.adjustments = { brightness: 100, contrast: 100, hue: 0, colorMode: 'color' };
-    syncCropAdjustmentUI(crop.adjustments);
-    setCropAspect(crop.aspect, false);
-}
-
-cropStage.addEventListener('pointerdown', e => {
-    if (!crop) return;
-    const handle = e.target.dataset?.handle;
-    if (handle && crop.box) {
-        e.preventDefault();
-        crop.drag = { type: 'handle', handle, startX: e.clientX, startY: e.clientY, startBox: { ...crop.box } };
-    } else if (e.target === cropBoxRect && crop.box) {
-        e.preventDefault();
-        crop.drag = { type: 'box', startX: e.clientX, startY: e.clientY, startBox: { ...crop.box } };
-    } else if (crop.aspect !== 'free') {
-        e.preventDefault();
-        crop.drag = { type: 'pan', startX: e.clientX, startY: e.clientY, startImgX: crop.imgX, startImgY: crop.imgY };
-    }
-});
-
-window.addEventListener('pointermove', e => {
-    if (!crop || !crop.drag) return;
-    const dx = e.clientX - crop.drag.startX;
-    const dy = e.clientY - crop.drag.startY;
-
-    if (crop.drag.type === 'pan') {
-        crop.imgX = crop.drag.startImgX + dx;
-        crop.imgY = crop.drag.startImgY + dy;
-        clampImagePan();
-        layoutCropStage();
-    } else if (crop.drag.type === 'box') {
-        const b = crop.drag.startBox;
-        crop.box.x = Math.min(crop.stageW - b.w, Math.max(0, b.x + dx));
-        crop.box.y = Math.min(crop.stageH - b.h, Math.max(0, b.y + dy));
-        layoutCropStage();
-    } else if (crop.drag.type === 'handle') {
-        const b = crop.drag.startBox;
-        const h = crop.drag.handle;
-        const minSize = 24;
-        let left = b.x, right = b.x + b.w, top = b.y, bottom = b.y + b.h;
-        if (h.includes('w')) left   = Math.min(right - minSize, Math.max(0, b.x + dx));
-        if (h.includes('e')) right  = Math.max(left + minSize,  Math.min(crop.stageW, b.x + b.w + dx));
-        if (h.includes('n')) top    = Math.min(bottom - minSize, Math.max(0, b.y + dy));
-        if (h.includes('s')) bottom = Math.max(top + minSize,   Math.min(crop.stageH, b.y + b.h + dy));
-        crop.box = { x: left, y: top, w: right - left, h: bottom - top };
-        layoutCropStage();
-    }
-});
-
-window.addEventListener('pointerup', () => { if (crop) crop.drag = null; });
-
-cropStage.addEventListener('wheel', e => {
-    if (!crop || crop.aspect === 'free') return;
-    e.preventDefault();
-    const step = e.deltaY < 0 ? 0.15 : -0.15;
-    onCropZoomInput(crop.zoom + step, false);
-}, { passive: false });
-
 function applyCrop() {
-    if (!crop || !crop.natW) return;
-    let sx, sy, sw, sh;
-    let savedBox;
+    if (!crop) return;
+    const obj = uploadedImages.find(i => i.id === crop.imageId);
+    if (!obj) { closeCrop(); return; }
 
-    if (crop.aspect === 'free' && crop.box) {
-        const nx = crop.box.x / crop.stageW;
-        const ny = crop.box.y / crop.stageH;
-        const nw = crop.box.w / crop.stageW;
-        const nh = crop.box.h / crop.stageH;
-        sx = nx * crop.natW;
-        sy = ny * crop.natH;
-        sw = nw * crop.natW;
-        sh = nh * crop.natH;
-        savedBox = { x: nx, y: ny, w: nw, h: nh };
-    } else {
-        const nx = Math.max(0, -crop.imgX / crop.dispW);
-        const ny = Math.max(0, -crop.imgY / crop.dispH);
-        const nw = Math.min(1 - nx, crop.stageW / crop.dispW);
-        const nh = Math.min(1 - ny, crop.stageH / crop.dispH);
-        sx = nx * crop.natW;
-        sy = ny * crop.natH;
-        sw = nw * crop.natW;
-        sh = nh * crop.natH;
-        savedBox = { x: nx, y: ny, w: nw, h: nh };
+    const bwFilter = crop.colorMode === 'bw' ? ' grayscale(100%)' : '';
+    const filterString = `brightness(${crop.brightness}%) contrast(${crop.contrast}%) hue-rotate(${crop.hue}deg)${bwFilter}`;
+    const hasFilterChanges = crop.brightness !== 100 || crop.contrast !== 100 || crop.hue !== 0 || crop.colorMode !== 'color';
+
+    const out = document.createElement('canvas');
+    const ctx = out.getContext('2d');
+
+    if (crop.aspectMode === 'free') {
+        const rx = crop.box.x / crop.stageW;
+        const ry = crop.box.y / crop.stageH;
+        const rw = crop.box.w / crop.stageW;
+        const rh = crop.box.h / crop.stageH;
+        const sx = Math.max(0, Math.min(crop.natW, rx * crop.natW));
+        const sy = Math.max(0, Math.min(crop.natH, ry * crop.natH));
+        const sw = Math.max(1, Math.min(crop.natW - sx, rw * crop.natW));
+        const sh = Math.max(1, Math.min(crop.natH - sy, rh * crop.natH));
+
+        out.width = Math.max(1, Math.round(sw));
+        out.height = Math.max(1, Math.round(sh));
+        ctx.filter = filterString;
+        ctx.drawImage(document.getElementById('cropImg'), sx, sy, sw, sh, 0, 0, out.width, out.height);
+
+        obj.croppedSrc = out.toDataURL('image/png');
+        obj.cropRect = null;
+        obj.freeCropRect = { ...crop.box };
+        obj.brightness = crop.brightness;
+        obj.contrast = crop.contrast;
+        obj.hue = crop.hue;
+        obj.colorMode = crop.colorMode;
+        const aspectRatio = out.height / out.width;
+        const currentTile = getImageTileSize(obj.id);
+        const nextW = Math.min(12, Math.max(0.2, currentTile.w));
+        const nextH = Math.min(12, Math.max(0.2, Math.round(nextW * aspectRatio * 100) / 100));
+        applyTileSizeToSelection(nextW, nextH);
+        document.getElementById('tileW').value = nextW;
+        document.getElementById('tileH').value = nextH;
+        saveConfig();
+        updatePresetActiveState();
+        closeCrop();
+        renderImageQueue();
+        renderCanvas();
+        return;
     }
 
-    const outW = Math.max(1, Math.round(sw));
-    const outH = Math.max(1, Math.round(sh));
-    const canvas = document.createElement('canvas');
-    canvas.width = outW;
-    canvas.height = outH;
-    const ctx = canvas.getContext('2d');
-    ctx.filter = getCropFilterString(crop.adjustments);
-    ctx.drawImage(cropImg, sx, sy, sw, sh, 0, 0, outW, outH);
+    const { x: bx, y: by, w: bw, h: bh } = crop.box;
+    const imgEl = document.getElementById('cropImg');
+    const imgLeft = parseFloat(imgEl.style.left), imgTop = parseFloat(imgEl.style.top);
+    const imgW = parseFloat(imgEl.style.width), imgH = parseFloat(imgEl.style.height);
 
-    const obj = uploadedImages.find(i => i.id === crop.imageId);
-    if (obj) {
-        obj.croppedSrc = canvas.toDataURL('image/png');
-        obj.cropRect = { mode: crop.aspect, zoom: crop.zoom, box: savedBox, adjustments: { ...crop.adjustments } };
+    const sx = ((bx - imgLeft) / imgW) * crop.natW;
+    const sy = ((by - imgTop)  / imgH) * crop.natH;
+    const sw = (bw / imgW) * crop.natW;
+    const sh = (bh / imgH) * crop.natH;
+
+    const isDefaultImageCrop = crop.aspectMode === 'image' && crop.zoom === 1 && crop.panX === 0 && crop.panY === 0;
+    if (isDefaultImageCrop && !hasFilterChanges) {
+        obj.croppedSrc = null;
+        obj.cropRect = null;
+        obj.brightness = 100;
+        obj.contrast = 100;
+        obj.hue = 0;
+        obj.colorMode = 'color';
+    } else {
+        const aspect = getTargetAspect();
+        const outW = Math.max(1, Math.round(sw));
+        const outH = Math.max(1, Math.round(outW / aspect));
+        out.width = outW; out.height = outH;
+        ctx.filter = filterString;
+        ctx.drawImage(imgEl, sx, sy, sw, sh, 0, 0, outW, outH);
+        obj.croppedSrc = out.toDataURL('image/png');
+        obj.cropRect = { zoom: crop.zoom, panX: crop.panX, panY: crop.panY };
+        obj.brightness = crop.brightness;
+        obj.contrast = crop.contrast;
+        obj.hue = crop.hue;
+        obj.colorMode = crop.colorMode;
     }
 
     closeCrop();
-    reconcileSelectionAndUI();
+    renderImageQueue();
+    renderCanvas();
 }
+
+/* ---- drag pan, free-crop resize & wheel zoom on the crop stage ---- */
+const cropStageEl = document.getElementById('cropStage');
+const cropBoxRectEl = document.getElementById('cropBoxRect');
+cropStageEl.addEventListener('pointerdown', e => {
+    if (!crop) return;
+    if (crop.aspectMode === 'free') {
+        const handle = e.target.dataset?.handle || null;
+        if (handle || e.target === cropBoxRectEl || cropBoxRectEl.contains(e.target)) {
+            crop.drag = {
+                mode: handle ? 'resize' : 'move',
+                handle,
+                startX: e.clientX,
+                startY: e.clientY,
+                origin: { ...crop.box }
+            };
+            cropStageEl.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        }
+        return;
+    }
+    crop.drag = { mode: 'pan', startX: e.clientX, startY: e.clientY, origX: crop.panX, origY: crop.panY };
+    cropStageEl.setPointerCapture(e.pointerId);
+});
+cropStageEl.addEventListener('pointermove', e => {
+    if (!crop || !crop.drag) return;
+    const dx = e.clientX - crop.drag.startX;
+    const dy = e.clientY - crop.drag.startY;
+    if (crop.drag.mode === 'move') {
+        crop.box.x = crop.drag.origin.x + dx;
+        crop.box.y = crop.drag.origin.y + dy;
+        layoutCrop();
+        return;
+    }
+    if (crop.drag.mode === 'resize') {
+        const o = crop.drag.origin;
+        const h = crop.drag.handle;
+        let x1 = o.x, y1 = o.y, x2 = o.x + o.w, y2 = o.y + o.h;
+        if (h.includes('w')) x1 += dx;
+        if (h.includes('e')) x2 += dx;
+        if (h.includes('n')) y1 += dy;
+        if (h.includes('s')) y2 += dy;
+        if (x2 - x1 < 24) { if (h.includes('w')) x1 = x2 - 24; else x2 = x1 + 24; }
+        if (y2 - y1 < 24) { if (h.includes('n')) y1 = y2 - 24; else y2 = y1 + 24; }
+        crop.box = { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+        layoutCrop();
+        return;
+    }
+    crop.panX = crop.drag.origX + dx;
+    crop.panY = crop.drag.origY + dy;
+    layoutCrop();
+});
+const endCropDrag = () => { if (crop) crop.drag = null; };
+cropStageEl.addEventListener('pointerup', endCropDrag);
+cropStageEl.addEventListener('pointercancel', endCropDrag);
+cropStageEl.addEventListener('wheel', e => {
+    if (!crop || crop.aspectMode === 'free') return;
+    e.preventDefault();
+    const step = e.deltaY < 0 ? 0.15 : -0.15;
+    onCropZoomInput(crop.zoom + step, true);
+}, { passive: false });
 
 /* =========================================================
    KEYBOARD SHORTCUTS
    ========================================================= */
 document.addEventListener('keydown', e => {
-    const tag = e.target.tagName;
-    const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
-
-    if (document.getElementById('customModal').classList.contains('active')) {
-        if (e.key === 'Escape') closeModal(false);
-        if (e.key === 'Enter') closeModal(true);
-        return;
+    if (e.key === 'Escape') {
+        if (document.getElementById('cropModal').classList.contains('active')) { closeCrop(); return; }
+        if (document.getElementById('customModal').classList.contains('active')) { closeModal(false); return; }
     }
+    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
     if (document.getElementById('cropModal').classList.contains('active')) {
-        if (e.key === 'Escape') closeCrop();
+        if (e.key === '+' || e.key === '=') onCropZoomInput(crop.zoom + 0.15, true);
+        if (e.key === '-') onCropZoomInput(crop.zoom - 0.15, true);
+        if (e.key === '0') resetCrop();
         return;
     }
+    if (document.getElementById('customModal').classList.contains('active')) return;
 
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !isTyping) {
-        if (lastDeletedSnapshot) {
-            e.preventDefault();
-            undoLastDeletion();
-            return;
-        }
-    }
-
-    if (!isTyping && e.key === 'ArrowLeft')  prevPage();
-    if (!isTyping && e.key === 'ArrowRight') nextPage();
-
-    if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'q' && !isTyping) {
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === 'a' && uploadedImages.length) {
         e.preventDefault();
-        toggleRoundBorderShortcut();
+        selectedImageIds = new Set(uploadedImages.map(img => img.id));
+        activeImageId = activeImageId || uploadedImages[0].id;
+        renderImageQueue();
+        updateGroupButton();
         return;
     }
-
-    if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'e' && !isTyping) {
+    if (mod && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        duplicateSelectedLayers();
+        return;
+    }
+    if (mod && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        if (e.shiftKey) {
+            const pg = pages.find(p => (p.imageIds || []).length > 1 &&
+                (p.id === selectedGroupPageId || p.imageIds.every(id => selectedImageIds.has(id))));
+            if (pg) ungroupPage(pg);
+        } else {
+            toggleGroupSelection();
+        }
+        return;
+    }
+    if (!mod && !e.altKey && e.key.toLowerCase() === 'e') {
         const activeLayer = getActiveImage();
         if (activeLayer) {
             e.preventDefault();
@@ -5064,45 +5300,18 @@ document.addEventListener('keydown', e => {
         }
         return;
     }
-
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd' && !isTyping) {
+    if (!mod && !e.altKey && e.key.toLowerCase() === 'q') {
         e.preventDefault();
-        duplicateSelectedLayers();
+        toggleRoundBorderShortcut();
         return;
     }
-
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && !isTyping) {
-        const ids = getLayerStackIds();
-        if (ids.length) {
-            e.preventDefault();
-            selectedGroupPageId = null;
-            selectedImageIds = new Set(ids);
-            activeImageId = activeImageId && ids.includes(activeImageId) ? activeImageId : ids[0];
-            layerAnchorIndex = ids.indexOf(activeImageId);
-            reconcileSelectionAndUI();
-        }
-        return;
-    }
-
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g' && !isTyping) {
-        const selected = [...selectedImageIds];
-        const groups = pages.filter(pg => (pg.imageIds || []).length > 1);
-        const matchingGroup = groups.find(pg => pg.imageIds.every(id => selectedImageIds.has(id)) &&
-            selected.every(id => pg.imageIds.includes(id)));
-        if (e.shiftKey) {
-            if (matchingGroup) { e.preventDefault(); ungroupPage(matchingGroup); }
-        } else if (selected.length >= 2 && !matchingGroup && !selected.some(id =>
-            groups.some(pg => pg.imageIds.includes(id)))) {
-            e.preventDefault();
-            groupImages(selected);
-        }
-        return;
-    }
-
-    if (!isTyping && (e.key === 'Delete' || e.key === 'Backspace')) {
-        e.preventDefault();
+    if (e.key === 'Delete' || e.key === 'Backspace') {
         deleteSelectedLayers();
+        return;
     }
+
+    if (e.key === 'ArrowLeft')  prevPage();
+    if (e.key === 'ArrowRight') nextPage();
 });
 
 /* =========================================================
@@ -5116,10 +5325,14 @@ setPaperSize(currentPaper);
 reconcileSelectionAndUI();
 
 window.addEventListener('load', () => {
-    setTimeout(hideLoading, 350);
+    setLoadingText('Ready!');
+    hideLoading();
 });
 setTimeout(() => {
-    if (!loadingOverlay.classList.contains('hidden')) hideLoading();
+    if (!loadingOverlay.classList.contains('hidden')) {
+        setLoadingText('Ready!');
+        hideLoading();
+    }
 }, 4000);
 </script>
 </body>
