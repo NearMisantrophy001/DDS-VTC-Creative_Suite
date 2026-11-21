@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lato:wght@400;700;900&family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;600;700;800&family=Oswald:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <title>Rush ID</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;600;700;800&family=Oswald:wght@400;500;600;700&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="192x192" href="favicon_io/favicon_dark.ico">
     <style>
         :root {
@@ -34,8 +40,11 @@
 
             --gap-v: 0mm;
             --gap-h: 0mm;
-            --border-w: 0.1px;       
+            --border-w: 0.1px;
             --border-c: #E5E7EB;
+            --border-style: solid;
+            --border-radius: 0px;
+            --layout-align-x: flex-start;
         }
 
         [data-theme="dark"] {
@@ -217,6 +226,17 @@
             border-radius: 4px; overflow: hidden; border: 2px solid transparent; transition: all 0.2s; background: var(--border);
         }
         .thumb-container img { display: block; width: 100% !important; height: 100% !important; object-fit: cover; }
+        .thumb-container .thumb-edit-btn {
+            position: absolute; left: 2px; bottom: 2px; z-index: 2;
+            width: 17px; height: 17px; padding: 0; border: 0; border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(15, 23, 42, .78); color: #fff; cursor: pointer;
+            opacity: .9; transition: background .15s, opacity .15s;
+        }
+        .thumb-container .thumb-edit-btn:hover,
+        .thumb-container .thumb-edit-btn:focus-visible { opacity: 1; background: var(--brand-blue); outline: none; }
+        .thumb-container .thumb-edit-btn svg { width: 11px; height: 11px; }
+        .thumb-container .remove-btn { z-index: 3; }
         .thumb-container.active { border-color: var(--brand-blue); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.28); }
         
         .thumb-container .remove-btn {
@@ -382,6 +402,52 @@
             background: var(--bg-workspace); color: var(--text-main); text-align: center; font-weight: 600; outline: none; font-size: 0.8rem;
         }
         .setting-value-wrapper span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; width: 16px; }
+
+        /* Compact Spacing & Border controls */
+        .spacing-border-panel { display: flex; flex-direction: column; gap: 16px; }
+        .spacing-control-block { display: flex; flex-direction: column; gap: 8px; }
+        .alignment-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .alignment-segment { min-width: 0; }
+        .alignment-button { display: flex; align-items: center; justify-content: center; min-height: 28px; }
+        .alignment-button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        .spacing-inline-row, .stroke-controls-row, .border-color-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        }
+        .spacing-inline-fields { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+        .compact-metric { display: flex; align-items: center; gap: 4px; min-width: 0; }
+        .metric-icon { color: var(--text-muted); font-size: 15px; width: 16px; text-align: center; line-height: 1; }
+        .compact-metric input, .border-metric-input input {
+            width: 46px; height: 29px; padding: 3px 4px; border: 1px solid var(--border);
+            border-radius: 4px; background: var(--bg-workspace); color: var(--text-main);
+            text-align: center; font-size: 0.8rem; font-weight: 700; outline: none;
+        }
+        .compact-metric input:focus, .border-metric-input input:focus, #setBorderHex:focus { border-color: var(--brand-blue); }
+        .metric-unit, .border-metric-input > span { color: var(--text-muted); font-size: 0.65rem; font-weight: 600; }
+        .compact-hidden-slider { display: none; }
+        .spacing-section-label { padding-top: 2px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.75rem; font-weight: 600; }
+        .border-metrics-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .border-metric { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+        .border-metric-input { display: flex; align-items: center; gap: 5px; }
+        .border-metric-input input { width: 50px; }
+        .stroke-selects { display: flex; gap: 8px; width: 70%; }
+        .stroke-select { width: 50%; }
+        .stroke-select select { height: 30px; padding-top: 4px; padding-bottom: 4px; }
+        .border-color-inputs { display: flex; align-items: center; gap: 6px; }
+        #setBorderHex {
+            width: 108px; height: 30px; padding: 4px 7px; border: 1px solid var(--border);
+            border-radius: 4px; background: var(--bg-workspace); color: var(--text-main);
+            text-align: center; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; outline: none;
+        }
+        #setBorderC {
+            width: 30px; height: 30px; padding: 2px; border: 1px solid var(--border);
+            border-radius: 4px; cursor: pointer; background: var(--bg-workspace);
+        }
+        @media (max-width: 340px) {
+            .alignment-controls { gap: 5px; }
+            .spacing-inline-fields { gap: 4px; }
+            .compact-metric input { width: 40px; }
+            #setBorderHex { width: 92px; }
+        }
         
         .setting-slider {
             width: 100%; height: 6px; -webkit-appearance: none; background: var(--border); border-radius: 3px;
@@ -510,7 +576,7 @@
         }
         .safe-zone-active .safe-zone-overlay { display: block; }
 
-        .layout-container { display: flex; flex-direction: column; gap: var(--gap-v); width: 100%; align-items: flex-start; }
+        .layout-container { display: flex; flex-direction: column; gap: var(--gap-v); width: 100%; align-items: var(--layout-align-x, flex-start); }
         .grid-row { display: flex; gap: var(--gap-h); justify-content: flex-start; }
 
         .package-wrapper { display: grid; gap: var(--gap-v); width: max-content; margin-bottom: var(--gap-v); }
@@ -520,13 +586,23 @@
         .photo-item {
             position: relative; display: flex; justify-content: center; align-items: center;
             overflow: hidden; pointer-events: none; box-sizing: border-box; 
-            border-width: var(--border-w); border-style: solid; border-color: var(--border-c); margin: 0; 
+            border-width: var(--border-w); border-style: var(--border-style, solid); border-color: var(--border-c);
+            border-radius: var(--border-radius, 0px); margin: 0;
         }
         .photo-item img { display: block !important; width: 100% !important; height: 100% !important; object-fit: cover; }
 
         .landscape-passport {
             position: relative; overflow: hidden; 
-            border-width: var(--border-w); border-style: solid; border-color: var(--border-c); margin: 0;
+            border-width: var(--border-w); border-style: var(--border-style, solid); border-color: var(--border-c);
+            border-radius: var(--border-radius, 0px); margin: 0;
+        }
+
+        /* Stroke alignment: inside is the default native border; outside/center use an outline. */
+        html[data-stroke-position="outside"] .photo-item,
+        html[data-stroke-position="outside"] .landscape-passport {
+            border-color: transparent;
+            outline: var(--border-w) var(--border-style, solid) var(--border-c);
+            outline-offset: 0;
         }
         .landscape-passport img {
             position: absolute !important; top: 50%; left: 50%;
@@ -552,6 +628,160 @@
 
         .warning-text {
             font-size: 0.65rem; color: #D97706; text-align: center; margin-top: 8px; display: none; font-weight: 600;
+        }
+
+
+        /* ============ PRINT GRID-STYLE IMAGE EDITOR ============ */
+
+        .crop-adjust-details { width:100%; border:0; border-radius:0; overflow:visible; }
+        .crop-adjust-details > summary {
+            list-style:none; display:flex; justify-content:space-between; align-items:center;
+            cursor:pointer; user-select:none; outline:none; padding:6px 0;
+            border-bottom:1px solid var(--border); background:transparent;
+            font-size:.65rem; font-weight:700; text-transform:uppercase;
+            color:var(--text-muted); letter-spacing:.05em;
+        }
+        .crop-adjust-details > summary::-webkit-details-marker { display:none; }
+        .crop-adjust-details > summary::after { content:'▼'; font-size:8px; color:var(--text-muted); transition:transform .2s; }
+        .crop-adjust-details[open] > summary::after { transform:rotate(180deg); }
+        .crop-adjust-details > summary:hover { color:var(--text-main); }
+        .crop-adjust-details > summary:hover::after { color:var(--text-main); }
+        .crop-adjust-inner { padding:10px 0 4px; display:flex; flex-direction:column; gap:9px; }
+        .crop-name-tag-preview {
+            display:none; position:absolute; z-index:4; left:0; bottom:0; width:100%;
+            box-sizing:border-box; min-height:25px; padding:4px 7px;
+            background:#fff; color:#111827; border-top:1px solid rgba(0,0,0,.55);
+            font:700 18px Arial,sans-serif; line-height:1.15; text-align:center;
+            white-space:nowrap; pointer-events:none; overflow:hidden;
+            align-items:center; justify-content:center;
+        }
+        .crop-name-tag-preview > span { display:inline-block; white-space:nowrap; transform-origin:center center; }
+        .crop-name-tag-preview.visible { display:flex; }
+
+        .crop-box {
+            background: var(--bg-panel); color: var(--text-main);
+            border-radius: 10px; border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0,0,0,.55);
+            width: min(98vw, 1280px); max-width: 1280px; height: min(94vh, 920px); max-height: 94vh;
+            padding: 16px; display: flex; flex-direction: column; gap: 10px;
+            overflow: hidden; transform: translateY(20px); transition: transform .2s;
+        }
+        .modal-overlay.active .crop-box { transform: translateY(0); }
+        .crop-head { display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
+        .crop-sub { font-size: .7rem; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
+        .crop-close-btn {
+            background: transparent; border: none; cursor: pointer; color: var(--text-muted);
+            width: 28px; height: 28px; border-radius: 4px; display:flex; align-items:center;
+            justify-content:center; font-size:16px; transition:all .2s;
+        }
+        .crop-close-btn:hover { background:var(--hover-bg); color:var(--text-main); }
+        .crop-content {
+            display:grid;
+            grid-template-columns:minmax(220px, 250px) minmax(300px, 1fr) minmax(210px, 235px);
+            gap:12px; min-height:0; flex:1 1 auto; align-items:stretch; overflow:hidden;
+        }
+        .crop-stage-wrap {
+            min-width:0; min-height:0; display:flex; justify-content:center; align-items:center;
+            background:var(--bg-workspace); border:1px solid var(--border); border-radius:8px;
+            padding:12px; overflow:auto;
+        }
+        .crop-stage {
+            position:relative; flex:0 0 auto; overflow:hidden; background:#0b0b0b;
+            border-radius:3px; cursor:grab; touch-action:none; box-shadow:0 0 0 1px rgba(0,0,0,.25);
+        }
+        .crop-stage:active { cursor:grabbing; }
+        .crop-stage img { position:absolute; z-index:1; max-width:none; max-height:none; user-select:none; -webkit-user-drag:none; pointer-events:none; }
+        .crop-grid-lines {
+            position:absolute; inset:0; pointer-events:none;
+            background-image:linear-gradient(to right, rgba(255,255,255,.22) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.22) 1px, transparent 1px);
+            background-size:33.3333% 33.3333%; box-shadow:inset 0 0 0 1px rgba(255,255,255,.6);
+        }
+        .crop-box-rect {
+            position:absolute; z-index:2; border:2px solid #fff;
+            box-shadow:0 0 0 9999px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.45);
+            cursor:move; touch-action:none; display:none;
+        }
+        .crop-stage.free-crop-active > .crop-grid-lines { display:none; }
+        .crop-box-rect { display:block; pointer-events:none; }
+        .crop-stage.free-crop-active .crop-box-rect { pointer-events:auto; }
+        .crop-stage:not(.free-crop-active) .crop-box-rect .crop-handle { display:none; }
+        .crop-box-rect > .crop-grid-lines { display:none; }
+        .id-photo-guide { position:absolute; z-index:8; pointer-events:none; overflow:visible; opacity:1; display:block !important; visibility:visible; filter:drop-shadow(0 0 1.4px rgba(0,0,0,.82)); }
+        .id-photo-guide .guide-line { stroke:rgba(255,255,255,.92); stroke-width:1.15; stroke-dasharray:2.4 2; fill:none; vector-effect:non-scaling-stroke; }
+        .id-photo-guide .guide-face { stroke:rgba(255,255,255,.96); stroke-width:1.45; fill:rgba(255,255,255,.025); vector-effect:non-scaling-stroke; }
+        .id-photo-guide .guide-center { stroke:rgba(255,255,255,.9); stroke-width:1.05; stroke-dasharray:2.2 2; fill:none; vector-effect:non-scaling-stroke; }
+        .id-photo-guide .guide-label { fill:rgba(255,255,255,.96); stroke:rgba(0,0,0,.68); stroke-width:.7; paint-order:stroke; font-family:Arial,sans-serif; font-size:3.5px; font-weight:600; letter-spacing:.12px; opacity:.9; pointer-events:none; }
+        .crop-handle { position:absolute; width:10px; height:10px; background:#fff; border:1.5px solid var(--brand-blue); border-radius:2px; z-index:3; }
+        .crop-handle.nw { top:-5px;left:-5px;cursor:nwse-resize; } .crop-handle.ne { top:-5px;right:-5px;cursor:nesw-resize; }
+        .crop-handle.sw { bottom:-5px;left:-5px;cursor:nesw-resize; } .crop-handle.se { bottom:-5px;right:-5px;cursor:nwse-resize; }
+        .crop-handle.n { top:-5px;left:50%;transform:translateX(-50%);cursor:ns-resize; } .crop-handle.s { bottom:-5px;left:50%;transform:translateX(-50%);cursor:ns-resize; }
+        .crop-handle.w { left:-5px;top:50%;transform:translateY(-50%);cursor:ew-resize; } .crop-handle.e { right:-5px;top:50%;transform:translateY(-50%);cursor:ew-resize; }
+        .crop-settings {
+            display:flex; flex-direction:column; gap:9px; min-width:0; min-height:0;
+            padding:2px 10px 4px; max-height:100%; overflow-y:auto; scrollbar-width:thin;
+        }
+        .crop-settings-left { border-right:1px solid var(--border); padding-left:0; }
+        .crop-settings-right { border-left:1px solid var(--border); padding-right:0; }
+        .crop-stage-wrap { min-width:0; min-height:0; }
+
+        @media (max-width: 980px) {
+            .crop-box { width:96vw; height:94vh; padding:12px; gap:10px; }
+            .crop-content { grid-template-columns:minmax(0,1fr) minmax(190px,230px); grid-template-rows:minmax(230px,1fr) auto; overflow-y:auto; }
+            .crop-stage-wrap { grid-column:1 / -1; grid-row:1; min-height:230px; }
+            .crop-settings-left { grid-column:1; grid-row:2; border-right:0; border-top:1px solid var(--border); padding:10px 8px 4px 0; }
+            .crop-settings-right { grid-column:2; grid-row:2; border-left:1px solid var(--border); border-top:1px solid var(--border); padding:10px 0 4px 8px; }
+            .crop-settings { max-height:none; overflow:visible; }
+        }
+        @media (max-width: 620px) {
+            .crop-content { display:flex; flex-direction:column; overflow-y:auto; }
+            .crop-stage-wrap { order:0; min-height:220px; flex:0 0 auto; }
+            .crop-settings-left { order:1; border:0; border-top:1px solid var(--border); padding:10px 0 4px; }
+            .crop-settings-right { order:2; border:0; border-top:1px solid var(--border); padding:10px 0 4px; }
+            .crop-settings { overflow:visible; }
+            .crop-footer { justify-content:space-between; flex-wrap:wrap; }
+            .crop-footer-left { flex:0 1 auto; }
+            .crop-footer-right { flex:0 0 auto; margin-left:auto; }
+        }
+        .crop-setting-label { display:block; font-size:.78rem; color:var(--text-muted); margin-bottom:6px; }
+        .crop-mode-select { width:100%; min-height:36px; background:var(--bg-workspace); color:var(--text-main); border:1px solid var(--border); border-radius:6px; padding:7px 9px; }
+        .crop-zoom-slider, .crop-adjust-slider {
+            --range-progress:0%; width:100%; height:18px; border-radius:999px; appearance:none;
+            background:transparent; outline:none; cursor:pointer; display:block; margin:8px 0 2px;
+        }
+        .crop-zoom-slider::-webkit-slider-runnable-track, .crop-adjust-slider::-webkit-slider-runnable-track {
+            height:4px; border-radius:999px; background:linear-gradient(to right, var(--brand-blue) 0 var(--range-progress), #454b55 var(--range-progress) 100%);
+        }
+        .crop-zoom-slider::-moz-range-track, .crop-adjust-slider::-moz-range-track { height:4px; border-radius:999px; background:#454b55; }
+        .crop-zoom-slider::-moz-range-progress, .crop-adjust-slider::-moz-range-progress { height:4px; border-radius:999px; background:var(--brand-blue); }
+        .crop-zoom-slider::-webkit-slider-thumb, .crop-adjust-slider::-webkit-slider-thumb { appearance:none; width:12px; height:12px; margin-top:-4px; border-radius:50%; background:var(--brand-blue); border:0; cursor:pointer; }
+        .crop-zoom-slider::-moz-range-thumb, .crop-adjust-slider::-moz-range-thumb { width:12px; height:12px; border-radius:50%; background:var(--brand-blue); border:0; cursor:pointer; }
+        .crop-adjust-group { display:flex; flex-direction:column; gap:5px; }
+        .crop-adjust-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+        .crop-adjust-value { color:var(--text-muted); font-size:.72rem; min-width:42px; text-align:right; font-variant-numeric:tabular-nums; }
+        .crop-mini-reset { display:inline-flex; align-items:center; justify-content:center; width:23px; height:23px; padding:0; border:0; border-radius:5px; background:transparent; color:var(--text-muted); cursor:pointer; flex:0 0 auto; }
+        .crop-mini-reset svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+        .crop-mini-reset:hover { color:var(--brand-blue); background:var(--bg-workspace); }
+        .crop-settings select { color:var(--text-main); }
+        .crop-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; gap:8px; flex-shrink:0; width:100%; padding-top:9px; border-top:1px solid var(--border); background:var(--bg-panel); }
+        .crop-footer .btn { min-height:36px; white-space:nowrap; }
+        .crop-footer-left { display:flex; align-items:center; gap:6px; flex:0 0 auto; }
+        .crop-footer-right { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-left:auto; flex:0 0 auto; }
+        /* Match the main Rush ID footer: Export button followed by the compact format selector. */
+        .crop-export-control { display:flex; align-items:stretch; gap:6px; flex:0 0 230px; width:230px; }
+        .crop-export-control .btn { min-width:0; flex:1 1 auto; gap:7px; }
+        .crop-export-control .select-wrapper { width:70px; }
+        .crop-export-control .select-wrapper select { min-height:36px; }
+        .crop-reset-btn { width:36px; min-width:36px; height:36px; padding:0 !important; font-size:0 !important; }
+        .crop-reset-btn svg { width:16px !important; height:16px !important; }
+        .crop-footer .btn-primary { min-width:135px; }
+        @media (max-width:700px) {
+            .crop-box { width:96vw; max-height:96vh; padding:12px; gap:10px; }
+            .crop-content { grid-template-columns:minmax(0,1fr); }
+            .crop-stage-wrap { min-height:180px; }
+            .crop-settings { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+            .crop-footer { flex-wrap:wrap; }
+            .crop-footer-left { flex:0 1 auto; }
+            .crop-footer-right { flex:0 0 auto; margin-left:auto; }
         }
 
         .modal-overlay {
@@ -717,7 +947,11 @@
             }
             .paper-page:last-child { page-break-after: auto; break-after: auto; }
             .safe-zone-overlay, .paper-label, .modal-overlay, .loading-overlay { display: none !important; }
-            .photo-item, .landscape-passport { border-color: var(--border-c) !important; }
+            .photo-item, .landscape-passport {
+                border-color: var(--border-c) !important;
+                border-style: var(--border-style, solid) !important;
+                border-radius: var(--border-radius, 0px) !important;
+            }
             .layout-container { gap: var(--gap-v) !important; }
             .grid-row { gap: var(--gap-h) !important; }
             .package-wrapper { gap: var(--gap-v) !important; }
@@ -725,7 +959,111 @@
             .package-1x1-col { gap: var(--gap-h) !important; }
             @page { size: var(--paper-size-name); margin: 0; }
         }
-    </style>
+    
+        /* Spacing & Border panel — shared compact Print Grid control styling */
+        .alignment-block { margin-bottom: 14px; }
+        .alignment-block .setting-label { display: block; margin-bottom: 8px; }
+        .alignment-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .alignment-group {
+            display: flex;
+            background: var(--bg-workspace);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px;
+            gap: 2px;
+            height: 30px;
+        }
+        .alignment-group button {
+            flex: 1; min-width: 0; height: 100%; border: none;
+            background: transparent; border-radius: 4px; cursor: pointer;
+            color: var(--text-muted); display: inline-flex;
+            align-items: center; justify-content: center; padding: 0;
+            transition: all .15s ease;
+        }
+        .alignment-group button:hover { color: var(--text-main); background: var(--hover-bg); }
+        .alignment-group button.active {
+            background: var(--primary) !important; color: #fff !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,.28);
+        }
+        .alignment-group button svg { width: 14px; height: 14px; display: block; }
+
+        .compact-setting-row {
+            display: grid;
+            grid-template-columns: 76px minmax(0, 1fr);
+            align-items: center;
+            column-gap: 10px;
+            min-height: 36px;
+            margin-bottom: 14px;
+        }
+        .compact-setting-row:last-of-type { margin-bottom: 8px; }
+        .compact-setting-row .setting-value-wrapper {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 15px;
+            align-items: center;
+            column-gap: 4px;
+            min-width: 0;
+        }
+        .compact-setting-row .setting-value-wrapper input {
+            width: 100%; min-width: 0; height: 30px; padding: 2px 4px;
+            background: var(--input-bg); -moz-appearance: textfield;
+        }
+        .compact-setting-row .setting-value-wrapper input::-webkit-outer-spin-button,
+        .compact-setting-row .setting-value-wrapper input::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+        .compact-setting-row .setting-value-wrapper span { text-align: left; }
+        .spacing-control-group {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            align-items: center; column-gap: 8px; min-width: 0; width: 100%;
+        }
+        .icon-number-control {
+            display: grid; grid-template-columns: 15px minmax(0, 1fr);
+            align-items: center; column-gap: 4px; min-width: 0;
+        }
+        .control-icon { width: 15px; height: 15px; color: var(--text-muted); justify-self: center; }
+        .stroke-select-group {
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px; width: 100%; min-width: 0;
+        }
+        .stroke-select-group .select-wrapper { width: 100%; min-width: 0; }
+        .stroke-select-group .select-wrapper select {
+            height: 30px; padding: 5px 18px 5px 7px; font-size: .72rem;
+        }
+        .border-color-group {
+            display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0;
+        }
+        .border-color-group input[type="text"] {
+            flex: 1 1 auto; min-width: 0; width: auto; height: 30px;
+            padding: 2px 8px; border: 1px solid var(--border); border-radius: 4px;
+            background: var(--input-bg); color: var(--text-main); text-align: center;
+            font-weight: 600; outline: none; font-size: .78rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            text-transform: uppercase; transition: border-color .2s;
+        }
+        .border-color-group input[type="text"]:focus { border-color: var(--brand-blue); }
+        .border-color-group input[type="color"] {
+            width: 30px; height: 30px; padding: 2px; border: 1px solid var(--border);
+            border-radius: 5px; cursor: pointer; background: var(--input-bg); flex: 0 0 30px;
+        }
+        @media (max-width: 360px) {
+            .compact-setting-row { grid-template-columns: 72px minmax(0, 1fr); column-gap: 8px; }
+            .spacing-control-group { column-gap: 6px; }
+            .icon-number-control { column-gap: 4px; }
+        }
+
+
+        /* Font Style controls live in the right-hand editor panel. */
+        #fontStyleSettings .crop-adjust-inner { gap:8px; }
+        #fontStyleSettings .crop-adjust-inner > .crop-adjust-head { margin-top:6px !important; }
+        #fontStyleSettings .crop-adjust-inner > .crop-mode-select { min-height:32px; }
+        #fontStyleSettings .crop-adjust-inner .crop-adjust-slider { margin-top:5px; }
+
+</style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -917,48 +1255,139 @@
                 </div>
             </details>
 
-            <details id="acc-spacing">
-                <summary>Spacing and Border</summary>
-                <div class="details-content">
-                    <div class="setting-row">
-                        <div class="setting-header">
-                            <span class="setting-label">Vertical Gap</span>
-                            <div class="setting-value-wrapper">
-                                <input type="number" id="numGapV" step="0.1" min="0" max="5" value="0" oninput="syncSlider('numGapV', 'sliderGapV'); updateSettings()">
-                                <span>mm</span>
-                            </div>
+            <details open id="acc-spacing">
+            <summary>Spacing &amp; Border</summary>
+            <div class="details-content">
+                <div class="alignment-block">
+                    <span class="setting-label">Alignment</span>
+                    <div class="alignment-row">
+                        <!-- Independent Horizontal Alignment: Left / Center H / Right -->
+                        <div class="alignment-group" role="group" aria-label="Horizontal alignment">
+                            <button id="alignLeftBtn" class="active" type="button" onclick="setAlignH('left')" title="Align horizontal left" aria-label="Align horizontal left">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="2.5" y1="2" x2="2.5" y2="14"></line>
+                                    <rect x="4.5" y="4.5" width="8" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="4.5" y="8.5" width="5.5" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
+                            <button id="alignCenterHBtn" type="button" onclick="setAlignH('center')" title="Align horizontal center" aria-label="Align horizontal center">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="8" y1="2" x2="8" y2="14"></line>
+                                    <rect x="3.5" y="4.5" width="9" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="5" y="8.5" width="6" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
+                            <button id="alignRightBtn" type="button" onclick="setAlignH('right')" title="Align horizontal right" aria-label="Align horizontal right">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="13.5" y1="2" x2="13.5" y2="14"></line>
+                                    <rect x="3.5" y="4.5" width="8" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="6" y="8.5" width="5.5" height="3" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
                         </div>
-                        <input type="range" id="sliderGapV" class="setting-slider" step="0.1" min="0" max="5" value="0" oninput="syncNumber('sliderGapV', 'numGapV'); updateSettings()">
-                    </div>
-
-                    <div class="setting-row">
-                        <div class="setting-header">
-                            <span class="setting-label">Horizontal Gap</span>
-                            <div class="setting-value-wrapper">
-                                <input type="number" id="numGapH" step="0.1" min="0" max="5" value="0" oninput="syncSlider('numGapH', 'sliderGapH'); updateSettings()">
-                                <span>mm</span>
-                            </div>
+                        <!-- Independent Vertical Alignment: Top / Center V / Bottom -->
+                        <div class="alignment-group" role="group" aria-label="Vertical alignment">
+                            <button id="alignTopBtn" class="active" type="button" onclick="setAlignV('top')" title="Align vertical top" aria-label="Align vertical top">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="2" y1="2.5" x2="14" y2="2.5"></line>
+                                    <rect x="4.5" y="4.5" width="3" height="8" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="8.5" y="4.5" width="3" height="5.5" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
+                            <button id="alignCenterBtn" type="button" onclick="setAlignV('center')" title="Align vertical center" aria-label="Align vertical center">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="2" y1="8" x2="14" y2="8"></line>
+                                    <rect x="4.5" y="3.5" width="3" height="9" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="8.5" y="5" width="3" height="6" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
+                            <button id="alignBottomBtn" type="button" onclick="setAlignV('bottom')" title="Align vertical bottom" aria-label="Align vertical bottom">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="2" y1="13.5" x2="14" y2="13.5"></line>
+                                    <rect x="4.5" y="3.5" width="3" height="8" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                    <rect x="8.5" y="6" width="3" height="5.5" rx="0.75" fill="currentColor" stroke="none"></rect>
+                                </svg>
+                            </button>
                         </div>
-                        <input type="range" id="sliderGapH" class="setting-slider" step="0.1" min="0" max="5" value="0" oninput="syncNumber('sliderGapH', 'numGapH'); updateSettings()">
                     </div>
-
-                    <div class="setting-row" style="margin-bottom: 8px;">
-                        <div class="setting-header">
-                            <span class="setting-label">Border Width</span>
+                </div>
+                <div class="compact-setting-row">
+                    <span class="setting-label">Spacing</span>
+                    <div class="spacing-control-group" aria-label="Tile spacing">
+                        <div class="icon-number-control" title="Horizontal spacing">
+                            <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/>
+                            </svg>
                             <div class="setting-value-wrapper">
-                                <input type="number" id="numBorderW" step="0.1" min="0" max="5" value="0.1" oninput="syncSlider('numBorderW', 'sliderBorderW'); updateSettings()">
+                                <input type="number" id="numGapH" step="1" min="0" max="200" value="0" oninput="updateSettings()" aria-label="Horizontal spacing">
                                 <span>px</span>
                             </div>
                         </div>
-                        <input type="range" id="sliderBorderW" class="setting-slider" step="0.1" min="0" max="5" value="0.1" oninput="syncNumber('sliderBorderW', 'numBorderW'); updateSettings()">
-                    </div>
-
-                    <div class="setting-header" style="margin-top: 12px;">
-                        <span class="setting-label">Border Color</span>
-                        <input type="color" id="setBorderC" value="#E5E7EB" oninput="updateSettings()" onchange="updateSettings()" style="width: 36px; height: 28px; padding: 2px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg-workspace);">
+                        <div class="icon-number-control" title="Vertical spacing">
+                            <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>
+                            </svg>
+                            <div class="setting-value-wrapper">
+                                <input type="number" id="numGapV" step="1" min="0" max="200" value="0" oninput="updateSettings()" aria-label="Vertical spacing">
+                                <span>px</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </details>
+                <div class="compact-setting-row">
+                    <span class="setting-label">Border</span>
+                    <div class="spacing-control-group" aria-label="Tile border">
+                        <div class="icon-number-control" title="Border width">
+                            <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="4" y1="6" x2="20" y2="6" stroke-width="1.5"/>
+                                <line x1="4" y1="12" x2="20" y2="12" stroke-width="2.5"/>
+                                <line x1="4" y1="18" x2="20" y2="18" stroke-width="3.5"/>
+                            </svg>
+                            <div class="setting-value-wrapper">
+                                <input type="number" id="numBorderW" step="0.1" min="0" max="20" value="0.1" oninput="updateSettings()" aria-label="Border width">
+                                <span>px</span>
+                            </div>
+                        </div>
+                        <div class="icon-number-control" title="Border radius (Q toggles 999 / 0)">
+                            <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M4 18V10a6 6 0 0 1 6-6h8"/>
+                            </svg>
+                            <div class="setting-value-wrapper">
+                                <input type="number" id="numBorderR" step="1" min="0" max="999" value="0" oninput="updateSettings()" aria-label="Border radius">
+                                <span>px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="compact-setting-row">
+                    <span class="setting-label">Stroke</span>
+                    <div class="stroke-select-group">
+                        <div class="select-wrapper full">
+                            <select id="borderStyleSelect" onchange="setBorderStyle(this.value)" aria-label="Stroke style" title="Stroke style">
+                                <option value="solid">Line</option>
+                                <option value="dotted">Dotted</option>
+                            </select>
+                        </div>
+                        <div class="select-wrapper full">
+                            <select id="borderPositionSelect" onchange="setBorderPosition(this.value)" aria-label="Stroke position" title="Stroke position">
+                                <option value="inside">Inside</option>
+                                <option value="outside">Outside</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="compact-setting-row">
+                    <span class="setting-label">Border Color</span>
+                    <div class="border-color-group">
+                        <input type="text" id="hexBorderC" value="#E5E7EB" maxlength="7" spellcheck="false" autocomplete="off" oninput="onBorderHexInput(this.value)" onchange="onBorderHexBlur()" aria-label="Border color hex">
+                        <input type="color" id="setBorderC" value="#E5E7EB" oninput="onBorderColorPicker(this.value)" onchange="onBorderColorPicker(this.value)" aria-label="Border color picker">
+                    </div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+                    <button type="button" class="text-btn" onclick="resetSpacingBorderSettings()" title="Reset spacing, alignment, and border settings">Reset settings</button>
+                </div>
+            </div>
+        </details>
 
             <details id="customSizesGroup">
                 <summary>Custom Sizes (Selected Img)</summary>
@@ -1074,12 +1503,147 @@
         </div>
     </div>
 
+
+    <!-- PRINT GRID-STYLE IMAGE EDITOR -->
+    <div id="cropModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Edit image">
+        <div class="crop-box">
+            <div class="crop-head">
+                <div>
+                    <div class="modal-header" style="margin-bottom:0;">Edit Image</div>
+                    <div class="crop-sub" id="cropSubHint">Drag to reposition the image · Scroll or use the slider to zoom</div>
+                </div>
+                <button class="crop-close-btn" type="button" onclick="closeCrop()" title="Close" aria-label="Close">✕</button>
+            </div>
+            <div class="crop-content">
+                <!-- LEFT PANEL: NAME TAG -->
+                <div class="crop-settings crop-settings-left">
+                    <details class="crop-adjust-details" open>
+                        <summary>Name tag</summary>
+                        <div class="crop-adjust-inner">
+                            
+                            <label class="crop-setting-label" for="cropNameText">Name</label>
+                            <input id="cropNameText" class="crop-mode-select" type="text" placeholder="Enter name" oninput="updateNameTagPreview()">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+                                <label class="crop-setting-label">Text color<input id="cropNameColor" type="color" value="#111827" style="display:block;width:100%;height:30px" oninput="updateNameTagPreview()"></label>
+                                <label class="crop-setting-label">Tag background<input id="cropNameBg" type="color" value="#ffffff" style="display:block;width:100%;height:30px" oninput="updateNameTagPreview()"></label>
+                            </div>
+                            <div class="crop-adjust-head" style="margin-top:8px"><label class="crop-setting-label" for="cropNameBgOpacity" style="margin:0">Background opacity</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropNameBgOpacityValue">100%</span><button type="button" class="crop-mini-reset" aria-label="Reset background opacity" title="Reset background opacity" onclick="resetCropSlider('cropNameBgOpacity')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                            <input class="crop-adjust-slider" id="cropNameBgOpacity" type="range" min="0" max="100" value="100" oninput="updateNameTagPreview()">
+                        </div>
+                    </details>
+                </div>
+
+                <!-- CENTER: IMAGE PREVIEW -->
+                <div class="crop-stage-wrap">
+                    <div class="crop-stage" id="cropStage">
+                        <img id="cropImg" alt="Image preview" draggable="false">
+                        <svg class="id-photo-guide" id="idPhotoGuide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+                        <div class="crop-grid-lines"></div>
+                        <div class="crop-box-rect" id="cropBoxRect">
+                            <div class="crop-grid-lines"></div>
+                            <div id="cropNameTagPreview" class="crop-name-tag-preview"><span id="cropNameTagTextPreview">Name tag</span></div>
+                            <div class="crop-handle nw" data-handle="nw"></div><div class="crop-handle n" data-handle="n"></div>
+                            <div class="crop-handle ne" data-handle="ne"></div><div class="crop-handle w" data-handle="w"></div>
+                            <div class="crop-handle e" data-handle="e"></div><div class="crop-handle sw" data-handle="sw"></div>
+                            <div class="crop-handle s" data-handle="s"></div><div class="crop-handle se" data-handle="se"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL: CROP, ZOOM AND COLOR -->
+                <div class="crop-settings crop-settings-right">
+                    <div>
+                        <label class="crop-setting-label" for="cropAspectSelect">Photo size</label>
+                        <select id="cropAspectSelect" class="crop-mode-select" onchange="setCropAspect(this.value)">
+                            <option value="2x2" selected>2×2 in</option>
+                            <option value="1x1">1×1 in</option>
+                            <option value="passport">Passport (3.5 × 4.5 cm)</option>
+                            <option value="asa">ASA · 3×1.5</option>
+                            <option value="free">Free Form</option>
+                            <option value="original">Original Image</option>
+                        </select>
+                    </div>
+                    <div id="cropZoomRow" class="crop-adjust-group">
+                        <div class="crop-adjust-head">
+                            <label class="crop-setting-label" for="cropZoomSlider" style="margin:0">Zoom</label>
+                            <span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropZoomValue">1×</span><button type="button" class="crop-mini-reset" aria-label="Reset zoom" title="Reset zoom" onclick="resetCropSlider('cropZoomSlider')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span>
+                        </div>
+                        <input class="crop-zoom-slider" type="range" id="cropZoomSlider" min="1" max="4" step="0.05" value="1" aria-label="Zoom" oninput="onCropZoomInput(this.value, true)">
+                    </div>
+                    <details class="crop-adjust-details" id="fontStyleSettings">
+                        <summary>Font Style</summary>
+                        <div class="crop-adjust-inner">
+                            <label class="crop-setting-label" for="cropNameFont" style="margin-top:8px">Font</label>
+                            <select id="cropNameFont" class="crop-mode-select" onchange="updateNameTagPreview()">
+                                <option selected>Arial</option><option>Roboto</option><option>Open Sans</option><option>Lato</option><option>Montserrat</option><option>Poppins</option><option>Inter</option><option>Oswald</option><option>Georgia</option><option>Times New Roman</option>
+                            </select>
+                            <div class="crop-adjust-head" style="margin-top:8px"><label class="crop-setting-label" for="cropNameSize" style="margin:0">Font size</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropNameSizeValue">18px</span><button type="button" class="crop-mini-reset" aria-label="Reset font size" title="Reset font size" onclick="resetCropSlider('cropNameSize')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                            <input class="crop-adjust-slider" id="cropNameSize" type="range" min="8" max="48" value="18" oninput="updateNameTagPreview()">
+                            <div class="crop-adjust-head" style="margin-top:8px"><label class="crop-setting-label" for="cropNameStretch" style="margin:0">Text stretch</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropNameStretchValue">140%</span><button type="button" class="crop-mini-reset" aria-label="Reset text stretch" title="Reset text stretch" onclick="resetCropSlider('cropNameStretch')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                            <input class="crop-adjust-slider" id="cropNameStretch" type="range" min="50" max="240" value="140" step="1" oninput="updateNameTagPreview()">
+                            <div class="crop-adjust-head" style="margin-top:8px"><label class="crop-setting-label" for="cropNameSpacing" style="margin:0">Letter spacing</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropNameSpacingValue">0px</span><button type="button" class="crop-mini-reset" aria-label="Reset letter spacing" title="Reset letter spacing" onclick="resetCropSlider('cropNameSpacing')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                            <input class="crop-adjust-slider" id="cropNameSpacing" type="range" min="-1" max="8" value="0" step="0.25" oninput="updateNameTagPreview()">
+                            <div class="crop-adjust-head" style="margin-top:8px"><label class="crop-setting-label" for="cropNameHeight" style="margin:0">Text height</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropNameHeightValue">100%</span><button type="button" class="crop-mini-reset" aria-label="Reset text height" title="Reset text height" onclick="resetCropSlider('cropNameHeight')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                            <input class="crop-adjust-slider" id="cropNameHeight" type="range" min="50" max="160" value="100" step="1" oninput="updateNameTagPreview()">
+                            <label class="crop-setting-label" for="cropNameWeight" style="margin-top:8px">Font weight</label>
+                            <select id="cropNameWeight" class="crop-mode-select" onchange="updateNameTagPreview()"><option value="400">Regular</option><option value="500">Medium</option><option value="600">Semibold</option><option value="700" selected>Bold</option><option value="800">Extra bold</option></select>
+                            <label style="display:flex;gap:8px;align-items:center;font-size:.76rem;margin-top:8px"><input type="checkbox" id="cropNameItalic" onchange="updateNameTagPreview()"> Italic</label>
+                        </div>
+                    </details>
+                    <details class="crop-adjust-details">
+                        <summary>Color adjustments</summary>
+                        <div class="crop-adjust-inner">
+                            <div class="crop-adjust-group">
+                                <div class="crop-adjust-head"><label class="crop-setting-label" for="cropBrightness" style="margin:0">Brightness</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropBrightnessValue">100%</span><button type="button" class="crop-mini-reset" aria-label="Reset brightness" title="Reset brightness" onclick="resetCropSlider('cropBrightness')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                                <input class="crop-adjust-slider" type="range" id="cropBrightness" min="0" max="200" value="100" step="1" oninput="updateCropAdjustments()">
+                            </div>
+                            <div class="crop-adjust-group">
+                                <div class="crop-adjust-head"><label class="crop-setting-label" for="cropContrast" style="margin:0">Contrast</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropContrastValue">100%</span><button type="button" class="crop-mini-reset" aria-label="Reset contrast" title="Reset contrast" onclick="resetCropSlider('cropContrast')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                                <input class="crop-adjust-slider" type="range" id="cropContrast" min="0" max="200" value="100" step="1" oninput="updateCropAdjustments()">
+                            </div>
+                            <div class="crop-adjust-group">
+                                <div class="crop-adjust-head"><label class="crop-setting-label" for="cropHue" style="margin:0">Hue</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropHueValue">0°</span><button type="button" class="crop-mini-reset" aria-label="Reset hue" title="Reset hue" onclick="resetCropSlider('cropHue')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                                <input class="crop-adjust-slider" type="range" id="cropHue" min="0" max="360" value="0" step="1" oninput="updateCropAdjustments()">
+                            </div>
+                            <div class="crop-adjust-group">
+                                <div class="crop-adjust-head"><label class="crop-setting-label" for="cropSaturation" style="margin:0">Saturation</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropSaturationValue">100%</span><button type="button" class="crop-mini-reset" aria-label="Reset saturation" title="Reset saturation" onclick="resetCropSlider('cropSaturation')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                                <input class="crop-adjust-slider" type="range" id="cropSaturation" min="0" max="200" value="100" step="1" oninput="updateCropAdjustments()">
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+            <div class="crop-footer">
+                <div class="crop-footer-left">
+                    <div class="crop-export-control input-group" style="margin-bottom:0;align-items:stretch;">
+                        <button class="btn" type="button" onclick="downloadEditedImage(document.getElementById('cropExportFormat').value)" style="flex-grow:1;padding:8px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Export
+                        </button>
+                        <div class="select-wrapper">
+                            <select id="cropExportFormat" aria-label="Export format" title="Export format">
+                                <option value="jpg" selected>JPG</option>
+                                <option value="png">PNG</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="crop-footer-right">
+                    <button class="btn btn-primary" type="button" onclick="applyCrop()">Apply Changes</button>
+                    <button class="btn crop-reset-btn" type="button" onclick="resetCrop()" title="Reset image edits" aria-label="Reset image edits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const defaultConfig = {
             cols2x2: 4, cols1x1: 6, colsPassport: 5, colsAsa: 2,
             set2x2: 4, set1x1: 12, setPassport: 5, setAsa: 2,
             def2x2: 4, def1x1: 12, defPassport: 5, defAsa: 2,
-            gapV: 0, gapH: 0, borderW: 0.1, borderC: '#E5E7EB'
+            gapV: 0, gapH: 0, borderW: 0.1, borderRadius: 0, borderC: '#E5E7EB',
+            strokeStyle: 'solid', strokePosition: 'inside',
+            alignX: 'left', alignY: 'top'
         };
         let appConfig = { ...defaultConfig };
 
@@ -1191,6 +1755,7 @@
         let canvasItems = []; 
         let isDarkMode = true; 
         let currentPageIndex = 0;
+        let crop = null;
 
         const paperSizes = {
             'A4': { w: 210, h: 297, name: 'A4' },  
@@ -1218,13 +1783,23 @@
             document.getElementById('col1x1').value = appConfig.cols1x1;
             document.getElementById('colPassport').value = appConfig.colsPassport;
             document.getElementById('colAsa').value = appConfig.colsAsa;
-            document.getElementById('numGapV').value = appConfig.gapV;
-            document.getElementById('sliderGapV').value = appConfig.gapV;
-            document.getElementById('numGapH').value = appConfig.gapH;
-            document.getElementById('sliderGapH').value = appConfig.gapH;
-            document.getElementById('numBorderW').value = appConfig.borderW;
-            document.getElementById('sliderBorderW').value = appConfig.borderW;
-            document.getElementById('setBorderC').value = appConfig.borderC;
+            // Legacy Rush ID settings stored spacing in mm; Print Grid's UI displays px.
+            appConfig.gapH = Number.isFinite(Number(appConfig.gapH)) ? Number(appConfig.gapH) : 0;
+            appConfig.gapV = Number.isFinite(Number(appConfig.gapV)) ? Number(appConfig.gapV) : 0;
+            appConfig.borderRadius = Number.isFinite(Number(appConfig.borderRadius)) ? Number(appConfig.borderRadius) : 0;
+            appConfig.strokeStyle = appConfig.strokeStyle === 'dotted' ? 'dotted' : 'solid';
+            appConfig.strokePosition = appConfig.strokePosition === 'outside' ? 'outside' : 'inside';
+            appConfig.alignX = ['left', 'center', 'right'].includes(appConfig.alignX) ? appConfig.alignX : 'left';
+            appConfig.alignY = ['top', 'center', 'bottom'].includes(appConfig.alignY) ? appConfig.alignY : 'top';
+
+            document.getElementById('numGapV').value = Math.round(appConfig.gapV / RUSH_PX_TO_MM);
+            document.getElementById('numGapH').value = Math.round(appConfig.gapH / RUSH_PX_TO_MM);
+            document.getElementById('numBorderW').value = appConfig.borderW ?? 0.1;
+            document.getElementById('numBorderR').value = appConfig.borderRadius;
+            document.getElementById('borderStyleSelect').value = appConfig.strokeStyle;
+            document.getElementById('borderPositionSelect').value = appConfig.strokePosition;
+            document.getElementById('setBorderC').value = appConfig.borderC || '#E5E7EB';
+            document.getElementById('hexBorderC').value = (appConfig.borderC || '#E5E7EB').toUpperCase();
 
             updateSettings();
         }
@@ -1425,32 +2000,158 @@
             renderCanvas(false);
         }
 
-        function updateSettings() {
-            const gapV = parseFloat(document.getElementById('numGapV').value) || 0;
-            const gapH = parseFloat(document.getElementById('numGapH').value) || 0;
-            const borderW = parseFloat(document.getElementById('numBorderW').value) || 0;
-            const borderC = document.getElementById('setBorderC').value;
+        const RUSH_PX_TO_MM = 25.4 / 96;
 
-            appConfig.gapV = gapV;
+        function updateSettings() {
+            const gapHPx = Math.max(0, Math.min(200, parseFloat(document.getElementById('numGapH').value) || 0));
+            const gapVPx = Math.max(0, Math.min(200, parseFloat(document.getElementById('numGapV').value) || 0));
+            const gapH = gapHPx * RUSH_PX_TO_MM;
+            const gapV = gapVPx * RUSH_PX_TO_MM;
+            const borderW = Math.max(0, Math.min(20, parseFloat(document.getElementById('numBorderW').value) || 0));
+            const borderRadius = Math.max(0, Math.min(999, parseFloat(document.getElementById('numBorderR').value) || 0));
+            const borderC = document.getElementById('setBorderC').value || '#E5E7EB';
+            const strokeStyle = document.getElementById('borderStyleSelect').value === 'dotted' ? 'dotted' : 'solid';
+            const strokePosition = document.getElementById('borderPositionSelect').value === 'inside' ? 'inside' : 'outside';
+
             appConfig.gapH = gapH;
+            appConfig.gapV = gapV;
             appConfig.borderW = borderW;
+            appConfig.borderRadius = borderRadius;
             appConfig.borderC = borderC;
-            
+            appConfig.strokeStyle = strokeStyle;
+            appConfig.strokePosition = strokePosition;
+            if (!['left', 'center', 'right'].includes(appConfig.alignX)) appConfig.alignX = 'left';
+            if (!['top', 'center', 'bottom'].includes(appConfig.alignY)) appConfig.alignY = 'top';
+
             localStorage.setItem('rushid_config', JSON.stringify(appConfig));
 
             document.documentElement.style.setProperty('--gap-v', `${gapV}mm`);
             document.documentElement.style.setProperty('--gap-h', `${gapH}mm`);
             document.documentElement.style.setProperty('--border-w', `${borderW}px`);
             document.documentElement.style.setProperty('--border-c', borderC);
+            document.documentElement.style.setProperty('--border-style', strokeStyle);
+            document.documentElement.style.setProperty('--border-radius', `${borderRadius}px`);
+            document.documentElement.style.setProperty('--layout-align-x',
+                appConfig.alignX === 'center' ? 'center' : appConfig.alignX === 'right' ? 'flex-end' : 'flex-start');
+            document.documentElement.dataset.strokePosition = strokePosition;
 
             document.querySelectorAll('.layout-container').forEach(el => {
-                el.style.gap = `${gapV}mm`;
+                el.style.gap = gapV === 0 ? '0px' : `${gapV}mm`;
+                el.style.alignItems = appConfig.alignX === 'center' ? 'center' :
+                    appConfig.alignX === 'right' ? 'flex-end' : 'flex-start';
                 el.classList.toggle('collapse-v', gapV === 0);
                 el.classList.toggle('collapse-h', gapH === 0);
             });
             document.querySelectorAll('.grid-row').forEach(el => {
                 el.style.gap = gapH === 0 ? '0px' : `${gapH}mm`;
             });
+
+            applyVerticalAlignmentToPages();
+            syncSpacingBorderUI();
+        }
+
+        function syncSpacingBorderUI() {
+            const alignH = ['left', 'center', 'right'].includes(appConfig.alignX) ? appConfig.alignX : 'left';
+            const alignV = ['top', 'center', 'bottom'].includes(appConfig.alignY) ? appConfig.alignY : 'top';
+            const active = {
+                alignLeftBtn: alignH === 'left',
+                alignCenterHBtn: alignH === 'center',
+                alignRightBtn: alignH === 'right',
+                alignTopBtn: alignV === 'top',
+                alignCenterBtn: alignV === 'center',
+                alignBottomBtn: alignV === 'bottom'
+            };
+            Object.entries(active).forEach(([id, isActive]) => {
+                const btn = document.getElementById(id);
+                if (btn) btn.classList.toggle('active', isActive);
+            });
+            const hex = document.getElementById('hexBorderC');
+            if (hex && document.activeElement !== hex) hex.value = (appConfig.borderC || '#E5E7EB').toUpperCase();
+        }
+
+        function applyVerticalAlignmentToPages() {
+            document.querySelectorAll('.paper-page').forEach(page => {
+                const wrapper = page.querySelector('.layout-container');
+                if (!wrapper) return;
+                const availableHeight = (paperSizes[currentPaper].h - 6) * 3.779527559;
+                const remainingHeight = Math.max(0, availableHeight - wrapper.offsetHeight);
+                const offset = appConfig.alignY === 'center' ? remainingHeight / 2 :
+                    appConfig.alignY === 'bottom' ? remainingHeight : 0;
+                wrapper.style.marginTop = offset > 0 ? `${offset}px` : '0px';
+            });
+        }
+
+        function setAlignH(mode) {
+            if (!['left', 'center', 'right'].includes(mode)) return;
+            appConfig.alignX = mode;
+            updateSettings();
+            renderCanvas(false);
+        }
+
+        function setAlignV(mode) {
+            if (!['top', 'center', 'bottom'].includes(mode)) return;
+            appConfig.alignY = mode;
+            updateSettings();
+            renderCanvas(false);
+        }
+
+        function onBorderColorPicker(value) {
+            const normalized = /^#[0-9a-fA-F]{6}$/.test(value) ? value.toUpperCase() : '#E5E7EB';
+            const hex = document.getElementById('hexBorderC');
+            if (hex && document.activeElement !== hex) hex.value = normalized;
+            updateSettings();
+        }
+
+        function onBorderHexInput(value) {
+            const normalized = value.trim();
+            if (!/^#[0-9a-fA-F]{6}$/.test(normalized)) return;
+            document.getElementById('setBorderC').value = normalized;
+            updateSettings();
+        }
+
+        function onBorderHexBlur() {
+            const hex = document.getElementById('hexBorderC');
+            if (!hex) return;
+            if (/^#[0-9a-fA-F]{6}$/.test(hex.value.trim())) {
+                hex.value = hex.value.trim().toUpperCase();
+                document.getElementById('setBorderC').value = hex.value;
+            } else {
+                hex.value = (appConfig.borderC || '#E5E7EB').toUpperCase();
+            }
+            updateSettings();
+        }
+
+        function setBorderStyle(style) {
+            document.getElementById('borderStyleSelect').value = style === 'dotted' ? 'dotted' : 'solid';
+            updateSettings();
+        }
+
+        function setBorderPosition(position) {
+            document.getElementById('borderPositionSelect').value = position === 'inside' ? 'inside' : 'outside';
+            updateSettings();
+        }
+
+        function resetSpacingBorderSettings() {
+            appConfig.gapH = 0;
+            appConfig.gapV = 0;
+            appConfig.borderW = 0.1;
+            appConfig.borderRadius = 0;
+            appConfig.borderC = '#E5E7EB';
+            appConfig.strokeStyle = 'solid';
+            appConfig.strokePosition = 'inside';
+            appConfig.alignX = 'left';
+            appConfig.alignY = 'top';
+
+            document.getElementById('numGapH').value = 0;
+            document.getElementById('numGapV').value = 0;
+            document.getElementById('numBorderW').value = 0.1;
+            document.getElementById('numBorderR').value = 0;
+            document.getElementById('borderStyleSelect').value = 'solid';
+            document.getElementById('borderPositionSelect').value = 'inside';
+            document.getElementById('setBorderC').value = '#E5E7EB';
+            document.getElementById('hexBorderC').value = '#E5E7EB';
+            updateSettings();
+            renderCanvas(false);
         }
 
         function fitToViewport() {
@@ -1558,7 +2259,10 @@
                         size2x2W: 2, size2x2H: 2,
                         size1x1W: 1, size1x1H: 1,
                         sizePassW: 35, sizePassH: 45,
-                        sizeAsaW: 3, sizeAsaH: 1.5
+                        sizeAsaW: 3, sizeAsaH: 1.5,
+                        croppedSrc: null, nameTagVariants: {}, nameTagAppliedSize: null, cropMode: 'square', cropRect: null,
+                        freeCropRectNormalized: null,
+                        brightness: 100, contrast: 100, hue: 0, saturation: 100
                     });
                     onDone();
                 };
@@ -1585,14 +2289,29 @@
                 };
                 
                 const img = document.createElement('img');
-                img.src = imgObj.src;
-                
+                img.src = imgObj.croppedSrc || imgObj.src;
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'thumb-edit-btn';
+                editBtn.type = 'button';
+                editBtn.title = 'Edit image';
+                editBtn.setAttribute('aria-label', 'Edit image');
+                editBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>';
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    activeImageId = imgObj.id;
+                    renderImageQueue();
+                    loadSizesToInputs();
+                    openCropModal(imgObj.id);
+                };
+
                 const rmBtn = document.createElement('button');
                 rmBtn.className = 'remove-btn';
                 rmBtn.innerHTML = '×';
                 rmBtn.onclick = (e) => { e.stopPropagation(); removeImage(imgObj.id); };
 
                 div.appendChild(img);
+                div.appendChild(editBtn);
                 div.appendChild(rmBtn);
                 queue.appendChild(div);
             });
@@ -1802,6 +2521,13 @@
             renderCanvas(false);
         }
 
+        function getPhotoSourceForSize(imgObj, size) {
+            if (!imgObj) return '';
+            const variants = imgObj.nameTagVariants && typeof imgObj.nameTagVariants === 'object'
+                ? imgObj.nameTagVariants : null;
+            return (variants && variants[size]) || imgObj.croppedSrc || imgObj.src;
+        }
+
         function createPhotoElement(item) {
             const imgObj = uploadedImages.find(img => img.id === item.imgId);
             if (!imgObj) return null;
@@ -1809,7 +2535,7 @@
             div.className = `photo-item`;
 
             const img = document.createElement('img');
-            img.src = imgObj.src;
+            img.src = getPhotoSourceForSize(imgObj, item.size);
             
             if (item.size === '2x2') {
                 div.style.width = `${imgObj.size2x2W}in`;
@@ -2071,7 +2797,7 @@
                             el.style.height = `${sW}mm`;
                             el.style.flexShrink = '0';
                             const img = document.createElement('img');
-                            img.src = sImgObj.src;
+                            img.src = getPhotoSourceForSize(sImgObj, 'passport');
                             img.style.width = `${sW}mm`;
                             img.style.height = `${sH}mm`;
                             el.appendChild(img);
@@ -2156,10 +2882,11 @@
             cap.style.transform = 'scale(1)';
             void cap.offsetHeight;
             
+            applyVerticalAlignmentToPages();
             pagesWrapper.querySelectorAll('.paper-page').forEach(page => {
                 const w = page.querySelector('.layout-container');
                 if (w) markCollapsedBorders(w);
-                if(document.getElementById('safeZoneToggle').checked) page.classList.add('safe-zone-active');
+                if (document.getElementById('safeZoneToggle').checked) page.classList.add('safe-zone-active');
             });
             
             cap.style.transform = origTransform;
@@ -2305,6 +3032,625 @@
                 updatePaginationUI(); // Restore view to just the active page
             }
         }
+
+
+        /* =========================================================
+           IMAGE EDITOR — adapted from Print Grid for Rush ID sizes
+           ========================================================= */
+        function openCropModal(imageId) {
+            const obj = uploadedImages.find(image => image.id === imageId);
+            if (!obj) return;
+
+            const stage = document.getElementById('cropStage');
+            const img = document.getElementById('cropImg');
+            const probe = new Image();
+            probe.onload = () => {
+                const natW = probe.naturalWidth || 800;
+                const natH = probe.naturalHeight || 600;
+                const imageAspect = natW / natH;
+                const maxW = Math.min(620, window.innerWidth * 0.56);
+                const maxH = Math.min(440, window.innerHeight * 0.55);
+                let stageW = maxW;
+                let stageH = stageW / imageAspect;
+                if (stageH > maxH) { stageH = maxH; stageW = stageH * imageAspect; }
+                stageW = Math.max(120, Math.round(stageW));
+                stageH = Math.max(120, Math.round(stageH));
+
+                stage.style.width = `${stageW}px`;
+                stage.style.height = `${stageH}px`;
+                img.src = obj.src;
+
+                const savedCrop = obj.cropRect || {};
+                const savedFree = obj.freeCropRectNormalized;
+                crop = {
+                    imageId, natW, natH, stageW, stageH,
+                    zoom: Number.isFinite(savedCrop.zoom) ? savedCrop.zoom : 1,
+                    panX: Number.isFinite(savedCrop.panX) ? savedCrop.panX : 0,
+                    panY: Number.isFinite(savedCrop.panY) ? savedCrop.panY : 0,
+                    brightness: Number.isFinite(obj.brightness) ? obj.brightness : 100,
+                    contrast: Number.isFinite(obj.contrast) ? obj.contrast : 100,
+                    hue: Number.isFinite(obj.hue) ? obj.hue : 0,
+                    saturation: Number.isFinite(obj.saturation) ? obj.saturation : 100,
+                    aspectMode: obj.cropMode === 'square' ? '2x2' : (['2x2', '1x1', 'passport', 'asa', 'free', 'original'].includes(obj.cropMode) ? obj.cropMode : '2x2'),
+                    box: { x: 0, y: 0, w: stageW, h: stageH },
+                    freeRect: savedFree ? {
+                        x: savedFree.x * stageW,
+                        y: savedFree.y * stageH,
+                        w: savedFree.w * stageW,
+                        h: savedFree.h * stageH
+                    } : null,
+                    drag: null,
+                    passportAspect: (Number(obj.sizePassW) || 35) / (Number(obj.sizePassH) || 45),
+                    asaAspect: (Number(obj.sizeAsaW) || 3) / (Number(obj.sizeAsaH) || 1.5)
+                };
+
+                document.getElementById('cropAspectSelect').value = crop.aspectMode;
+                document.getElementById('cropZoomSlider').value = crop.zoom;
+                document.getElementById('cropBrightness').value = crop.brightness;
+                document.getElementById('cropContrast').value = crop.contrast;
+                document.getElementById('cropHue').value = crop.hue;
+                document.getElementById('cropSaturation').value = crop.saturation;
+                document.getElementById('cropNameFont').value = document.getElementById('cropNameFont').value || 'Arial';
+
+                img.style.transform = 'none';
+                img.style.transformOrigin = '50% 50%';
+                updateCropAdjustments();
+                updateNameTagPreview();
+                syncCropAspectUI();
+                buildFaceGuideSvg(crop.aspectMode === 'asa');
+                document.getElementById('idPhotoGuide').dataset.guideMode = crop.aspectMode === 'asa' ? 'asa' : 'single';
+                if (crop.aspectMode === 'free') {
+                    crop.box = crop.freeRect ? { ...crop.freeRect } : {
+                        x: stageW * 0.1, y: stageH * 0.1, w: stageW * 0.8, h: stageH * 0.8
+                    };
+                    layoutCrop();
+                } else {
+                    layoutCrop();
+                }
+                document.getElementById('cropModal').classList.add('active');
+            };
+            probe.onerror = () => showAlert('Unable to edit image', 'This image could not be loaded for editing.');
+            probe.src = obj.src;
+        }
+
+        function getCropTargetAspect() {
+            if (!crop) return 1;
+            if (crop.aspectMode === '2x2' || crop.aspectMode === '1x1' || crop.aspectMode === 'square') return 1;
+            if (crop.aspectMode === 'passport') return crop.passportAspect || (35 / 45);
+            if (crop.aspectMode === 'asa') return crop.asaAspect || 2;
+            return crop.natW / crop.natH;
+        }
+
+        function createGuideSvgElement(tag, attrs = {}) {
+            const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+            Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, String(value)));
+            return el;
+        }
+
+        function updateIdPhotoGuidePosition() {
+            const guide = document.getElementById('idPhotoGuide');
+            if (!guide || !crop || !crop.box) return;
+            const { x, y, w, h } = crop.box;
+            guide.setAttribute('width', String(w));
+            guide.setAttribute('height', String(h));
+            guide.style.left = `${x}px`;
+            guide.style.top = `${y}px`;
+            guide.style.width = `${w}px`;
+            guide.style.height = `${h}px`;
+            guide.style.display = 'block';
+            guide.style.visibility = 'visible';
+            guide.style.opacity = '1';
+            const guideMode = crop.aspectMode === 'asa' ? 'asa' : 'single';
+            if (guide.dataset.guideMode !== guideMode) {
+                buildFaceGuideSvg(guideMode === 'asa');
+                guide.dataset.guideMode = guideMode;
+            }
+        }
+
+        function buildFaceGuideSvg(twoFaces = false) {
+            const guide = document.getElementById('idPhotoGuide');
+            if (!guide) return;
+            guide.replaceChildren();
+            guide.setAttribute('viewBox', twoFaces ? '0 0 200 100' : '0 0 100 100');
+            guide.setAttribute('preserveAspectRatio', 'none');
+            // A compact face-shaped oval: forehead/temples taper naturally toward the chin.
+            // ASA uses two slightly offset guides to match a typical two-person composition.
+            const faceCenters = twoFaces ? [55, 137] : [50];
+            const facePath = twoFaces
+                ? 'M0 9 C-11 9 -20 16 -22 27 C-24 40 -17 51 -11 58 C-7 63 -3 66 0 67 C3 66 7 63 11 58 C17 51 24 40 22 27 C20 16 11 9 0 9 Z'
+                : 'M0 7 C-19 7 -28 20 -27 39 C-26 60 -13 80 0 88 C13 80 26 60 27 39 C28 20 19 7 0 7 Z';
+            faceCenters.forEach(cx => {
+                const group = createGuideSvgElement('g', { transform: `translate(${cx} 0)` });
+                group.appendChild(createGuideSvgElement('path', { class: 'guide-face', d: facePath }));
+                group.appendChild(createGuideSvgElement('path', { class: 'guide-center', d: twoFaces ? 'M0 7 V70' : 'M0 5 V91' }));
+                group.appendChild(createGuideSvgElement('path', {
+                    class: 'guide-line',
+                    d: twoFaces ? 'M-25 30 H25 M-21 44 H21 M-16 55 H16' : 'M-32 31 H32 M-27 49 H27 M-20 66 H20'
+                }));
+                // Discreet alignment labels identify eye, nose, and neck reference heights.
+                const labelX = twoFaces ? 27.5 : 33.5;
+                const labelData = twoFaces
+                    ? [{ text: 'EYES', y: 31.5 }, { text: 'NOSE', y: 45.5 }, { text: 'NECK', y: 56.5 }]
+                    : [{ text: 'EYES', y: 32.5 }, { text: 'NOSE', y: 50.5 }, { text: 'NECK', y: 67.5 }];
+                labelData.forEach(({ text, y }) => {
+                    group.appendChild(createGuideSvgElement('text', {
+                        class: 'guide-label', x: labelX, y, 'text-anchor': 'start'
+                    }));
+                    group.lastChild.textContent = text;
+                });
+                guide.appendChild(group);
+            });
+        }
+
+        function syncCropAspectUI() {
+            if (!crop) return;
+            const isFree = crop.aspectMode === 'free';
+            document.getElementById('cropStage').classList.toggle('free-crop-active', isFree);
+            const zoomRow = document.getElementById('cropZoomRow');
+            if (zoomRow) zoomRow.style.display = isFree ? 'none' : '';
+            const hint = document.getElementById('cropSubHint');
+            if (hint) {
+                hint.textContent = isFree
+                    ? 'Drag inside the crop box to move it · Drag its edges or corners to resize'
+                    : 'Drag to reposition the image · Scroll or use the slider to zoom';
+            }
+        }
+
+        function setCropAspect(mode) {
+            if (!crop || !['2x2', '1x1', 'square', 'passport', 'asa', 'free', 'original'].includes(mode)) return;
+            if (mode === 'square') mode = '2x2';
+            crop.aspectMode = mode;
+            if (mode === 'free') {
+                crop.zoom = 1; crop.panX = 0; crop.panY = 0;
+                document.getElementById('cropZoomSlider').value = 1;
+                crop.box = crop.freeRect ? { ...crop.freeRect } : {
+                    x: crop.stageW * 0.1, y: crop.stageH * 0.1,
+                    w: crop.stageW * 0.8, h: crop.stageH * 0.8
+                };
+            } else {
+                const aspect = getCropTargetAspect();
+                let boxW = crop.stageW;
+                let boxH = boxW / aspect;
+                if (boxH > crop.stageH) { boxH = crop.stageH; boxW = boxH * aspect; }
+                crop.box = {
+                    x: (crop.stageW - boxW) / 2,
+                    y: (crop.stageH - boxH) / 2,
+                    w: boxW,
+                    h: boxH
+                };
+            }
+            document.getElementById('cropAspectSelect').value = mode;
+            syncCropAspectUI();
+            layoutCrop();
+            updateNameTagPreview();
+        }
+
+        function layoutCrop() {
+            if (!crop) return;
+            const img = document.getElementById('cropImg');
+            const boxEl = document.getElementById('cropBoxRect');
+            if (crop.aspectMode === 'free') {
+                img.style.width = `${crop.stageW}px`;
+                img.style.height = `${crop.stageH}px`;
+                img.style.left = '0px';
+                img.style.top = '0px';
+
+                const minSize = 24;
+                crop.box.w = Math.max(minSize, Math.min(crop.stageW, crop.box.w));
+                crop.box.h = Math.max(minSize, Math.min(crop.stageH, crop.box.h));
+                crop.box.x = Math.max(0, Math.min(crop.stageW - crop.box.w, crop.box.x));
+                crop.box.y = Math.max(0, Math.min(crop.stageH - crop.box.h, crop.box.y));
+                boxEl.style.left = `${crop.box.x}px`;
+                boxEl.style.top = `${crop.box.y}px`;
+                boxEl.style.width = `${crop.box.w}px`;
+                boxEl.style.height = `${crop.box.h}px`;
+                crop.freeRect = { ...crop.box };
+                updateIdPhotoGuidePosition();
+                return;
+            }
+
+            const aspect = getCropTargetAspect();
+            let boxW = crop.stageW;
+            let boxH = boxW / aspect;
+            if (boxH > crop.stageH) { boxH = crop.stageH; boxW = boxH * aspect; }
+            const boxX = (crop.stageW - boxW) / 2;
+            const boxY = (crop.stageH - boxH) / 2;
+            crop.box = { x: boxX, y: boxY, w: boxW, h: boxH };
+            boxEl.style.left = `${boxX}px`;
+            boxEl.style.top = `${boxY}px`;
+            boxEl.style.width = `${boxW}px`;
+            boxEl.style.height = `${boxH}px`;
+            updateIdPhotoGuidePosition();
+
+            const imageAspect = crop.natW / crop.natH;
+            let baseW = boxW;
+            let baseH = baseW / imageAspect;
+            if (baseH < boxH) { baseH = boxH; baseW = baseH * imageAspect; }
+            const imageW = baseW * crop.zoom;
+            const imageH = baseH * crop.zoom;
+            const minX = boxX + boxW - imageW;
+            const maxX = boxX;
+            const minY = boxY + boxH - imageH;
+            const maxY = boxY;
+            const centerX = boxX + boxW / 2 - imageW / 2 + crop.panX;
+            const centerY = boxY + boxH / 2 - imageH / 2 + crop.panY;
+            const left = Math.max(minX, Math.min(maxX, centerX));
+            const top = Math.max(minY, Math.min(maxY, centerY));
+            crop.panX = left - (boxX + boxW / 2 - imageW / 2);
+            crop.panY = top - (boxY + boxH / 2 - imageH / 2);
+
+            img.style.width = `${imageW}px`;
+            img.style.height = `${imageH}px`;
+            img.style.left = `${left}px`;
+            img.style.top = `${top}px`;
+        }
+
+        function onCropZoomInput(value, syncSlider) {
+            if (!crop) return;
+            crop.zoom = Math.max(1, Math.min(4, parseFloat(value) || 1));
+            if (syncSlider) document.getElementById('cropZoomSlider').value = crop.zoom;
+            layoutCrop();
+            updateCropAdjustments();
+        }
+
+        function updateCropRangeProgress(el) {
+            if (!el) return;
+            const min = parseFloat(el.min) || 0;
+            const max = parseFloat(el.max) || 100;
+            const value = parseFloat(el.value) || 0;
+            const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
+            el.style.setProperty('--range-progress', `${Math.max(0, Math.min(100, percent))}%`);
+        }
+
+        function updateCropAdjustments() {
+            const zoomSlider = document.getElementById('cropZoomSlider');
+            const brightnessSlider = document.getElementById('cropBrightness');
+            const contrastSlider = document.getElementById('cropContrast');
+            const hueSlider = document.getElementById('cropHue');
+            const saturationSlider = document.getElementById('cropSaturation');
+            const img = document.getElementById('cropImg');
+
+            const zoom = zoomSlider ? parseFloat(zoomSlider.value) || 1 : 1;
+            const brightness = brightnessSlider ? parseInt(brightnessSlider.value, 10) : 100;
+            const contrast = contrastSlider ? parseInt(contrastSlider.value, 10) : 100;
+            const hue = hueSlider ? parseInt(hueSlider.value, 10) : 0;
+            const saturation = saturationSlider ? parseInt(saturationSlider.value, 10) : 100;
+
+            if (crop) Object.assign(crop, { zoom, brightness, contrast, hue, saturation });
+
+            document.getElementById('cropZoomValue').textContent = `${zoom.toFixed(2)}×`;
+            document.getElementById('cropBrightnessValue').textContent = `${brightness}%`;
+            document.getElementById('cropContrastValue').textContent = `${contrast}%`;
+            document.getElementById('cropHueValue').textContent = `${hue}°`;
+            document.getElementById('cropSaturationValue').textContent = `${saturation}%`;
+            [zoomSlider, brightnessSlider, contrastSlider, hueSlider, saturationSlider].forEach(updateCropRangeProgress);
+
+            if (img) {
+                img.style.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) hue-rotate(${hue}deg)`;
+            }
+        }
+
+        function updateNameTagPreview() {
+            const preview = document.getElementById('cropNameTagPreview');
+            const previewText = document.getElementById('cropNameTagTextPreview');
+            if (!preview || !previewText) return;
+            const value = document.getElementById('cropNameText').value.trim();
+            const font = document.getElementById('cropNameFont').value || 'Arial';
+            const size = Number(document.getElementById('cropNameSize').value) || 18;
+            const weight = document.getElementById('cropNameWeight').value || '700';
+            const italic = document.getElementById('cropNameItalic').checked;
+            const color = document.getElementById('cropNameColor').value || '#111827';
+            const bg = document.getElementById('cropNameBg').value || '#ffffff';
+            const opacity = Number(document.getElementById('cropNameBgOpacity').value);
+            const stretch = Number(document.getElementById('cropNameStretch').value) || 140;
+            const spacing = Number(document.getElementById('cropNameSpacing').value) || 0;
+            const textHeight = Number(document.getElementById('cropNameHeight').value) || 100;
+            previewText.textContent = value.toUpperCase();
+            preview.classList.toggle('visible', !!value);
+            preview.style.fontFamily = `"${font}", Arial, sans-serif`;
+            preview.style.fontSize = `${size}px`;
+            preview.style.minHeight = value ? `${Math.max(25, size * 1.15 * (textHeight / 100) + 8)}px` : '25px';
+            preview.style.fontWeight = weight;
+            preview.style.fontStyle = italic ? 'italic' : 'normal';
+            previewText.style.letterSpacing = `${spacing}px`;
+            preview.style.color = color;
+            preview.style.backgroundColor = hexToRgba(bg, Math.max(0, Math.min(100, opacity)) / 100);
+            preview.style.left = '0';
+            preview.style.bottom = '0';
+            preview.style.width = '100%';
+            previewText.style.transform = `scale(${stretch / 100}, ${textHeight / 100})`;
+            previewText.style.transformOrigin = 'center center';
+            previewText.style.maxWidth = 'none';
+            document.getElementById('cropNameSizeValue').textContent = `${size}px`;
+            document.getElementById('cropNameStretchValue').textContent = `${stretch}%`;
+            document.getElementById('cropNameSpacingValue').textContent = `${spacing.toFixed(2).replace(/\.?0+$/, '')}px`;
+            document.getElementById('cropNameHeightValue').textContent = `${textHeight}%`;
+            document.getElementById('cropNameBgOpacityValue').textContent = `${opacity}%`;
+            updateCropRangeProgress(document.getElementById('cropNameSpacing'));
+            updateCropRangeProgress(document.getElementById('cropNameHeight'));
+        }
+        function hexToRgba(hex, alpha) { const n=parseInt(hex.slice(1),16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${alpha})`; }
+        function buildEditedCropCanvas(includeNameTag = true) {
+            if (!crop) return null;
+            const img = document.getElementById('cropImg');
+            if (!img || !img.complete || !img.naturalWidth) return null;
+
+            let sx, sy, sw, sh;
+            if (crop.aspectMode === 'free') {
+                sx = (crop.box.x / crop.stageW) * crop.natW;
+                sy = (crop.box.y / crop.stageH) * crop.natH;
+                sw = (crop.box.w / crop.stageW) * crop.natW;
+                sh = (crop.box.h / crop.stageH) * crop.natH;
+            } else {
+                const { x, y, w, h } = crop.box;
+                const imageLeft = parseFloat(img.style.left) || 0;
+                const imageTop = parseFloat(img.style.top) || 0;
+                const imageW = parseFloat(img.style.width) || crop.stageW;
+                const imageH = parseFloat(img.style.height) || crop.stageH;
+                sx = ((x - imageLeft) / imageW) * crop.natW;
+                sy = ((y - imageTop) / imageH) * crop.natH;
+                sw = (w / imageW) * crop.natW;
+                sh = (h / imageH) * crop.natH;
+            }
+
+            sx = Math.max(0, Math.min(crop.natW - 1, sx));
+            sy = Math.max(0, Math.min(crop.natH - 1, sy));
+            sw = Math.max(1, Math.min(crop.natW - sx, sw));
+            sh = Math.max(1, Math.min(crop.natH - sy, sh));
+
+            const output = document.createElement('canvas');
+            output.width = Math.max(1, Math.round(sw));
+            output.height = Math.max(1, Math.round(sh));
+            const ctx = output.getContext('2d');
+            if (!ctx) return null;
+            ctx.filter = `brightness(${crop.brightness}%) contrast(${crop.contrast}%) saturate(${crop.saturation ?? 100}%) hue-rotate(${crop.hue}deg)`;
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, output.width, output.height);
+            ctx.filter = 'none';
+
+            // The editor export can include its name tag; the base crop saved to the image
+            // object stays clean so the tag can be applied only to the selected print size.
+            const tagText = includeNameTag ? document.getElementById('cropNameText').value.trim() : '';
+            if (tagText) {
+                const font = document.getElementById('cropNameFont').value || 'Arial';
+                const fontSize = Number(document.getElementById('cropNameSize').value) || 18;
+                const weight = document.getElementById('cropNameWeight').value || '700';
+                const italic = document.getElementById('cropNameItalic').checked ? 'italic ' : '';
+                const scale = output.width / Math.max(1, crop.box.w);
+                const px = Math.max(8, fontSize * scale);
+                const nameHeightScale = (Number(document.getElementById('cropNameHeight').value) || 100) / 100;
+                const tagH = Math.max(px * 1.55 * nameHeightScale, output.height * 0.085);
+                const tagY = output.height - tagH;
+                const bg = document.getElementById('cropNameBg').value || '#ffffff';
+                const opacity = Number(document.getElementById('cropNameBgOpacity').value) / 100;
+                const textStretch = (Number(document.getElementById('cropNameStretch').value) || 140) / 100;
+                const textHeight = (Number(document.getElementById('cropNameHeight').value) || 100) / 100;
+                const letterSpacing = (Number(document.getElementById('cropNameSpacing').value) || 0) * scale;
+                ctx.save();
+                ctx.fillStyle = hexToRgba(bg, Math.max(0, Math.min(1, opacity)));
+                ctx.fillRect(0, tagY, output.width, tagH);
+                ctx.font = `${italic}${weight} ${px}px "${font}", Arial, sans-serif`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = document.getElementById('cropNameColor').value || '#111827';
+                const chars = Array.from(tagText.toUpperCase());
+                const charWidths = chars.map(char => ctx.measureText(char).width);
+                const rawTextWidth = charWidths.reduce((sum, width) => sum + width, 0) + Math.max(0, chars.length - 1) * letterSpacing;
+                const textMaxWidth = Math.max(1, output.width - px * 0.7);
+                const fitScale = rawTextWidth > 0 ? Math.min(1, textMaxWidth / (rawTextWidth * textStretch)) : 1;
+                ctx.translate(output.width / 2, tagY + tagH / 2);
+                ctx.scale(textStretch * fitScale, textHeight);
+                let cursorX = -rawTextWidth / 2;
+                chars.forEach((char, index) => {
+                    ctx.fillText(char, cursorX, 0);
+                    cursorX += charWidths[index] + letterSpacing;
+                });
+                ctx.restore();
+            }
+            return output;
+        }
+
+        function buildEditedImageFilename(format) {
+            const rawName = (document.getElementById('cropNameText')?.value || '').trim();
+            const safeName = rawName
+                .normalize('NFKD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-zA-Z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '')
+                .toUpperCase();
+            const now = new Date();
+            const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+            const randomBytes = new Uint8Array(5);
+            if (window.crypto && window.crypto.getRandomValues) {
+                window.crypto.getRandomValues(randomBytes);
+            } else {
+                for (let i = 0; i < randomBytes.length; i++) randomBytes[i] = Math.floor(Math.random() * 256);
+            }
+            const digits = Array.from(randomBytes.slice(0, 4), n => String(n % 10)).join('');
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const letter = letters[randomBytes[4] % letters.length];
+            const suffix = `${digits}${letter}`;
+            const baseName = safeName ? `IDPic_${safeName}` : 'IDPIC';
+            return `${baseName}_${date}_${suffix}.${format === 'png' ? 'png' : 'jpg'}`;
+        }
+
+        function downloadEditedImage(format) {
+            if (!crop) return;
+            const output = buildEditedCropCanvas();
+            if (!output) {
+                showAlert('Export Failed', 'The edited image is not ready yet. Please try again.');
+                return;
+            }
+            format = format === 'png' ? 'png' : 'jpg';
+            let exportCanvas = output;
+            if (format === 'jpg') {
+                exportCanvas = document.createElement('canvas');
+                exportCanvas.width = output.width;
+                exportCanvas.height = output.height;
+                const ctx = exportCanvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                ctx.drawImage(output, 0, 0);
+            }
+            const mime = format === 'png' ? 'image/png' : 'image/jpeg';
+            const a = document.createElement('a');
+            a.download = buildEditedImageFilename(format);
+            a.href = exportCanvas.toDataURL(mime, 0.95);
+            a.click();
+        }
+
+        function resetCropSlider(sliderId) {
+            const defaults = { cropZoomSlider: 1, cropBrightness: 100, cropContrast: 100, cropHue: 0, cropSaturation: 100, cropNameSize: 18, cropNameStretch: 140, cropNameSpacing: 0, cropNameHeight: 100, cropNameBgOpacity: 100 };
+            const slider = document.getElementById(sliderId);
+            if (!slider || !(sliderId in defaults)) return;
+            slider.value = defaults[sliderId];
+            if (sliderId === 'cropZoomSlider') onCropZoomInput(defaults[sliderId], false);
+            updateCropAdjustments();
+            if (sliderId.startsWith('cropName')) updateNameTagPreview();
+        }
+
+        function resetCrop() {
+            if (!crop) return;
+            crop.zoom = 1; crop.panX = 0; crop.panY = 0;
+            crop.brightness = 100; crop.contrast = 100; crop.hue = 0; crop.saturation = 100;
+            crop.freeRect = null;
+            document.getElementById('cropZoomSlider').value = 1;
+            document.getElementById('cropBrightness').value = 100;
+            document.getElementById('cropContrast').value = 100;
+            document.getElementById('cropHue').value = 0;
+            document.getElementById('cropSaturation').value = 100;
+            document.getElementById('cropNameSize').value = 18;
+            document.getElementById('cropNameStretch').value = 140;
+            document.getElementById('cropNameSpacing').value = 0;
+            document.getElementById('cropNameHeight').value = 100;
+            document.getElementById('cropNameBgOpacity').value = 100;
+            if (crop.aspectMode === 'free') {
+                crop.box = { x: crop.stageW * 0.1, y: crop.stageH * 0.1, w: crop.stageW * 0.8, h: crop.stageH * 0.8 };
+            }
+            layoutCrop();
+            updateCropAdjustments(); updateNameTagPreview();
+        }
+
+        function closeCrop() {
+            const modal = document.getElementById('cropModal');
+            if (modal) modal.classList.remove('active');
+            crop = null;
+        }
+
+        function applyCrop() {
+            if (!crop) return;
+            const obj = uploadedImages.find(image => image.id === crop.imageId);
+            if (!obj) { closeCrop(); return; }
+            const output = buildEditedCropCanvas(false);
+            if (!output) return;
+
+            const tagTextValue = document.getElementById('cropNameText').value.trim();
+            const selectedPhotoSize = ['2x2', '1x1', 'passport', 'asa'].includes(crop.aspectMode)
+                ? crop.aspectMode : null;
+            const taggedOutput = (tagTextValue && selectedPhotoSize) ? buildEditedCropCanvas(true) : null;
+            const filtersUnchanged = crop.brightness === 100 && crop.contrast === 100 &&
+                crop.hue === 0 && (crop.saturation ?? 100) === 100;
+            const isUnchangedOriginal = crop.aspectMode === 'original' && crop.zoom === 1 &&
+                Math.abs(crop.panX) < 0.01 && Math.abs(crop.panY) < 0.01 && filtersUnchanged;
+            const sameAspectSquare = ['2x2', '1x1'].includes(crop.aspectMode) &&
+                Math.abs((crop.natW / crop.natH) - 1) < 0.002 && crop.zoom === 1 &&
+                Math.abs(crop.panX) < 0.01 && Math.abs(crop.panY) < 0.01 && filtersUnchanged;
+
+            obj.croppedSrc = (isUnchangedOriginal || sameAspectSquare) ? null : output.toDataURL('image/png');
+            // Clear previous tag variants, then save the tag only under the exact selected size.
+            obj.nameTagVariants = {};
+            if (taggedOutput && selectedPhotoSize) {
+                obj.nameTagVariants[selectedPhotoSize] = taggedOutput.toDataURL('image/png');
+            }
+            obj.nameTagAppliedSize = taggedOutput ? selectedPhotoSize : null;
+            obj.cropMode = crop.aspectMode;
+            obj.cropRect = crop.aspectMode === 'free' ? null : {
+                zoom: crop.zoom, panX: crop.panX, panY: crop.panY
+            };
+            obj.freeCropRectNormalized = crop.aspectMode === 'free' ? {
+                x: crop.box.x / crop.stageW,
+                y: crop.box.y / crop.stageH,
+                w: crop.box.w / crop.stageW,
+                h: crop.box.h / crop.stageH
+            } : null;
+            obj.brightness = crop.brightness;
+            obj.contrast = crop.contrast;
+            obj.hue = crop.hue;
+            obj.saturation = crop.saturation;
+
+            closeCrop();
+            renderImageQueue();
+            renderCanvas(false);
+        }
+
+        /* Pointer interaction: pan/zoom fixed ratios; move or resize Free Form crop box. */
+        const cropStageEl = document.getElementById('cropStage');
+        const cropBoxRectEl = document.getElementById('cropBoxRect');
+        cropStageEl.addEventListener('pointerdown', event => {
+            if (!crop) return;
+            if (crop.aspectMode === 'free') {
+                const handleEl = event.target.closest('[data-handle]');
+                const handle = handleEl ? handleEl.dataset.handle : null;
+                if (handle || event.target === cropBoxRectEl || cropBoxRectEl.contains(event.target)) {
+                    crop.drag = {
+                        mode: handle ? 'resize' : 'move', handle,
+                        startX: event.clientX, startY: event.clientY,
+                        origin: { ...crop.box }
+                    };
+                    cropStageEl.setPointerCapture(event.pointerId);
+                    event.preventDefault();
+                }
+                return;
+            }
+            crop.drag = { mode: 'pan', startX: event.clientX, startY: event.clientY, origX: crop.panX, origY: crop.panY };
+            cropStageEl.setPointerCapture(event.pointerId);
+        });
+        cropStageEl.addEventListener('pointermove', event => {
+            if (!crop || !crop.drag) return;
+            const dx = event.clientX - crop.drag.startX;
+            const dy = event.clientY - crop.drag.startY;
+            if (crop.drag.mode === 'move') {
+                crop.box.x = crop.drag.origin.x + dx;
+                crop.box.y = crop.drag.origin.y + dy;
+                layoutCrop();
+                return;
+            }
+            if (crop.drag.mode === 'resize') {
+                const origin = crop.drag.origin;
+                const handle = crop.drag.handle;
+                let left = origin.x, top = origin.y, right = origin.x + origin.w, bottom = origin.y + origin.h;
+                if (handle.includes('w')) left += dx;
+                if (handle.includes('e')) right += dx;
+                if (handle.includes('n')) top += dy;
+                if (handle.includes('s')) bottom += dy;
+                if (right - left < 24) { if (handle.includes('w')) left = right - 24; else right = left + 24; }
+                if (bottom - top < 24) { if (handle.includes('n')) top = bottom - 24; else bottom = top + 24; }
+                crop.box = { x: left, y: top, w: right - left, h: bottom - top };
+                layoutCrop();
+                return;
+            }
+            crop.panX = crop.drag.origX + dx;
+            crop.panY = crop.drag.origY + dy;
+            layoutCrop();
+        });
+        const endCropDrag = () => { if (crop) crop.drag = null; };
+        cropStageEl.addEventListener('pointerup', endCropDrag);
+        cropStageEl.addEventListener('pointercancel', endCropDrag);
+        cropStageEl.addEventListener('wheel', event => {
+            if (!crop || crop.aspectMode === 'free') return;
+            event.preventDefault();
+            const step = event.deltaY < 0 ? 0.15 : -0.15;
+            onCropZoomInput(crop.zoom + step, true);
+        }, { passive: false });
+
+        document.addEventListener('keydown', event => {
+            const modal = document.getElementById('cropModal');
+            if (!modal || !modal.classList.contains('active')) return;
+            if (event.key === 'Escape') { closeCrop(); return; }
+            if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+            if (event.key === '+' || event.key === '=') onCropZoomInput(crop.zoom + 0.15, true);
+            if (event.key === '-') onCropZoomInput(crop.zoom - 0.15, true);
+            if (event.key === '0') resetCrop();
+        });
 
         function initApp() {
             loadConfig();
