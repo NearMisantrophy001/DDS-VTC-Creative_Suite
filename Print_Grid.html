@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tile Layout</title>
+<title>Print Grid</title>
 <link rel="icon" type="image/png" sizes="192x192" href="favicon_io/favicon_dark.ico">
 <style>
     :root {
         --bg-workspace: #F3F4F6;
         --bg-panel: #FFFFFF;
-        --text-main: #6B7280;
+        --text-main: #374151;
         --text-muted: #6B7280;
 
         --brand-blue: #2563EB;
@@ -41,7 +41,7 @@
     [data-theme="dark"] {
         --bg-workspace: #1E1E1E;
         --bg-panel: #2C2C2C;
-        --text-main: #B8B8B8;
+        --text-main: #E5E7EB;
         --text-muted: #A3A3A3;
 
         --primary: #2563EB;
@@ -192,17 +192,22 @@
     .layers-heading { display:flex; align-items:center; justify-content:space-between; margin-top: 20px; padding-bottom: 8px; border-bottom:1px solid var(--border); }
     .layers-title { display:flex; align-items:center; gap:7px; }
     .layers-title span { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:10px; background:var(--bg-workspace); color:var(--text-muted); font-size:.62rem; }
+
     /* Compact, Figma-inspired layer list */
-    /* Selected layers use the same blue selection language, including inside groups. */
     .layer-item.multi-selected { background:rgba(37,99,235,.16); box-shadow:inset 0 0 0 1px rgba(37,99,235,.30); }
     .layer-item.active { background:rgba(37,99,235,.22); box-shadow:inset 0 0 0 1px rgba(37,99,235,.45); }
     .layer-item.active .layer-name { color:var(--text-main); font-weight:700; }
     .layer-group { display:flex; flex-direction:column; gap:1px; border-radius:4px; }
     .layer-group-header { display:flex; align-items:center; gap:6px; min-width:0; min-height:32px; padding:3px 5px; border:0; border-radius:4px; background:transparent; cursor:pointer; }
     .layer-group-header:hover { background:var(--hover-bg); }
-.layer-group-header.is-selected { background:rgba(37,99,235,.20); box-shadow:inset 2px 0 0 var(--brand-blue); }
-.layer-group-header.is-selected .layer-group-title { color:var(--text-main); }
-.layer-group-header.is-selected .layer-group-icon, .layer-group-header.is-selected .layer-group-count { color:var(--primary); }
+    .layer-group-header.group-selected,
+    .layer-group-header.is-selected { background:rgba(37,99,235,.20); box-shadow:inset 2px 0 0 var(--brand-blue); }
+    .layer-group-header.group-selected .layer-group-title,
+    .layer-group-header.is-selected .layer-group-title { color:var(--text-main); }
+    .layer-group-header.group-selected .layer-group-icon,
+    .layer-group-header.group-selected .layer-group-count,
+    .layer-group-header.is-selected .layer-group-icon,
+    .layer-group-header.is-selected .layer-group-count { color:var(--primary); }
     .layer-group-header.drop-target, .layer-item.drop-target { outline:1px solid var(--brand-blue); background:rgba(37,99,235,.18); }
     .layer-group-icon { color:var(--text-muted); font-size:13px; flex-shrink:0; }
     .layer-group-title { color:var(--text-main); font-size:.68rem; font-weight:600; min-width:0; }
@@ -240,7 +245,6 @@
     .layer-item:hover .layer-thumb .layer-edit-overlay, .layer-item:focus-within .layer-thumb .layer-edit-overlay { opacity:1; }
     .layer-thumb .layer-edit-overlay:hover { background:rgba(15,23,42,.82); color:#fff; }
     .layer-thumb .layer-edit-overlay svg { width:15px; height:15px; }
-    .layer-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
     .layer-name { display:flex; align-items:center; flex:1; min-width:0; overflow:hidden; white-space:nowrap; font-size:.68rem; font-weight:500; color:var(--text-main); }
     .layer-name-base { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .layer-name-suffix { flex:0 0 auto; white-space:nowrap; margin-left:4px; color:var(--text-muted); font-weight:700; }
@@ -325,7 +329,8 @@
         font-size: .68rem; font-weight: 600; transition: color .2s;
         color: var(--text-muted); text-align: left;
     }
-    .text-btn:hover { color: var(--text-main); text-decoration: underline; }
+    .text-btn:hover:not(:disabled) { color: var(--text-main); text-decoration: underline; }
+    .text-btn:disabled { opacity: .4; cursor: not-allowed; text-decoration: none; }
 
     .segmented-control {
         display: flex; background: var(--bg-workspace);
@@ -520,19 +525,6 @@
     }
     .setting-value-wrapper span { font-size: .7rem; color: var(--text-muted); font-weight: 600; }
 
-    .setting-slider {
-        width: 100%; height: 6px; -webkit-appearance: none;
-        background: var(--border); border-radius: 3px;
-        outline: none; cursor: pointer; accent-color: var(--brand-blue); margin-top: 4px;
-    }
-    .setting-slider::-webkit-slider-thumb {
-        -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
-        border-radius: 50%; background: var(--brand-blue); cursor: grab;
-        border: 2px solid var(--bg-panel); box-shadow: 0 1px 4px rgba(0,0,0,.4);
-        transition: transform .1s;
-    }
-    .setting-slider::-webkit-slider-thumb:hover { transform: scale(1.12); }
-
     .info-card {
         background: var(--bg-workspace);
         border: 1px solid var(--border);
@@ -613,6 +605,13 @@
     }
 
     .tile-grid { display: grid; }
+    .tile-flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: flex-start;
+        align-content: flex-start;
+    }
 
     .tile {
         position: relative;
@@ -620,6 +619,7 @@
         box-sizing: border-box;
         background: #fff;
         display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
     }
     .tile-media {
         position: absolute;
@@ -654,6 +654,56 @@
     }
     .empty-state button { pointer-events: auto; }
     .empty-state svg { color: var(--text-muted); }
+
+    /* ============ TOAST FEEDBACK ============ */
+    .toast-banner {
+        position: absolute;
+        bottom: 62px;
+        left: 50%;
+        transform: translateX(-50%) translateY(12px);
+        background: var(--bg-panel);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 7px 14px;
+        font-size: .74rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,.28);
+        z-index: 210;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s ease, transform .2s ease, background-color .3s, border-color .3s;
+        white-space: nowrap;
+    }
+    .toast-banner.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+        pointer-events: auto;
+    }
+    .toast-undo-btn {
+        background: rgba(37,99,235,.16);
+        color: var(--brand-blue);
+        border: 1px solid rgba(37,99,235,.35);
+        border-radius: 999px;
+        padding: 2px 9px;
+        font-size: .7rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .15s ease;
+    }
+    [data-theme="dark"] .toast-undo-btn {
+        color: #93C5FD;
+        background: rgba(59,130,246,.2);
+        border-color: rgba(147,197,253,.35);
+    }
+    .toast-undo-btn:hover {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+    }
 
     /* ============ PAGER ============ */
     .pager {
@@ -768,10 +818,6 @@
     .crop-settings { display:flex; flex-direction:column; gap:14px; min-width:0; padding:4px 0; }
     .crop-setting-label { display:block; font-size:.78rem; color:var(--text-muted); margin-bottom:6px; }
     .crop-mode-select { width:100%; min-height:36px; background:var(--bg-workspace); color:var(--text-main); border:1px solid var(--border); border-radius:6px; padding:7px 9px; }
-    .crop-zoom-row { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:10px; }
-    .crop-zoom-row .setting-label { flex-shrink:0; }
-    .crop-zoom-row .setting-value-wrapper { display:flex; align-items:center; gap:8px; }
-    .crop-zoom-row .setting-value-wrapper input { width:78px; height:32px; }
     .crop-zoom-slider, .crop-adjust-slider {
         --range-progress: 0%; width:100%; height:18px; border-radius:999px; appearance:none;
         background:transparent; outline:none; cursor:pointer; display:block; margin:8px 0 2px;
@@ -794,7 +840,7 @@
     .crop-mini-reset svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
     .crop-mini-reset:hover { color:var(--brand-blue); background:var(--bg-workspace); }
     .crop-settings select { color:var(--text-main); }
-    
+
     .crop-footer { display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-shrink:0; }
     .crop-footer .btn { min-height:36px; }
     .crop-reset-btn { width:36px; min-width:36px; height:36px; padding:0 !important; font-size:0 !important; }
@@ -890,7 +936,7 @@
     /* ============ PRINT ============ */
     @media print {
         body { background: #fff; height: auto; overflow: visible; }
-        .sidebar, .right-sidebar, .modal-overlay, .loading-overlay, .pager { display: none !important; }
+        .sidebar, .right-sidebar, .modal-overlay, .loading-overlay, .pager, .toast-banner { display: none !important; }
         .workspace {
             padding: 0 !important; background: #fff !important;
             overflow: visible !important; display: block !important;
@@ -914,54 +960,91 @@
     #imageQueue.drop-files-target { outline:2px dashed var(--brand-blue); outline-offset:4px; background:rgba(37,99,235,.06); border-radius:8px; }
     .layer-group-header.drop-files-target, .layer-item.drop-files-target { outline:2px dashed var(--brand-blue); outline-offset:2px; background:rgba(37,99,235,.08); }
 
-/* Hide tile sizing controls while editing one child layer in a group. */
-body.group-child-layer-selected #tileLayoutControls,
-body.group-child-layer-selected #matchRatioControl {
-    display: none !important;
-}
+    /* Group Size Lock / Unlock styling on group header */
+    .size-lock-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        border-radius: 4px;
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all .15s ease;
+        flex-shrink: 0;
+    }
+    .size-lock-btn:hover {
+        background: var(--hover-bg);
+        color: var(--text-main);
+    }
+    .size-lock-btn.is-locked {
+        color: var(--brand-blue);
+        border-color: rgba(37,99,235,.4);
+        background: rgba(37,99,235,.12);
+    }
+    .size-lock-btn svg {
+        width: 13px;
+        height: 13px;
+    }
 
-/* Lock group-level settings when a single child layer inside a group is selected,
-   while keeping border controls enabled per logo/layer. */
-body.group-child-layer-selected #acc-paper .details-content,
-body.group-child-layer-selected #acc-spacing .compact-setting-row:has(#numGapH),
-body.group-child-layer-selected #acc-adjust .input-group:has(#alignTopBtn) {
-    opacity: 0.45;
-    pointer-events: none;
-    user-select: none;
-}
+    .layer-size-badge {
+        font-size: .58rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        background: var(--bg-workspace);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        padding: 1px 4px;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
 
-/* Hide border controls when the group itself is selected. */
-body.group-selected #acc-spacing .compact-setting-row:has(#numBorderW),
-body.group-selected #acc-spacing .compact-setting-row:has(#borderStyleSelect),
-body.group-selected #acc-spacing .compact-setting-row:has(#hexBorderC) {
-    display: none;
-}
+    /* Preset selector fills the full right-hand control slot */
+    .preset-control-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-width: 0;
+    }
+    .preset-control-row .select-wrapper {
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+    }
+    .preset-control-row .select-wrapper select {
+        width: 100%;
+    }
 
-/* Disable border controls visually when a group header is selected while keeping them visible. */
-body.group-selected #acc-spacing .compact-setting-row:has(#numBorderW),
-body.group-selected #acc-spacing .compact-setting-row:has(#borderStyleSelect),
-body.group-selected #acc-spacing .compact-setting-row:has(#hexBorderC) {
-    display: grid !important;
-    opacity: 0.45;
-    pointer-events: none;
-    user-select: none;
-}
+    /* When a group's sizes are LOCKED and an individual child layer is selected,
+       disable preset & dimension inputs visually to clarify they are locked to the group. */
+    body.group-child-size-locked #tileLayoutControls .dimension-input-group,
+    body.group-child-size-locked #tileLayoutControls #presetSelect,
+    body.group-child-size-locked #matchRatioControl {
+        opacity: 0.48;
+        pointer-events: none;
+        user-select: none;
+    }
 
-.group-child-notice {
-    display: none;
-    font-size: .68rem;
-    color: var(--text-muted);
-    background: var(--bg-workspace);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 7px 9px;
-    margin-bottom: 10px;
-    line-height: 1.35;
-}
-body.group-child-layer-selected .group-child-notice {
-    display: block;
-}
+    /* Lock group-level sheet settings when a single child layer inside a group is selected,
+       while keeping Position, border controls and (when unlocked) size/preset enabled per layer. */
+    body.group-child-layer-selected #acc-paper .details-content,
+    body.group-child-layer-selected #acc-spacing .compact-setting-row:has(#numGapH) {
+        opacity: 0.45;
+        pointer-events: none;
+        user-select: none;
+    }
 
+    /* Disable border controls visually when a group header is selected while keeping them visible. */
+    body.group-selected #acc-spacing .compact-setting-row:has(#numBorderW),
+    body.group-selected #acc-spacing .compact-setting-row:has(#borderStyleSelect),
+    body.group-selected #acc-spacing .compact-setting-row:has(#hexBorderC) {
+        display: grid !important;
+        opacity: 0.45;
+        pointer-events: none;
+        user-select: none;
+    }
 
     /* Compact two-column printer controls */
     .printer-options-grid {
@@ -990,10 +1073,26 @@ body.group-child-layer-selected .group-child-notice {
     #acc-adjust .details-content .static-label {
         min-width: 0;
         flex: none;
+        display: flex;
+        align-items: center;
+        min-height: 30px;
+        line-height: 1.2;
     }
     #acc-adjust .details-content .segmented-control {
         width: 100% !important;
         min-width: 0;
+        height: 30px;
+        align-items: stretch;
+    }
+    #acc-adjust .details-content .segmented-control button {
+        height: 100%;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #acc-adjust .details-content .segmented-control button svg {
+        display: block;
     }
     #acc-adjust .details-content .select-wrapper {
         width: 100% !important;
@@ -1045,13 +1144,48 @@ body.group-child-layer-selected .group-child-notice {
     #matchRatioControl {
         margin-top: 0 !important;
     }
-    /* Keep primary adjustment labels white while the helper action stays muted gray. */
+    /* Keep primary adjustment labels readable while helper action stays muted gray. */
     #acc-adjust #tileLayoutControls .static-label,
     #acc-adjust #quantitySetting .static-label {
+        color: var(--text-main) !important;
+    }
+    [data-theme="dark"] #acc-adjust #tileLayoutControls .static-label,
+    [data-theme="dark"] #acc-adjust #quantitySetting .static-label {
         color: #FFFFFF !important;
     }
     #matchRatioControl .match-ratio-btn {
         color: var(--text-muted) !important;
+    }
+
+    /* Responsive layout adjustments */
+    @media (max-width: 960px) {
+        body {
+            flex-direction: column;
+            overflow-y: auto;
+            height: auto;
+            min-height: 100vh;
+        }
+        .sidebar, .right-sidebar {
+            width: 100%;
+            flex: none;
+            height: auto;
+            max-height: 45vh;
+            border-right: none;
+            border-left: none;
+            border-bottom: 1px solid var(--border);
+        }
+        .right-sidebar {
+            border-bottom: none;
+            border-top: 1px solid var(--border);
+        }
+        .workspace {
+            min-height: 55vh;
+            padding: 20px 16px 76px;
+        }
+        .image-queue {
+            min-height: 110px;
+            padding-bottom: 24px;
+        }
     }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1070,7 +1204,7 @@ body.group-child-layer-selected .group-child-notice {
                 <path fill-rule="evenodd" d="M 60 10 L 90 10 L 90 50 L 60 50 L 50 30 Z M 66 42 L 82 42 L 82 18 L 66 18 L 59 30 Z" fill="#9FCC3A"/>
             </g>
         </svg>
-        <div class="loading-brand">Tile Layout</div>
+        <div class="loading-brand">Print Grid</div>
         <div class="loading-progress"><div class="loading-progress-fill" id="loadingBarFill"></div></div>
         <div class="loading-text" id="loadingText">Loading workspace...</div>
     </div>
@@ -1083,7 +1217,7 @@ body.group-child-layer-selected .group-child-notice {
             <a class="back-btn" href="index.html" title="Back">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </a>
-            <div class="logo-title"><h1>Tile Layout</h1></div>
+            <div class="logo-title"><h1>Print Grid</h1></div>
         </div>
         <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"></button>
     </div>
@@ -1099,10 +1233,10 @@ body.group-child-layer-selected .group-child-notice {
                 <div class="drop-sub">or <strong>click to browse</strong></div>
             </div>
             <div class="layers-heading">
-                <div class="layers-title" title="Select layers · Ctrl+A selects all · Ctrl-click toggles · Shift-click selects a range · Ctrl+D duplicates · Delete removes">Layers <span id="layerCount">0</span></div>
+                <div class="layers-title" title="Select layers · Ctrl+A selects all · Ctrl-click toggles · Shift-click selects a range · Ctrl+D duplicates · E edits · Q toggles round border · Delete removes">Layers <span id="layerCount">0</span></div>
                 <div class="layers-actions" style="display:flex;align-items:center;gap:10px;">
                     <button class="text-btn" id="groupLayersBtn" type="button" onclick="toggleGroupSelection()" title="Select 2 or more layers to group" disabled>Group</button>
-                    <button class="text-btn" type="button" onclick="clearAll()">Clear all</button>
+                    <button class="text-btn" id="clearAllBtn" type="button" onclick="clearAll()">Clear all</button>
                 </div>
             </div>
             <div class="image-queue" id="imageQueue">
@@ -1120,6 +1254,11 @@ body.group-child-layer-selected .group-child-notice {
         <div id="captureArea">
             <div class="pages-wrapper" id="pagesWrapper"></div>
         </div>
+    </div>
+
+    <div id="toastBanner" class="toast-banner" role="status" aria-live="polite">
+        <span id="toastMessage">Layer deleted</span>
+        <button type="button" id="toastUndoBtn" class="toast-undo-btn" onclick="undoLastDeletion()">Undo</button>
     </div>
 
     <div class="pager" id="pager">
@@ -1216,12 +1355,12 @@ body.group-child-layer-selected .group-child-notice {
                                 <span>px</span>
                             </div>
                         </div>
-                        <div class="icon-number-control" title="Border radius">
+                        <div class="icon-number-control" title="Border radius (Q toggles 999 / 0)">
                             <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M4 18V10a6 6 0 0 1 6-6h8"/>
                             </svg>
                             <div class="setting-value-wrapper">
-                                <input type="number" id="numBorderR" step="1" min="0" max="200" value="0" oninput="updateSettings()" aria-label="Border radius">
+                                <input type="number" id="numBorderR" step="1" min="0" max="999" value="0" oninput="updateSettings()" aria-label="Border radius">
                                 <span>px</span>
                             </div>
                         </div>
@@ -1300,29 +1439,31 @@ body.group-child-layer-selected .group-child-notice {
                 <div id="tileLayoutControls">
                     <div class="input-group" style="margin-bottom:12px;">
                         <div class="static-label">Preset</div>
-                        <div class="select-wrapper" style="width:150px; max-width:58%;">
-                            <select id="presetSelect" aria-label="Select preset" required>
-                                <option value="" selected>Select Preset</option>
-                                <option value="5,5">5 × 5</option>
-                                <option value="4.5,4.5">4.5 × 4.5</option>
-                                <option value="4,4">4 × 4</option>
-                                <option value="3.5,3.5">3.5 × 3.5</option>
-                                <option value="3,3">3 × 3</option>
-                                <option value="2.5,2.5">2.5 × 2.5</option>
-                                <option value="2,2">2 × 2</option>
-                                <option value="1.5,1.5">1.5 × 1.5</option>
-                                <option value="1,1">1 × 1</option>
-                                <option value="3.5,2">3.5 × 2</option>
-                                <option value="3,2">3 × 2</option>
-                                <option value="2,1.5">2 × 1.5</option>
-                                <option value="2,1">2 × 1</option>
-                                <option value="4,3">4 × 3</option>
-                                <option value="5,3.5">5 × 3.5</option>
-                            </select>
+                        <div class="preset-control-row" style="width:150px;">
+                            <div class="select-wrapper">
+                                <select id="presetSelect" aria-label="Select preset" required>
+                                    <option value="" selected>Select Preset</option>
+                                    <option value="5,5">5 × 5</option>
+                                    <option value="4.5,4.5">4.5 × 4.5</option>
+                                    <option value="4,4">4 × 4</option>
+                                    <option value="3.5,3.5">3.5 × 3.5</option>
+                                    <option value="3,3">3 × 3</option>
+                                    <option value="2.5,2.5">2.5 × 2.5</option>
+                                    <option value="2,2">2 × 2</option>
+                                    <option value="1.5,1.5">1.5 × 1.5</option>
+                                    <option value="1,1">1 × 1</option>
+                                    <option value="3.5,2">3.5 × 2</option>
+                                    <option value="3,2">3 × 2</option>
+                                    <option value="2,1.5">2 × 1.5</option>
+                                    <option value="2,1">2 × 1</option>
+                                    <option value="4,3">4 × 3</option>
+                                    <option value="5,3.5">5 × 3.5</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="input-group" style="margin-bottom:0;">
+                    <div class="input-group dimension-input-group" style="margin-bottom:0;">
                         <div class="static-label">Dimension</div>
                         <div class="input-wrapper" style="gap:4px;">
                             <input type="number" id="tileW" step="0.1" min="0.2" max="12" value="1.5" oninput="onCustomTile()">
@@ -1517,7 +1658,7 @@ function hideLoading() {
 paintProgress(0); startCreep();
 
 /* =========================================================
-   MODALS (alert / confirm)
+   MODALS (alert / confirm) & TOAST UNDO
    ========================================================= */
 let modalResolve = null;
 function showAlert(title, message) {
@@ -1543,6 +1684,68 @@ function showConfirm(title, message) {
 function closeModal(ok) {
     document.getElementById('customModal').classList.remove('active');
     if (modalResolve) { modalResolve(ok); modalResolve = null; }
+}
+
+let lastDeletedSnapshot = null;
+let toastHideTimer = null;
+
+function clonePagesSnapshot(pageList) {
+    return pageList.map(pg => ({
+        ...pg,
+        imageIds: Array.isArray(pg.imageIds) ? [...pg.imageIds] : undefined,
+        styleOverride: pg.styleOverride ? { ...pg.styleOverride } : undefined
+    }));
+}
+
+function showDeletionToast(message, snapshot = null) {
+    const banner = document.getElementById('toastBanner');
+    const msgEl = document.getElementById('toastMessage');
+    const undoBtn = document.getElementById('toastUndoBtn');
+    if (!banner || !msgEl) return;
+
+    lastDeletedSnapshot = snapshot;
+    msgEl.textContent = message;
+    if (undoBtn) {
+        undoBtn.style.display = snapshot ? 'inline-flex' : 'none';
+    }
+
+    if (toastHideTimer) {
+        clearTimeout(toastHideTimer);
+        toastHideTimer = null;
+    }
+
+    banner.classList.add('visible');
+    toastHideTimer = setTimeout(() => {
+        banner.classList.remove('visible');
+        lastDeletedSnapshot = null;
+        toastHideTimer = null;
+    }, 5200);
+}
+
+function hideDeletionToast() {
+    const banner = document.getElementById('toastBanner');
+    if (toastHideTimer) {
+        clearTimeout(toastHideTimer);
+        toastHideTimer = null;
+    }
+    if (banner) banner.classList.remove('visible');
+    lastDeletedSnapshot = null;
+}
+
+function undoLastDeletion() {
+    if (!lastDeletedSnapshot) return;
+    const snap = lastDeletedSnapshot;
+    hideDeletionToast();
+
+    uploadedImages = snap.uploadedImages.map(item => ({ ...item }));
+    pages = clonePagesSnapshot(snap.pages);
+    activeImageId = snap.activeImageId;
+    selectedImageIds = new Set(snap.selectedImageIds || []);
+    selectedGroupPageId = snap.selectedGroupPageId || null;
+    activePageIndex = snap.activePageIndex || 0;
+    collapsedGroupIds = new Set(snap.collapsedGroupIds || []);
+
+    reconcileSelectionAndUI();
 }
 
 /* =========================================================
@@ -1579,7 +1782,7 @@ let isDarkMode = true;
 let crop = null;
 
 /* ---- pages (one tiled page each, no scrolling) ---- */
-let pages = [];              // [{ id, imageId }]
+let pages = [];              // [{ id, imageId, imageIds?, lockSize?: boolean }]
 let activePageIndex = 0;
 
 function newPageId() {
@@ -1593,6 +1796,159 @@ function ensurePages() {
 function syncActiveFromPage() {
     const pg = pages[activePageIndex];
     activeImageId = pg ? (pg.imageIds?.[0] || pg.imageId || null) : null;
+}
+
+/**
+ * Keeps selection, active layer/page, and all right-sidebar controls cleanly synchronized
+ * whenever layers are deleted, ungrouped, hidden, or cleared.
+ */
+function reconcileSelectionAndUI() {
+    try {
+        const validIds = new Set(uploadedImages.map(img => img.id));
+
+        // Clean any invalid IDs from selectedImageIds
+        selectedImageIds = new Set([...selectedImageIds].filter(id => validIds.has(id)));
+
+        // Validate selectedGroupPageId still exists as a multi-layer group
+        if (selectedGroupPageId) {
+            const grp = pages.find(pg => pg.id === selectedGroupPageId && (pg.imageIds || []).length > 1 &&
+                (pg.imageIds || []).some(id => validIds.has(id)));
+            if (!grp) selectedGroupPageId = null;
+        }
+
+        // Clean collapsedGroupIds for groups that no longer exist or have <= 1 image
+        const activeGroupIds = new Set(pages.filter(pg => (pg.imageIds || []).length > 1).map(pg => pg.id));
+        collapsedGroupIds = new Set([...collapsedGroupIds].filter(id => activeGroupIds.has(id)));
+
+        if (!uploadedImages.length) {
+            activeImageId = null;
+            selectedImageIds.clear();
+            selectedGroupPageId = null;
+            layerAnchorIndex = -1;
+            pages = [{ id: newPageId(), imageId: null }];
+            activePageIndex = 0;
+        } else {
+            // Ensure activeImageId points to a valid image
+            if (!activeImageId || !validIds.has(activeImageId)) {
+                const currentPg = pages[activePageIndex];
+                const pgFirstValid = (currentPg?.imageIds || [currentPg?.imageId]).find(id => id && validIds.has(id));
+                activeImageId = pgFirstValid || [...selectedImageIds][0] || uploadedImages[uploadedImages.length - 1].id;
+            }
+            if (!selectedImageIds.size && activeImageId) {
+                selectedImageIds = new Set([activeImageId]);
+            }
+
+            // Ensure activePageIndex points to a valid page
+            if (activePageIndex < 0 || activePageIndex >= pages.length) {
+                const matchIdx = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(activeImageId));
+                activePageIndex = matchIdx >= 0 ? matchIdx : Math.max(0, pages.length - 1);
+            }
+        }
+
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        if (clearAllBtn) clearAllBtn.disabled = uploadedImages.length === 0;
+
+        syncTileControls(activeImageId);
+        syncQuantityControl(activeImageId);
+        syncSpacingBorderControls(activeImageId);
+        syncFitControls(activeImageId);
+        renderImageQueue();
+        renderCanvas();
+    } catch (err) {
+        console.error('Error reconciling UI state:', err);
+    }
+}
+
+/* =========================================================
+   GROUP SIZE LOCK HELPERS
+   ========================================================= */
+const lockClosedSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`;
+const lockOpenSvg   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
+
+function isGroupSizeLocked(pg) {
+    if (!pg || (pg.imageIds || []).length <= 1) return true;
+    return pg.lockSize !== false;
+}
+
+function getContextGroupPage() {
+    if (selectedGroupPageId) {
+        const byId = pages.find(pg => pg.id === selectedGroupPageId && (pg.imageIds || []).length > 1);
+        if (byId) return byId;
+    }
+    if (activeImageId) {
+        const byImg = pages.find(pg => (pg.imageIds || []).length > 1 && (pg.imageIds || []).includes(activeImageId));
+        if (byImg) return byImg;
+    }
+    return null;
+}
+
+function toggleGroupSizeLock(pageId) {
+    const pg = pages.find(p => p.id === pageId && (p.imageIds || []).length > 1);
+    if (!pg) return;
+    const currentlyLocked = isGroupSizeLocked(pg);
+    if (currentlyLocked) {
+        pg.lockSize = false;
+    } else {
+        pg.lockSize = true;
+        const ids = (pg.imageIds || []).filter(id => uploadedImages.some(img => img.id === id));
+        const refId = (activeImageId && ids.includes(activeImageId)) ? activeImageId : ids[0];
+        if (refId) {
+            const refSize = getImageTileSize(refId);
+            ids.forEach(id => {
+                const obj = uploadedImages.find(img => img.id === id);
+                if (obj) {
+                    obj.tileW = refSize.w;
+                    obj.tileH = refSize.h;
+                }
+            });
+            syncTileControls(refId);
+        }
+    }
+    syncQuantityControl(activeImageId);
+    renderImageQueue();
+    renderCanvas();
+}
+
+function syncGroupSizeLockUI() {
+    const pg = getContextGroupPage();
+    const inGroup = !!pg;
+    document.body.classList.toggle('in-group-context', inGroup);
+
+    const isChildSelected = inGroup && !selectedGroupPageId && selectedImageIds.size <= 1;
+    const locked = inGroup ? isGroupSizeLocked(pg) : false;
+
+    document.body.classList.toggle('group-child-size-locked', isChildSelected && locked);
+}
+
+function applyTileSizeToSelection(w, h) {
+    appConfig.tileW = w;
+    appConfig.tileH = h;
+
+    const groupPage = getSelectedGroupPage();
+    if (groupPage) {
+        (groupPage.imageIds || []).forEach(id => {
+            const obj = uploadedImages.find(i => i.id === id);
+            if (obj) { obj.tileW = w; obj.tileH = h; }
+        });
+        return;
+    }
+
+    const targets = selectedImageIds.size > 0
+        ? [...selectedImageIds].map(id => uploadedImages.find(i => i.id === id)).filter(Boolean)
+        : (getActiveImage() ? [getActiveImage()] : []);
+
+    targets.forEach(obj => {
+        const ownerGroup = pages.find(pg => (pg.imageIds || []).length > 1 && (pg.imageIds || []).includes(obj.id));
+        if (ownerGroup && isGroupSizeLocked(ownerGroup)) {
+            (ownerGroup.imageIds || []).forEach(memberId => {
+                const member = uploadedImages.find(i => i.id === memberId);
+                if (member) { member.tileW = w; member.tileH = h; }
+            });
+        } else {
+            obj.tileW = w;
+            obj.tileH = h;
+        }
+    });
 }
 
 /* =========================================================
@@ -1801,7 +2157,6 @@ function getLayerStyle(imageId = activeImageId) {
     const groupStyle = isGroupedMember ? (pageForImage.styleOverride || {}) : {};
     const imgObj = uploadedImages.find(i => i.id === imageId);
     if (!imgObj) return getEffectiveStyle(imageId);
-    // Keep spacing shared across the group while letting each grouped layer keep its own border settings.
     const layerOverride = imgObj.styleOverride || {};
     return {
         ...appConfig,
@@ -1819,9 +2174,6 @@ function getLayerStyle(imageId = activeImageId) {
         borderPosition: layerOverride.borderPosition === 'inside' || imgObj.borderPosition === 'inside' ? 'inside' : (layerOverride.borderPosition === 'outside' || imgObj.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside')),
         borderC: normalizeHexColor(layerOverride.borderC) || normalizeHexColor(imgObj.borderC) || appConfig.borderC
     };
-}
-function syncSpacingAndBorderControls(imageId = activeImageId) {
-    syncSpacingBorderControls(imageId);
 }
 function syncSpacingAndBorderControls(imageId = activeImageId) {
     const st = getLayerStyle(imageId);
@@ -1843,7 +2195,8 @@ function syncSpacingAndBorderControls(imageId = activeImageId) {
     const borderPositionSelect = document.getElementById('borderPositionSelect');
     if (borderStyleSelect) borderStyleSelect.value = st.borderStyle === 'dotted' ? 'dotted' : 'solid';
     if (borderPositionSelect) borderPositionSelect.value = st.borderPosition === 'inside' ? 'inside' : 'outside';
-    applyBorderCssVars(imageId);
+    syncSpacingLockState(imageId);
+    applyBorderCssVars(st);
 }
 function getCanvasAlign(pageOrImageId = null) {
     let page = null;
@@ -1875,6 +2228,8 @@ function syncFitControls(imageId = activeImageId) {
     const fit = getImageFit(imageId);
     document.getElementById('fitCoverBtn')?.classList.toggle('active', fit === 'cover');
     document.getElementById('fitContainBtn')?.classList.toggle('active', fit === 'contain');
+    document.getElementById('fitCoverBtn')?.removeAttribute('disabled');
+    document.getElementById('fitContainBtn')?.removeAttribute('disabled');
     syncAlignControls(imageId);
     syncSpacingAndBorderControls(imageId);
 }
@@ -1889,7 +2244,6 @@ function loadConfig() {
     try {
         const raw = localStorage.getItem('printgrid_config');
         if (raw) appConfig = { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
-        // Spacing and tile-border controls intentionally start fresh on every reload.
         appConfig.gapH = DEFAULT_CONFIG.gapH;
         appConfig.gapV = DEFAULT_CONFIG.gapV;
         appConfig.borderW = DEFAULT_CONFIG.borderW;
@@ -1911,7 +2265,6 @@ function loadConfig() {
     document.getElementById('hexBorderC').value = appConfig.borderC.toUpperCase();
     syncBorderStyleControls();
 
-    // Apply the fresh default spacing/border values immediately on every reload.
     applyBorderCssVars();
 
     document.getElementById('numMargin').value = (appConfig.margin / 25.4).toFixed(2);
@@ -1921,7 +2274,6 @@ function loadConfig() {
     document.getElementById('fitCoverBtn').classList.toggle('active', appConfig.fit === 'cover');
     document.getElementById('fitContainBtn').classList.toggle('active', appConfig.fit === 'contain');
     syncAlignControls(activeImageId);
-
 }
 
 /* =========================================================
@@ -2088,7 +2440,7 @@ function setBorderPosition(position) {
 }
 
 function applyBorderCssVars(overrideStyle = null) {
-    const effective = overrideStyle || getEffectiveStyle(activeImageId);
+    const effective = (overrideStyle && typeof overrideStyle === 'object') ? overrideStyle : getEffectiveStyle(activeImageId);
     const style = effective.borderStyle === 'dotted' ? 'dotted' : 'solid';
     const bw = Number(effective.borderW) || 0;
     const br = Number(effective.borderR) || 0;
@@ -2097,11 +2449,21 @@ function applyBorderCssVars(overrideStyle = null) {
     document.documentElement.style.setProperty('--border-r', `${br}px`);
     document.documentElement.style.setProperty('--border-s', style);
     document.documentElement.style.setProperty('--border-c', bc);
-    // Apply on body too, so the dark-theme variables cannot override the user's chosen tile border color.
     document.body.style.setProperty('--border-w', `${bw}px`);
     document.body.style.setProperty('--border-r', `${br}px`);
     document.body.style.setProperty('--border-s', style);
     document.body.style.setProperty('--border-c', bc);
+}
+
+function toggleRoundBorderShortcut() {
+    const brInput = document.getElementById('numBorderR');
+    if (!brInput || brInput.disabled) return;
+
+    const currentRadius = Math.round(parseFloat(brInput.value) || 0);
+    const nextRadius = currentRadius === 999 ? 0 : 999;
+
+    brInput.value = String(nextRadius);
+    updateSettings();
 }
 
 function updateSettings() {
@@ -2110,7 +2472,7 @@ function updateSettings() {
     const nextGapH   = gapHPx * PX_TO_MM;
     const nextGapV   = gapVPx * PX_TO_MM;
     const nextBW     = Math.max(0, Math.round(parseFloat(document.getElementById('numBorderW').value) || 0));
-    const nextBR     = Math.max(0, Math.round(parseFloat(document.getElementById('numBorderR').value) || 0));
+    const nextBR     = Math.max(0, Math.min(999, Math.round(parseFloat(document.getElementById('numBorderR').value) || 0)));
     const rawColor   = document.getElementById('setBorderC').value;
     const nextBC     = normalizeHexColor(rawColor) || rawColor || '#E5E7EB';
     const nextStyle  = document.getElementById('borderStyleSelect')?.value === 'dotted' ? 'dotted' : 'solid';
@@ -2239,25 +2601,21 @@ function bindWholeNumberStepControls() {
 }
 
 function setFit(mode) {
-    const page = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
-    const isGroupChild = !!page && (page.imageIds || []).length > 1 && !selectedGroupPageId;
-    if (isGroupChild) {
-        const obj = uploadedImages.find(img => img.id === activeImageId);
-        if (obj) obj.fit = mode;
-    } else {
-        appConfig.fit = mode;
+    const targets = selectedImageIds.size > 0
+        ? [...selectedImageIds].map(id => uploadedImages.find(img => img.id === id)).filter(Boolean)
+        : (getActiveImage() ? [getActiveImage()] : []);
+    if (targets.length) {
+        targets.forEach(obj => { obj.fit = mode; });
     }
+    appConfig.fit = mode;
     syncFitControls(activeImageId);
     saveConfig();
     renderCanvas();
 }
 
 function setAlign(mode) {
-    const groupMemberPage = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
-    const isIndividualGroupLayer = !!groupMemberPage && (groupMemberPage.imageIds || []).length > 1 && !selectedGroupPageId;
-    if (isIndividualGroupLayer) return;
-
     if (!['top', 'center', 'bottom'].includes(mode)) return;
+    const groupMemberPage = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
     const page = (selectedGroupPageId && pages.find(pg => pg.id === selectedGroupPageId))
         || groupMemberPage
         || pages[activePageIndex]
@@ -2290,13 +2648,11 @@ if (presetSelect) {
     presetSelect.addEventListener('change', () => {
         if (!presetSelect.value) return;
         const [w, h] = presetSelect.value.split(',').map(Number);
-        appConfig.tileW = w;
-        appConfig.tileH = h;
-        const activeObj = getActiveImage();
-        if (activeObj) { activeObj.tileW = w; activeObj.tileH = h; }
+        applyTileSizeToSelection(w, h);
         document.getElementById('tileW').value = w;
         document.getElementById('tileH').value = h;
         saveConfig();
+        renderImageQueue();
         renderCanvas();
     });
 }
@@ -2307,12 +2663,10 @@ function onCustomTile() {
     if (isNaN(w) || w <= 0) w = 0.2;
     if (isNaN(h) || h <= 0) h = 0.2;
     w = Math.min(w, 12); h = Math.min(h, 12);
-    appConfig.tileW = w;
-    appConfig.tileH = h;
-    const activeObj = getActiveImage();
-    if (activeObj) { activeObj.tileW = w; activeObj.tileH = h; }
+    applyTileSizeToSelection(w, h);
     saveConfig();
     updatePresetActiveState();
+    renderImageQueue();
     renderCanvas();
 }
 
@@ -2323,13 +2677,14 @@ function matchImageRatio() {
     probe.onload = () => {
         if (!probe.naturalWidth) return;
         const ratio = probe.naturalHeight / probe.naturalWidth;
-        let h = Math.round(appConfig.tileW * ratio * 100) / 100;
+        const currentW = getImageTileSize(obj.id).w;
+        let h = Math.round(currentW * ratio * 100) / 100;
         h = Math.min(12, Math.max(0.2, h));
-        appConfig.tileH = h;
-        const activeObj = getActiveImage();
-        if (activeObj) { activeObj.tileW = appConfig.tileW; activeObj.tileH = h; }
+        applyTileSizeToSelection(currentW, h);
         document.getElementById('tileH').value = h;
         saveConfig();
+        updatePresetActiveState();
+        renderImageQueue();
         renderCanvas();
     };
     probe.onerror = () => showAlert('Error', 'Could not read the image dimensions.');
@@ -2474,6 +2829,7 @@ function handleFiles(files) {
     const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (!valid.length) { showAlert('Invalid File', 'Please upload an image file (PNG, JPG, WEBP, SVG).'); return; }
 
+    hideDeletionToast();
     showLoading(`Loading ${valid.length} image${valid.length > 1 ? 's' : ''}...`);
     let done = 0;
     const total = valid.length;
@@ -2483,8 +2839,7 @@ function handleFiles(files) {
         if (done < total) return;
         activePageIndex = pages.length - 1;
         syncActiveFromPage();
-        renderImageQueue();
-        renderCanvas();
+        reconcileSelectionAndUI();
         hideLoading();
     };
 
@@ -2555,8 +2910,6 @@ function renderImageQueue() {
             queue.classList.add('drop-files-target');
             return;
         }
-        // The queue itself (blank space between/below root layers) is the
-        // drop target for detaching a grouped layer into the root layer list.
         if (!draggedLayerIds.length && !draggedGroupPageId) return;
         if (ev.target.closest('.layer-item, .layer-group-header, .layer-group')) return;
         ev.preventDefault();
@@ -2582,24 +2935,16 @@ function renderImageQueue() {
     if (!uploadedImages.length) {
         queue.innerHTML = '<div class="queue-empty">No layers yet</div>';
         updateGroupButton();
+        syncGroupSizeLockUI();
         return;
     }
 
-    const groupedIds = new Set();
     const groupPages = pages.filter(pg => (pg.imageIds || []).length > 1);
-    const groupByFirstId = new Map();
-    groupPages.forEach((pg, idx) => {
-        const ids = pg.imageIds.filter(id => uploadedImages.some(img => img.id === id));
-        if (ids.length > 1) {
-            ids.forEach(id => groupedIds.add(id));
-            groupByFirstId.set(ids[0], { page: pg, ids, label: `Group ${idx + 1}` });
-        }
-    });
 
-    const makeLayerRow = (obj, index) => {
+    const makeLayerRow = (obj, index, showSizeBadge = false) => {
         const row = document.createElement('div');
         const selected = selectedImageIds.has(obj.id);
-        row.className = 'layer-item' + (obj.id === activeImageId ? ' active' : '') + (selected ? ' multi-selected' : '');
+        row.className = 'layer-item' + (obj.id === activeImageId && !selectedGroupPageId ? ' active' : '') + (selected ? ' multi-selected' : '');
         row.title = (obj.name || 'Image layer') + ' — drag to move into or out of a group';
         row.draggable = true;
         row.addEventListener('dragstart', ev => startLayerDrag(ev, obj.id));
@@ -2638,13 +2983,12 @@ function renderImageQueue() {
         const img = document.createElement('img'); img.src = obj.croppedSrc || obj.previewSrc || obj.src; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
         thumb.appendChild(img);
         const edit = document.createElement('button'); edit.className = 'layer-action layer-edit-overlay';
-        edit.type = 'button'; edit.title = 'Edit image'; edit.setAttribute('aria-label', 'Edit image');
+        edit.type = 'button'; edit.title = 'Edit image (E)'; edit.setAttribute('aria-label', 'Edit image');
         edit.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>';
         edit.onclick = ev => { ev.stopPropagation(); selectImage(obj.id); openCropModal(obj.id); };
         thumb.appendChild(edit); row.appendChild(thumb);
         const name = document.createElement('span'); name.className = 'layer-name';
         const fullLayerName = obj.name || `Image ${index + 1}`;
-        // Keep duplicate identifiers visible even when the original filename is long.
         const copyMatch = fullLayerName.match(/^(.*?)(\s+copy\s+\d+)$/i);
         const nameBase = document.createElement('span');
         nameBase.className = 'layer-name-base';
@@ -2658,6 +3002,16 @@ function renderImageQueue() {
         }
         name.title = fullLayerName;
         row.appendChild(name);
+
+        if (showSizeBadge) {
+            const sz = getImageTileSize(obj.id);
+            const sizeBadge = document.createElement('span');
+            sizeBadge.className = 'layer-size-badge';
+            sizeBadge.textContent = `${sz.w}×${sz.h}`;
+            sizeBadge.title = `Tile size: ${sz.w} × ${sz.h} in`;
+            row.appendChild(sizeBadge);
+        }
+
         const eye = document.createElement('button'); eye.className = 'layer-action visibility-action' + (obj.visible === false ? ' is-hidden' : '');
         eye.type = 'button'; eye.title = obj.visible === false ? 'Show layer' : 'Hide layer';
         eye.setAttribute('aria-label', eye.title); eye.innerHTML = obj.visible === false ? eyeOffIcon : eyeIcon;
@@ -2672,9 +3026,7 @@ function renderImageQueue() {
         return row;
     };
 
-    // Render the layer panel from the actual page stack, not upload order.
-    // This keeps standalone layers and groups in the same visual order as the canvas.
-    pages.forEach((page, pageIndex) => {
+    pages.forEach((page) => {
         const pageIds = (page.imageIds || [page.imageId]).filter(Boolean);
         const groupInfo = pageIds.length > 1
             ? { page, ids: pageIds, label: `Group ${groupPages.indexOf(page) + 1}` }
@@ -2683,6 +3035,7 @@ function renderImageQueue() {
             const card = document.createElement('div');
             card.className = 'layer-group' + (groupInfo.ids.every(id => selectedImageIds.has(id)) ? ' multi-selected' : '') + (groupInfo.page.visible === false ? ' is-hidden' : '');
             const isCollapsed = collapsedGroupIds.has(groupInfo.page.id);
+            const locked = isGroupSizeLocked(groupInfo.page);
             const header = document.createElement('div');
             header.className = 'layer-group-header' + (selectedGroupPageId === groupInfo.page.id ? ' group-selected' : '');
             header.setAttribute('role', 'button');
@@ -2707,8 +3060,6 @@ function renderImageQueue() {
                     header.classList.toggle('drop-after', after);
                     header.dataset.dropAfter = after ? '1' : '0';
                 } else if (draggedLayerIds.length && draggedLayerIds.some(id => !groupInfo.ids.includes(id))) {
-                    // Dropping on a group header reorders at the root level; it must
-                    // never silently absorb a standalone layer into the group.
                     ev.preventDefault(); ev.stopPropagation();
                     const r = header.getBoundingClientRect();
                     const after = ev.clientY > r.top + r.height / 2;
@@ -2742,7 +3093,7 @@ function renderImageQueue() {
                 renderCanvas();
             };
             header.onclick = ev => {
-                if (ev.target.closest('.layer-group-chevron')) return;
+                if (ev.target.closest('.layer-group-chevron, .size-lock-btn, .visibility-action')) return;
                 selectThisGroup();
             };
             header.onkeydown = ev => {
@@ -2768,6 +3119,20 @@ function renderImageQueue() {
             const title = document.createElement('span'); title.className = 'layer-group-title'; title.textContent = groupInfo.label;
             const countLabel = document.createElement('span'); countLabel.className = 'layer-group-count'; countLabel.textContent = `${groupInfo.ids.length}`;
             const tools = document.createElement('span'); tools.className = 'layer-group-tools';
+
+            const lockBtn = document.createElement('button');
+            lockBtn.type = 'button';
+            lockBtn.className = 'size-lock-btn' + (locked ? ' is-locked' : '');
+            lockBtn.innerHTML = locked ? lockClosedSvg : lockOpenSvg;
+            lockBtn.title = locked
+                ? 'Sizes locked (all layers share one size) — click to unlock individual layer sizes'
+                : 'Sizes unlocked (layers can have individual sizes) — click to lock all layers to one size';
+            lockBtn.setAttribute('aria-label', lockBtn.title);
+            lockBtn.onclick = ev => {
+                ev.stopPropagation();
+                toggleGroupSizeLock(groupInfo.page.id);
+            };
+
             const groupEye = document.createElement('button'); groupEye.type = 'button';
             groupEye.className = 'layer-action visibility-action' + (groupInfo.page.visible === false ? ' is-hidden' : '');
             groupEye.title = groupInfo.page.visible === false ? 'Show group' : 'Hide group';
@@ -2775,24 +3140,24 @@ function renderImageQueue() {
             groupEye.setAttribute('aria-pressed', String(groupInfo.page.visible !== false));
             groupEye.innerHTML = groupInfo.page.visible === false ? eyeOffIcon : eyeIcon;
             groupEye.onclick = ev => { ev.stopPropagation(); toggleGroupVisibility(groupInfo.page.id); };
-            // Keep the group size beside the visibility control; duplication remains on the keyboard shortcut.
-            tools.append(countLabel, groupEye);
+
+            tools.append(countLabel, lockBtn, groupEye);
             header.append(chevron, icon, title); header.appendChild(tools);
             card.appendChild(header);
             const children = document.createElement('div'); children.className = 'layer-group-children' + (isCollapsed ? ' is-collapsed' : '');
             groupInfo.ids.forEach(id => {
                 const childObj = uploadedImages.find(img => img.id === id);
-                const childIndex = uploadedImages.indexOf(childObj);
-                if (childObj) children.appendChild(makeLayerRow(childObj, getLayerStackIds().indexOf(childObj.id)));
+                if (childObj) children.appendChild(makeLayerRow(childObj, getLayerStackIds().indexOf(childObj.id), !locked));
             });
             card.appendChild(children);
             queue.appendChild(card);
         } else {
             const obj = uploadedImages.find(img => img.id === pageIds[0]);
-            if (obj) queue.appendChild(makeLayerRow(obj, getLayerStackIds().indexOf(obj.id)));
+            if (obj) queue.appendChild(makeLayerRow(obj, getLayerStackIds().indexOf(obj.id), false));
         }
     });
     updateGroupButton();
+    syncGroupSizeLockUI();
 }
 
 let draggedLayerIds = [];
@@ -2800,6 +3165,7 @@ let draggedGroupPageId = null;
 function startGroupDrag(ev, pageId) { draggedGroupPageId = pageId; draggedLayerIds = []; ev.dataTransfer.effectAllowed='move'; ev.dataTransfer.setData('text/plain','group:'+pageId); requestAnimationFrame(()=>ev.currentTarget.classList.add('is-dragging')); }
 function moveGroupBeforeGroup(sourceId,targetId,after=false) { const a=pages.findIndex(p=>p.id===sourceId), b=pages.findIndex(p=>p.id===targetId); if(a<0||b<0||a===b)return; const [g]=pages.splice(a,1); let at=pages.findIndex(p=>p.id===targetId); if(after)at++; pages.splice(at,0,g); activePageIndex=pages.indexOf(g); clearLayerDragStyles(); renderImageQueue(); renderCanvas(); }
 function moveGroupToLayerPosition(sourceId,targetLayerId,after) { const a=pages.findIndex(p=>p.id===sourceId), target=pages.findIndex(p=>(p.imageIds||[p.imageId]).includes(targetLayerId)); if(a<0||target<0||a===target)return; const [g]=pages.splice(a,1); let at=pages.findIndex(p=>(p.imageIds||[p.imageId]).includes(targetLayerId)); if(after)at++; pages.splice(at,0,g); activePageIndex=pages.indexOf(g); clearLayerDragStyles(); renderImageQueue(); renderCanvas(); }
+
 function toggleLayerVisibility(id) {
     const obj = uploadedImages.find(x => x.id === id);
     if (!obj) return;
@@ -2807,9 +3173,6 @@ function toggleLayerVisibility(id) {
     const wasVisible = obj.visible !== false;
     obj.visible = !wasVisible;
 
-    // A standalone layer owns its own page. Hiding that layer should remove
-    // the whole page from the canvas/pager, just like hiding a whole group.
-    // For a multi-layer group, the page remains while at least one child is visible.
     const ownerIndex = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(id));
     const ownerPage = ownerIndex >= 0 ? pages[ownerIndex] : null;
     const pageStillVisible = ownerPage && ownerPage.visible !== false &&
@@ -2830,9 +3193,9 @@ function toggleLayerVisibility(id) {
         syncActiveFromPage();
     }
 
-    renderImageQueue();
-    renderCanvas();
+    reconcileSelectionAndUI();
 }
+
 function toggleGroupVisibility(pageId) {
     const pg = pages.find(x => x.id === pageId);
     if (!pg) return;
@@ -2845,16 +3208,14 @@ function toggleGroupVisibility(pageId) {
         activePageIndex = pages.indexOf(pg);
         syncActiveFromPage();
     }
-    renderImageQueue();
-    renderCanvas();
+    reconcileSelectionAndUI();
 }
+
 function duplicateGroup(pageId) { const pg=pages.find(x=>x.id===pageId && (x.imageIds||[]).length>1); if(!pg)return; selectedGroupPageId=pg.id; selectedImageIds=new Set(pg.imageIds); duplicateSelectedLayers(); }
 
 function isGroupedImage(id) { return pages.some(pg => (pg.imageIds || []).includes(id)); }
 function startLayerDrag(ev, id) {
     document.querySelectorAll('.drop-before,.drop-after,.drop-target').forEach(el => el.classList.remove('drop-before','drop-after','drop-target'));
-    // A group-header selection is not the same as an explicit multi-layer
-    // selection. Dragging one child from a selected group moves only that item.
     draggedLayerIds = (selectedGroupPageId && selectedImageIds.has(id))
         ? [id]
         : (selectedImageIds.has(id) ? [...selectedImageIds] : [id]);
@@ -2885,29 +3246,27 @@ function detachImageFromPage(id) {
 }
 function syncGroupTileSizes(page, ids) {
     if (!page || !ids.length) return;
-    const reference = getImageTileSize(ids[0]);
-    ids.forEach(id => { const obj = uploadedImages.find(x => x.id === id); if (obj) { obj.tileW = reference.w; obj.tileH = reference.h; } });
+    if (isGroupSizeLocked(page)) {
+        const reference = getImageTileSize(ids[0]);
+        ids.forEach(id => { const obj = uploadedImages.find(x => x.id === id); if (obj) { obj.tileW = reference.w; obj.tileH = reference.h; } });
+    }
     page.imageIds = ids; page.imageId = ids[0];
 }
 function finishLayerMove(ids, targetId, options = {}) {
     selectedGroupPageId = null;
-    // A reorder within the same group must not change the active image or its
-    // tile-size controls. Otherwise syncTileControls() can silently switch the
-    // selected preset to the dimensions stored on the dragged layer.
     if (!options.preserveSelection) {
         if (ids.length) { activeImageId = ids[0]; selectedImageIds = new Set(ids); }
     }
     const pageIndex = targetId ? pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(targetId)) : -1;
     if (pageIndex >= 0) activePageIndex = pageIndex;
-    if (!options.preserveSelection && activeImageId) syncTileControls(activeImageId);
-    clearLayerDragStyles(); renderImageQueue(); renderCanvas();
+    clearLayerDragStyles();
+    reconcileSelectionAndUI();
 }
 function moveDraggedLayersToGroupPosition(targetId, after) {
     const ids = [...draggedLayerIds].filter(id => id !== targetId);
     if (!ids.length) return;
     let targetPage = findPageForImage(targetId);
     if (!targetPage || !(targetPage.imageIds || []).length) return moveDraggedLayersToRootPosition(targetId, after);
-    // Keep same-group moves inside the group and reorder them; detach only layers coming from elsewhere.
     let targetIds = [...targetPage.imageIds];
     const movingWithin = ids.filter(id => targetIds.includes(id));
     const movingFromOutside = ids.filter(id => !targetIds.includes(id));
@@ -2927,9 +3286,6 @@ function moveDraggedLayersToGroupPosition(targetId, after) {
     targetIds.splice(insertAt, 0, ...moving.filter(id => !targetIds.includes(id)));
     if (targetIds.length < 2) return;
     syncGroupTileSizes(targetPage, targetIds);
-    // Preserve the group's collapsed state when inserting layers. For a pure
-    // reorder within this group, also preserve the active layer and tile preset:
-    // changing selection here would load another layer's saved tile dimensions.
     const isPureReorder = movingFromOutside.length === 0 && movingWithin.length > 0;
     finishLayerMove(moving, targetId, { preserveSelection: isPureReorder });
 }
@@ -2939,8 +3295,6 @@ function moveDraggedLayersToRootPosition(targetId, after) {
     const targetPageBefore = findPageForImage(targetId);
     if (!targetPageBefore) return;
 
-    // Detach first, then locate the target again. This is important when moving
-    // several layers or moving a layer from a group near the bottom of the stack.
     ids.forEach(id => detachImageFromPage(id));
     const targetIndex = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(targetId));
     if (targetIndex < 0) return;
@@ -2963,15 +3317,17 @@ function moveDraggedLayersIntoGroup(targetPageId) {
         targetIds.push(id);
     });
     if (targetIds.length !== target.imageIds.length) {
-        const reference = getImageTileSize(targetIds[0]);
-        targetIds.forEach(id => { const obj = uploadedImages.find(x => x.id === id); if (obj) { obj.tileW = reference.w; obj.tileH = reference.h; } });
+        if (isGroupSizeLocked(target)) {
+            const reference = getImageTileSize(targetIds[0]);
+            targetIds.forEach(id => { const obj = uploadedImages.find(x => x.id === id); if (obj) { obj.tileW = reference.w; obj.tileH = reference.h; } });
+        }
         target.imageIds = targetIds; target.imageId = targetIds[0];
     }
     activeImageId = ids[0] || targetIds[0];
     selectedImageIds = new Set(ids.length ? ids : targetIds);
     activePageIndex = pages.indexOf(target);
-    // Adding layers must not expand a group that the user intentionally collapsed.
-    syncTileControls(activeImageId); clearLayerDragStyles(); renderImageQueue(); renderCanvas();
+    clearLayerDragStyles();
+    reconcileSelectionAndUI();
 }
 function moveDraggedLayersOut() {
     const ids = [...draggedLayerIds].filter(id => uploadedImages.some(img => img.id === id));
@@ -2979,15 +3335,11 @@ function moveDraggedLayersOut() {
 
     let movedAny = false;
     ids.forEach(id => {
-        // Only detach when the item is currently a member of a multi-image group.
         const sourceIndex = pages.findIndex(pg => (pg.imageIds || []).includes(id));
-        if (sourceIndex < 0) return; // already standalone
+        if (sourceIndex < 0) return;
 
         detachImageFromPage(id);
 
-        // detachImageFromPage removes the item from its group. If the group had
-        // only two members, the remaining member becomes standalone automatically.
-        // Add the dragged item as its own standalone page at the end of the root list.
         const alreadyHasStandalonePage = pages.some(pg =>
             !(pg.imageIds || []).length && pg.imageId === id
         );
@@ -3007,50 +3359,283 @@ function moveDraggedLayersOut() {
     activeImageId = ids.find(id => pages.some(pg => pg.imageId === id || (pg.imageIds || []).includes(id))) || activeImageId;
     selectedGroupPageId = null;
     selectedImageIds = new Set(ids);
-    if (activeImageId) syncTileControls(activeImageId);
     clearLayerDragStyles();
-    renderImageQueue();
-    renderCanvas();
+    reconcileSelectionAndUI();
+}
+
+/* =========================================================
+   ALIGNED COLLAGE PACKING FOR MIXED-SIZE GROUPS
+   ========================================================= */
+/**
+ * Places mixed-size tiles onto a clean grid-snapped collage layout using
+ * row-aligned skyline packing so tiles align neatly with neighboring rows/columns.
+ */
+function findCollageSlot(placedRects, w, h, availW, availH, gapH, gapV, colStep, rowStep) {
+    if (w > availW + 0.01 || h > availH + 0.01) return null;
+
+    const snapX = val => colStep > 0.01 ? Math.round(val / colStep) * colStep : val;
+    const snapY = val => rowStep > 0.01 ? Math.round(val / rowStep) * rowStep : val;
+
+    const candidateXs = new Set([0]);
+    for (const r of placedRects) {
+        const nx = r.x + r.w + gapH;
+        if (nx + w <= availW + 0.01) candidateXs.add(Number(nx.toFixed(4)));
+        const sx = snapX(nx);
+        if (sx >= nx - 0.01 && sx + w <= availW + 0.01) candidateXs.add(Number(sx.toFixed(4)));
+    }
+    if (colStep > 0.5) {
+        for (let gx = 0; gx + w <= availW + 0.01; gx += colStep) {
+            candidateXs.add(Number(gx.toFixed(4)));
+        }
+    }
+
+    let bestSlot = null;
+
+    for (const cx of candidateXs) {
+        if (cx < -0.01 || cx + w > availW + 0.01) continue;
+
+        const candidateYs = new Set([0]);
+        for (const r of placedRects) {
+            const overlapsX = cx < r.x + r.w + gapH - 0.01 && cx + w + gapH > r.x + 0.01;
+            if (overlapsX) {
+                const ny = r.y + r.h + gapV;
+                if (ny + h <= availH + 0.01) candidateYs.add(Number(ny.toFixed(4)));
+                const sy = snapY(ny);
+                if (sy >= ny - 0.01 && sy + h <= availH + 0.01) candidateYs.add(Number(sy.toFixed(4)));
+            }
+            if (r.y + h <= availH + 0.01) candidateYs.add(Number(r.y.toFixed(4)));
+            const rowBelow = r.y + r.h + gapV;
+            if (rowBelow + h <= availH + 0.01) candidateYs.add(Number(rowBelow.toFixed(4)));
+        }
+        if (rowStep > 0.5) {
+            for (let gy = 0; gy + h <= availH + 0.01; gy += rowStep) {
+                candidateYs.add(Number(gy.toFixed(4)));
+            }
+        }
+
+        for (const cy of candidateYs) {
+            if (cy < -0.01 || cy + h > availH + 0.01) continue;
+
+            const collides = placedRects.some(r => {
+                const noOverlapX = (cx + w + gapH <= r.x + 0.01) || (r.x + r.w + gapH <= cx + 0.01);
+                const noOverlapY = (cy + h + gapV <= r.y + 0.01) || (r.y + r.h + gapV <= cy + 0.01);
+                return !(noOverlapX || noOverlapY);
+            });
+
+            if (!collides) {
+                const alignsWithExistingRow = placedRects.some(r =>
+                    Math.abs(r.y - cy) <= 0.05 || Math.abs((r.y + r.h) - (cy + h)) <= 0.05
+                );
+                const alignsWithExistingCol = placedRects.some(r =>
+                    Math.abs(r.x - cx) <= 0.05 || Math.abs((r.x + r.w) - (cx + w)) <= 0.05
+                );
+                const score = cy * 1000 + cx - (alignsWithExistingRow ? 0.5 : 0) - (alignsWithExistingCol ? 0.25 : 0);
+
+                if (!bestSlot || score < bestSlot.score) {
+                    bestSlot = { x: cx, y: cy, score };
+                }
+            }
+        }
+    }
+
+    return bestSlot ? { x: bestSlot.x, y: bestSlot.y } : null;
+}
+
+function packCollageItems(specsWithCounts, availW, availH, gapH, gapV) {
+    const rects = [];
+    let overflow = false;
+
+    const queue = [];
+    specsWithCounts.forEach(({ img, wMM, hMM, count }) => {
+        for (let i = 0; i < count; i++) {
+            queue.push({ img, wMM, hMM });
+        }
+    });
+
+    let minW = Infinity;
+    let minH = Infinity;
+    for (const item of queue) {
+        if (item.wMM < minW) minW = item.wMM;
+        if (item.hMM < minH) minH = item.hMM;
+    }
+    const colStep = Number.isFinite(minW) ? minW + gapH : 0;
+    const rowStep = Number.isFinite(minH) ? minH + gapV : 0;
+
+    for (const item of queue) {
+        const slot = findCollageSlot(rects, item.wMM, item.hMM, availW, availH, gapH, gapV, colStep, rowStep);
+        if (!slot) {
+            overflow = true;
+            continue;
+        }
+        rects.push({
+            img: item.img,
+            x: slot.x,
+            y: slot.y,
+            w: item.wMM,
+            h: item.hMM
+        });
+    }
+
+    let maxRight = 0;
+    let maxBottom = 0;
+    for (const r of rects) {
+        maxRight = Math.max(maxRight, r.x + r.w);
+        maxBottom = Math.max(maxBottom, r.y + r.h);
+    }
+
+    return {
+        rects,
+        visibleItems: rects.map(r => r.img),
+        boundsW: maxRight,
+        boundsH: maxBottom,
+        overflow
+    };
+}
+
+function computeGroupTilePlan(page, layout) {
+    const pageImageIds = (page.imageIds || [page.imageId]).filter(Boolean);
+    const pageImages = page.visible === false
+        ? []
+        : pageImageIds.map(id => uploadedImages.find(img => img.id === id)).filter(img => img && img.visible !== false);
+
+    if (!pageImages.length) {
+        return { pageImages: [], requested: [], visibleItems: [], rects: [], totalRequested: 0, capacity: 0, overflow: false, isMixedSize: false };
+    }
+
+    const locked = isGroupSizeLocked(page);
+    const firstSize = getImageTileSize(pageImages[0].id);
+    const hasDifferentSizes = !locked && pageImages.some(img => {
+        const s = getImageTileSize(img.id);
+        return Math.abs(s.w - firstSize.w) > 0.001 || Math.abs(s.h - firstSize.h) > 0.001;
+    });
+
+    const paper = paperSizes[currentPaper];
+    const safeZoneEnabled = Boolean(document.getElementById('safeZoneToggle')?.checked);
+    const minMarginMM = safeZoneEnabled ? 3 : 0;
+    const maxMarginMM = Math.max(minMarginMM, Math.min(paper.w, paper.h) * 0.45);
+    const m = Math.max(minMarginMM, Math.min(maxMarginMM, appConfig.margin));
+    const availW = Math.max(1, paper.w - m * 2);
+    const availH = Math.max(1, paper.h - m * 2);
+
+    const groupStyle = getEffectiveStyle(page.imageIds?.[0]);
+    const gapH = Math.max(0, Number(groupStyle.gapH) || 0);
+    const gapV = Math.max(0, Number(groupStyle.gapV) || 0);
+
+    if (!hasDifferentSizes) {
+        const capacity = layout.cols * layout.rows;
+        let requested;
+        if (pageImageIds.length <= 1) {
+            requested = [pageImages[0]?.quantityOverride == null
+                ? capacity
+                : Math.max(0, Math.min(500, Math.floor(Number(pageImages[0].quantityOverride) || 0)))];
+        } else {
+            const overrides = pageImages.map(obj => obj.quantityOverride == null
+                ? null
+                : Math.max(0, Math.min(500, Math.floor(Number(obj.quantityOverride) || 0))));
+            const fixedTotal = overrides.reduce((sum, qty) => sum + (qty == null ? 0 : qty), 0);
+            const autoIndexes = overrides.map((qty, i) => qty == null ? i : -1).filter(i => i >= 0);
+            const remaining = Math.max(0, capacity - fixedTotal);
+            const eachAuto = autoIndexes.length ? Math.floor(remaining / autoIndexes.length) : 0;
+            let autoRemainder = autoIndexes.length ? remaining % autoIndexes.length : 0;
+            requested = overrides.map(qty => {
+                if (qty != null) return qty;
+                const allocation = eachAuto + (autoRemainder > 0 ? 1 : 0);
+                if (autoRemainder > 0) autoRemainder--;
+                return allocation;
+            });
+        }
+        const totalRequested = requested.reduce((sum, qty) => sum + qty, 0);
+        const totalPlaced = Math.min(capacity, totalRequested);
+        const visibleItems = [];
+        let left = totalPlaced;
+        pageImages.forEach((img, i) => {
+            const take = Math.max(0, Math.min(requested[i], left));
+            left -= take;
+            for (let k = 0; k < take; k++) visibleItems.push(img);
+        });
+        return {
+            pageImages,
+            requested,
+            visibleItems,
+            rects: [],
+            totalRequested,
+            capacity,
+            overflow: totalRequested > capacity,
+            isMixedSize: false,
+            availW,
+            availH,
+            gapH,
+            gapV,
+            m
+        };
+    }
+
+    const layerSpecs = pageImages.map(img => {
+        const sz = getImageTileSize(img.id);
+        const wMM = Math.min(availW, sz.w * 25.4);
+        const hMM = Math.min(availH, sz.h * 25.4);
+        const qty = img.quantityOverride == null
+            ? null
+            : Math.max(0, Math.min(500, Math.floor(Number(img.quantityOverride) || 0)));
+        return { img, wMM, hMM, qty };
+    });
+
+    const counts = layerSpecs.map(s => s.qty != null ? s.qty : 0);
+    const autoIndices = layerSpecs.map((s, i) => s.qty == null ? i : -1).filter(i => i >= 0);
+
+    if (autoIndices.length > 0) {
+        let added = true;
+        let guard = 0;
+        while (added && guard < 600) {
+            added = false;
+            guard++;
+            for (const ai of autoIndices) {
+                counts[ai]++;
+                const test = packCollageItems(
+                    layerSpecs.map((s, idx) => ({ ...s, count: counts[idx] })),
+                    availW, availH, gapH, gapV
+                );
+                if (test.overflow) {
+                    counts[ai]--;
+                } else {
+                    added = true;
+                }
+            }
+        }
+    }
+
+    const finalPack = packCollageItems(
+        layerSpecs.map((s, idx) => ({ ...s, count: counts[idx] })),
+        availW, availH, gapH, gapV
+    );
+    const totalRequested = counts.reduce((a, b) => a + b, 0);
+
+    return {
+        pageImages,
+        requested: counts,
+        visibleItems: finalPack.visibleItems,
+        rects: finalPack.rects,
+        boundsW: finalPack.boundsW,
+        boundsH: finalPack.boundsH,
+        totalRequested,
+        capacity: finalPack.visibleItems.length,
+        overflow: finalPack.overflow,
+        isMixedSize: true,
+        availW,
+        availH,
+        gapH,
+        gapV,
+        m
+    };
 }
 
 function getCurrentLayerCanvasQuantity(imageId = activeImageId) {
     const page = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
     if (!page) return 0;
 
-    const pageImageIds = (page.imageIds || [page.imageId]).filter(Boolean);
-    const pageImages = page.visible === false
-        ? []
-        : pageImageIds.map(id => uploadedImages.find(img => img.id === id)).filter(img => img && img.visible !== false);
-    const selectedIndex = pageImages.findIndex(img => img.id === imageId);
-    if (selectedIndex < 0) return 0;
-
-    const layout = computeLayout(pageImages[0]?.id || imageId);
-    const capacity = layout.cols * layout.rows;
-    if (pageImageIds.length <= 1) {
-        const obj = pageImages[0];
-        return obj?.quantityOverride == null
-            ? capacity
-            : Math.max(0, Math.min(capacity, Math.floor(Number(obj.quantityOverride) || 0)));
-    }
-
-    const overrides = pageImages.map(img => img.quantityOverride == null
-        ? null
-        : Math.max(0, Math.min(500, Math.floor(Number(img.quantityOverride) || 0))));
-    const fixedTotal = overrides.reduce((sum, qty) => sum + (qty == null ? 0 : qty), 0);
-    const autoIndexes = overrides.map((qty, i) => qty == null ? i : -1).filter(i => i >= 0);
-    const remaining = Math.max(0, capacity - fixedTotal);
-    const eachAuto = autoIndexes.length ? Math.floor(remaining / autoIndexes.length) : 0;
-    let autoRemainder = autoIndexes.length ? remaining % autoIndexes.length : 0;
-    const requested = overrides.map(qty => {
-        if (qty != null) return qty;
-        const allocation = eachAuto + (autoRemainder > 0 ? 1 : 0);
-        if (autoRemainder > 0) autoRemainder--;
-        return allocation;
-    });
-    const totalRequested = requested.reduce((sum, qty) => sum + qty, 0);
-    const visibleTotal = Math.min(capacity, totalRequested);
-    const start = requested.slice(0, selectedIndex).reduce((sum, qty) => sum + qty, 0);
-    return Math.max(0, Math.min(requested[selectedIndex], visibleTotal - start));
+    const layout = computeLayout(imageId);
+    const plan = computeGroupTilePlan(page, layout);
+    return plan.visibleItems.filter(img => img.id === imageId).length;
 }
 
 function updateLayerQuantityMode(mode) {
@@ -3059,8 +3644,6 @@ function updateLayerQuantityMode(mode) {
     if (mode === 'auto') {
         obj.quantityOverride = null;
     } else {
-        // When switching from Auto to a fixed quantity, keep the number already
-        // visible for this layer on the canvas instead of resetting to 1.
         const current = obj.quantityOverride;
         obj.quantityOverride = current == null ? getCurrentLayerCanvasQuantity(activeImageId) : current;
     }
@@ -3085,6 +3668,7 @@ function updateLayerQuantity(value) {
 
 function syncQuantityControl(imageId = activeImageId) {
     syncFitControls(imageId);
+    syncGroupSizeLockUI();
     const input = document.getElementById('layerQuantity');
     const autoCheckbox = document.getElementById('layerQuantityAuto');
     const valueWrap = document.getElementById('layerQuantityValueWrap');
@@ -3097,18 +3681,26 @@ function syncQuantityControl(imageId = activeImageId) {
     const setting = document.getElementById('quantitySetting');
     if (section) section.style.display = isLayerSelected ? '' : 'none';
     if (setting) setting.style.display = isLayerSelected ? '' : 'none';
-    const tileLayoutControls = document.getElementById('tileLayoutControls');
     document.body.classList.toggle('group-child-layer-selected', isIndividualGroupLayer);
-    if (tileLayoutControls) {
-        tileLayoutControls.style.setProperty('display', isIndividualGroupLayer ? 'none' : '', 'important');
-    }
 
-    // Keep border controls enabled for individual grouped layers while locking spacing, paper, and alignment.
-    ['paperSelect', 'numMargin', 'safeZoneToggle', 'numGapH', 'numGapV', 'numBorderW', 'numBorderR', 'borderStyleSelect', 'borderPositionSelect', 'hexBorderC', 'setBorderC', 'alignTopBtn', 'alignCenterBtn', 'alignBottomBtn']
+    const groupSizeLocked = isIndividualGroupLayer && isGroupSizeLocked(page);
+    const presetSel = document.getElementById('presetSelect');
+    const tileWInp  = document.getElementById('tileW');
+    const tileHInp  = document.getElementById('tileH');
+    if (presetSel) presetSel.disabled = groupSizeLocked;
+    if (tileWInp)  tileWInp.disabled  = groupSizeLocked;
+    if (tileHInp)  tileHInp.disabled  = groupSizeLocked;
+
+    ['paperSelect', 'numMargin', 'safeZoneToggle', 'numGapH', 'numGapV']
         .forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = isIndividualGroupLayer;
         });
+
+    ['alignTopBtn', 'alignCenterBtn', 'alignBottomBtn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = false;
+    });
 
     autoCheckbox.disabled = !isLayerSelected;
     autoCheckbox.checked = !(isLayerSelected && obj?.quantityOverride != null);
@@ -3118,6 +3710,7 @@ function syncQuantityControl(imageId = activeImageId) {
         : '0';
     if (valueWrap) valueWrap.style.opacity = autoCheckbox.checked ? '.45' : '1';
 }
+
 function selectLayer(id, index, ev) {
     selectedGroupPageId = null;
     const stackIds = getLayerStackIds();
@@ -3145,11 +3738,7 @@ function selectLayer(id, index, ev) {
         activePageIndex = pageIndex;
         if ((pages[pageIndex].imageIds || []).length > 1) collapsedGroupIds.delete(pages[pageIndex].id);
     }
-    syncTileControls(activeImageId);
-    syncQuantityControl(activeImageId);
-    syncSpacingBorderControls(activeImageId);
-    renderCanvas();
-    renderImageQueue();
+    reconcileSelectionAndUI();
 }
 
 function updateGroupButton() {
@@ -3177,7 +3766,6 @@ function toggleGroupSelection() {
         ungroupPage(selectedGroup);
         return;
     }
-    // Groups cannot be nested or combined with other groups.
     if (selected.some(id => groups.some(pg => pg.imageIds.includes(id)))) return;
     groupImages(selected);
 }
@@ -3186,20 +3774,26 @@ function groupImages(ids) {
     const existingGroupIds = new Set(pages.flatMap(pg => (pg.imageIds || []).length > 1 ? pg.imageIds : []));
     const selectedIds = uploadedImages.filter(img => ids.includes(img.id) && !existingGroupIds.has(img.id)).map(img => img.id);
     if (selectedIds.length < 2 || selectedIds.length !== ids.length) return;
-    // A single physical sheet needs one common tile size. Use the first selected layer's size.
-    const referenceSize = getImageTileSize(selectedIds[0]);
-    selectedIds.forEach(id => {
-        const obj = uploadedImages.find(img => img.id === id);
-        if (obj) { obj.tileW = referenceSize.w; obj.tileH = referenceSize.h; }
+
+    const firstSize = getImageTileSize(selectedIds[0]);
+    const hasDifferentInitialSizes = selectedIds.some(id => {
+        const sz = getImageTileSize(id);
+        return Math.abs(sz.w - firstSize.w) > 0.001 || Math.abs(sz.h - firstSize.h) > 0.001;
     });
+
     const selectedPages = pages.filter(pg => selectedIds.some(id => (pg.imageIds || [pg.imageId]).includes(id)));
     const insertAt = Math.max(0, Math.min(...selectedPages.map(pg => pages.indexOf(pg))));
     pages = pages.filter(pg => !selectedIds.some(id => (pg.imageIds || [pg.imageId]).includes(id)));
-    pages.splice(insertAt, 0, { id: newPageId(), imageId: selectedIds[0], imageIds: selectedIds });
+    pages.splice(insertAt, 0, {
+        id: newPageId(),
+        imageId: selectedIds[0],
+        imageIds: selectedIds,
+        lockSize: !hasDifferentInitialSizes
+    });
     activePageIndex = insertAt; activeImageId = selectedIds[0];
     selectedImageIds = new Set(selectedIds);
     selectedGroupPageId = pages[insertAt]?.id || null;
-    syncTileControls(activeImageId); syncQuantityControl(activeImageId); renderImageQueue(); renderCanvas();
+    reconcileSelectionAndUI();
 }
 
 function ungroupPage(pg) {
@@ -3207,28 +3801,24 @@ function ungroupPage(pg) {
     if (index < 0) return;
     const ids = pg.imageIds || [];
     collapsedGroupIds.delete(pg.id);
+    selectedGroupPageId = null;
     pages.splice(index, 1, ...ids.map(id => ({ id: newPageId(), imageId: id })));
     activePageIndex = index; activeImageId = ids[0] || null;
     selectedImageIds = new Set(ids);
-    syncTileControls(activeImageId); syncQuantityControl(activeImageId); renderImageQueue(); renderCanvas();
+    reconcileSelectionAndUI();
 }
 
-/* Select an image → jump to the page that holds it (create one if missing) */
 function selectImage(imageId) {
     selectedGroupPageId = null;
     activeImageId = imageId;
     selectedImageIds = new Set([imageId]);
-    syncTileControls(imageId);
-    syncQuantityControl(imageId);
-    syncSpacingBorderControls(imageId);
     let idx = pages.findIndex(p => (p.imageIds || [p.imageId]).includes(imageId));
     if (idx === -1) {
         pages.push({ id: newPageId(), imageId });
         idx = pages.length - 1;
     }
     activePageIndex = idx;
-    renderImageQueue();
-    renderCanvas();
+    reconcileSelectionAndUI();
 }
 
 function duplicateSelectedLayers() {
@@ -3272,16 +3862,15 @@ function duplicateSelectedLayers() {
 
         const isGroup = (page.imageIds || []).length > 1;
         if (isGroup && selectedInPage.length === ids.length) {
-            // Duplicating a whole group creates a second sibling group, never a nested group.
             nextPages.push(page);
             const copiedIds = ids.map(id => idMap.get(id));
             nextPages.push({
                 id: newPageId(),
                 imageId: copiedIds[0],
-                imageIds: copiedIds
+                imageIds: copiedIds,
+                lockSize: page.lockSize
             });
         } else if (isGroup) {
-            // Duplicate selected members directly after their originals within the same group.
             const expandedIds = ids.flatMap(id => idMap.has(id) ? [id, idMap.get(id)] : [id]);
             nextPages.push({ ...page, imageId: expandedIds[0], imageIds: expandedIds });
         } else {
@@ -3298,13 +3887,22 @@ function duplicateSelectedLayers() {
         (page.imageIds || [page.imageId]).some(id => id === activeImageId)
     );
     if (targetPageIndex >= 0) activePageIndex = targetPageIndex;
-    syncTileControls(activeImageId);
-    renderImageQueue();
-    renderCanvas();
+    reconcileSelectionAndUI();
+}
+
+function captureStateSnapshot() {
+    return {
+        uploadedImages: uploadedImages.map(item => ({ ...item })),
+        pages: clonePagesSnapshot(pages),
+        activeImageId,
+        selectedImageIds: new Set(selectedImageIds),
+        selectedGroupPageId,
+        activePageIndex,
+        collapsedGroupIds: new Set(collapsedGroupIds)
+    };
 }
 
 function deleteSelectedLayers() {
-    // If a group header is selected, Delete removes the entire group and all its layers.
     const selectedGroup = selectedGroupPageId
         ? pages.find(page => page.id === selectedGroupPageId && (page.imageIds || []).length > 1)
         : null;
@@ -3313,8 +3911,17 @@ function deleteSelectedLayers() {
         : (selectedImageIds.size ? selectedImageIds : (activeImageId ? [activeImageId] : [])));
     if (!idsToDelete.size) return;
 
-    releaseImageSources(uploadedImages.filter(img => idsToDelete.has(img.id)));
-    uploadedImages = uploadedImages.filter(img => !idsToDelete.has(img.id));
+    const deletedItems = uploadedImages.filter(img => idsToDelete.has(img.id));
+    if (!deletedItems.length) return;
+
+    const snapshot = captureStateSnapshot();
+
+    // Pick sensible next selection before mutating lists
+    const remainingAfter = uploadedImages.filter(img => !idsToDelete.has(img.id));
+    const firstRemovedIdx = uploadedImages.findIndex(img => idsToDelete.has(img.id));
+    const fallbackNext = remainingAfter[Math.min(firstRemovedIdx, remainingAfter.length - 1)] || remainingAfter[0] || null;
+
+    uploadedImages = remainingAfter;
     pages = pages.flatMap(page => {
         const ids = (page.imageIds || [page.imageId]).filter(id => id && !idsToDelete.has(id));
         if (!ids.length) return [];
@@ -3322,59 +3929,106 @@ function deleteSelectedLayers() {
             ? [{ id: page.id, imageId: ids[0] }]
             : [{ ...page, imageId: ids[0], imageIds: ids }];
     });
-    collapsedGroupIds.clear();
-    selectedImageIds.clear();
+
     selectedGroupPageId = null;
-    if (!pages.length) pages.push({ id: newPageId(), imageId: uploadedImages[0]?.id || null });
-    activePageIndex = Math.min(activePageIndex, pages.length - 1);
-    syncActiveFromPage();
-    if (activeImageId) selectedImageIds = new Set([activeImageId]);
-    syncTileControls(activeImageId);
-    renderImageQueue();
-    renderCanvas();
-    syncQuantityControl(activeImageId);
+    if (!pages.length) {
+        pages = [{ id: newPageId(), imageId: fallbackNext ? fallbackNext.id : null }];
+        activePageIndex = 0;
+    } else {
+        const nextPageIdx = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(fallbackNext?.id));
+        if (nextPageIdx >= 0) {
+            activePageIndex = nextPageIdx;
+        } else if (activePageIndex >= pages.length) {
+            activePageIndex = pages.length - 1;
+        }
+    }
+
+    activeImageId = fallbackNext ? fallbackNext.id : null;
+    selectedImageIds = fallbackNext ? new Set([fallbackNext.id]) : new Set();
+
+    reconcileSelectionAndUI();
+    showDeletionToast(
+        deletedItems.length === 1
+            ? `Deleted "${deletedItems[0].name || 'layer'}"`
+            : `Deleted ${deletedItems.length} layers`,
+        snapshot
+    );
 }
 
 function removeImage(id) {
-    releaseImageSources(uploadedImages.filter(i => i.id === id));
-    uploadedImages = uploadedImages.filter(i => i.id !== id);
-    pages.forEach(pg => { if ((pg.imageIds || []).length <= 1) collapsedGroupIds.delete(pg.id); });
+    const target = uploadedImages.find(i => i.id === id);
+    if (!target) return;
+
+    const snapshot = captureStateSnapshot();
+    const removedIdx = uploadedImages.findIndex(i => i.id === id);
+    const remainingAfter = uploadedImages.filter(i => i.id !== id);
+    const fallbackNext = remainingAfter[Math.min(removedIdx, remainingAfter.length - 1)] || remainingAfter[0] || null;
+
+    uploadedImages = remainingAfter;
     pages = pages.flatMap(p => {
         const ids = (p.imageIds || [p.imageId]).filter(x => x && x !== id);
         if (!ids.length) return [];
         return ids.length === 1 ? [{ id: p.id, imageId: ids[0] }] : [{ ...p, imageId: ids[0], imageIds: ids }];
     });
+
     selectedImageIds.delete(id);
-    if (!pages.length) pages.push({ id: newPageId(), imageId: uploadedImages.length ? uploadedImages[0].id : null });
-    if (activePageIndex >= pages.length) activePageIndex = pages.length - 1;
-    syncActiveFromPage();
-    syncTileControls(activeImageId);
-    renderImageQueue();
-    renderCanvas();
-    syncQuantityControl(activeImageId);
+    if (selectedGroupPageId) {
+        const stillGroup = pages.find(p => p.id === selectedGroupPageId && (p.imageIds || []).length > 1);
+        if (!stillGroup) selectedGroupPageId = null;
+    }
+
+    if (!pages.length) {
+        pages = [{ id: newPageId(), imageId: fallbackNext ? fallbackNext.id : null }];
+        activePageIndex = 0;
+    } else {
+        const nextPageIdx = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(fallbackNext?.id));
+        if (nextPageIdx >= 0) {
+            activePageIndex = nextPageIdx;
+        } else if (activePageIndex >= pages.length) {
+            activePageIndex = pages.length - 1;
+        }
+    }
+
+    activeImageId = fallbackNext ? fallbackNext.id : null;
+    if (!selectedImageIds.size && fallbackNext) {
+        selectedImageIds = new Set([fallbackNext.id]);
+    }
+
+    reconcileSelectionAndUI();
+    showDeletionToast(`Deleted "${target.name || 'layer'}"`, snapshot);
 }
 
 function clearAll() {
-    releaseImageSources(uploadedImages);
+    if (!uploadedImages.length) return;
+    const snapshot = captureStateSnapshot();
+    const prevCount = uploadedImages.length;
+
     uploadedImages = [];
     activeImageId = null;
     selectedImageIds.clear();
-    collapsedGroupIds.clear(); draggedLayerIds = [];
+    selectedGroupPageId = null;
+    layerAnchorIndex = -1;
+    collapsedGroupIds.clear();
+    draggedLayerIds = [];
     pages = [{ id: newPageId(), imageId: null }];
     activePageIndex = 0;
-    renderImageQueue();
-    renderCanvas();
-    syncQuantityControl(null);
+
+    reconcileSelectionAndUI();
+    showDeletionToast(`Cleared ${prevCount} layer${prevCount > 1 ? 's' : ''}`, snapshot);
 }
 
 async function resetAll() {
     const ok = await showConfirm('Reset Everything', 'This clears all images and restores default settings. Continue?');
     if (!ok) return;
+    hideDeletionToast();
     releaseImageSources(uploadedImages);
     uploadedImages = [];
     activeImageId = null;
     selectedImageIds.clear();
-    collapsedGroupIds.clear(); draggedLayerIds = [];
+    selectedGroupPageId = null;
+    layerAnchorIndex = -1;
+    collapsedGroupIds.clear();
+    draggedLayerIds = [];
     pages = [{ id: newPageId(), imageId: null }];
     activePageIndex = 0;
     appConfig = { ...DEFAULT_CONFIG, margin: 0 };
@@ -3383,25 +4037,17 @@ async function resetAll() {
     loadConfig();
     document.getElementById('numMargin').value = '0.00';
     setPaperSize('A4');
-    renderImageQueue();
-    renderCanvas();
-    syncQuantityControl(null);
+    reconcileSelectionAndUI();
 }
 
 /* =========================================================
    PAGE NAVIGATION
    ========================================================= */
 function getVisiblePageIndices() {
-    // Keep one blank page visible when the workspace has no uploaded images.
-    // This gives the user an empty paper canvas immediately on first load
-    // (and after Clear All), instead of showing "No visible pages".
     if (!uploadedImages.length) {
         return pages.map((_, index) => index);
     }
 
-    // A page is only part of the document when its page/group and at least
-    // one of its layers are visible. Hiding a standalone layer therefore
-    // removes its entire page instead of leaving a blank sheet in the canvas.
     return pages.map((pg, index) => ({ pg, index })).filter(({ pg }) => {
         if (pg.visible === false) return false;
         const ids = (pg.imageIds || [pg.imageId]).filter(Boolean);
@@ -3418,8 +4064,12 @@ function goToPage(idx) {
     if (target === undefined) return;
     activePageIndex = target;
     syncActiveFromPage();
+    selectedGroupPageId = null;
+    if (activeImageId) selectedImageIds = new Set([activeImageId]);
     syncTileControls(activeImageId);
+    syncQuantityControl(activeImageId);
     syncSpacingBorderControls(activeImageId);
+    syncFitControls(activeImageId);
     updatePageVisibility();
     updatePagerUI();
     renderImageQueue();
@@ -3441,8 +4091,7 @@ async function deletePage() {
     pages.splice(activePageIndex, 1);
     if (activePageIndex >= pages.length) activePageIndex = pages.length - 1;
     syncActiveFromPage();
-    renderCanvas();
-    renderImageQueue();
+    reconcileSelectionAndUI();
 }
 
 function updatePagerUI() {
@@ -3468,7 +4117,6 @@ function snapLayoutBounds(imageId = activeImageId) {
     const safeZoneEnabled = Boolean(document.getElementById('safeZoneToggle')?.checked);
     const minMarginMM = safeZoneEnabled ? 3 : 0;
 
-    // Snap margin so it never pushes past half of the paper or inside the safe zone
     const maxMarginMM = Math.max(minMarginMM, Math.min(paper.w, paper.h) * 0.45);
     const m = Math.max(minMarginMM, Math.min(maxMarginMM, appConfig.margin));
 
@@ -3476,14 +4124,12 @@ function snapLayoutBounds(imageId = activeImageId) {
     const availH = Math.max(1, paper.h - m * 2);
 
     const style = getEffectiveStyle(imageId);
-    // Snap border width so a single tile never exceeds available printable space
     const maxBorderMMByW = Math.max(0, (availW - 2) / 4);
     const maxBorderMMByH = Math.max(0, (availH - 2) / 4);
     const maxBorderPx = Math.max(0, Math.floor(Math.min(20, maxBorderMMByW, maxBorderMMByH) * MM_TO_PX));
     const snappedBorderW = Math.max(0, Math.min(maxBorderPx, Math.round(Number(style.borderW) || 0)));
     const borderMM = snappedBorderW * PX_TO_MM;
 
-    // Snap tile dimensions so at least 1 tile fits cleanly without overlapping bounds
     const maxTileInW = Math.max(0.2, (availW - borderMM * 2) / 25.4);
     const maxTileInH = Math.max(0.2, (availH - borderMM * 2) / 25.4);
     const snappedTileW = Math.max(0.2, Math.min(size.w, Math.floor(maxTileInW * 100) / 100));
@@ -3494,11 +4140,6 @@ function snapLayoutBounds(imageId = activeImageId) {
     const effectiveTileW = tileWMM + borderMM * 2;
     const effectiveTileH = tileHMM + borderMM * 2;
 
-    const rawCols = Math.max(1, Math.floor(availW / effectiveTileW));
-    const rawRows = Math.max(1, Math.floor(availH / effectiveTileH));
-
-    // Keep requested spacing/border/tile values intact and reduce columns or rows
-    // so only tiles that fit cleanly within bounds are placed.
     const snappedGapH = Math.max(0, Number(style.gapH) || 0);
     const snappedGapV = Math.max(0, Number(style.gapV) || 0);
 
@@ -3551,7 +4192,6 @@ function renderCanvas() {
         warning.style.display = 'none';
     }
 
-    // Remove stale/blank page records whenever real images exist.
     if (uploadedImages.length) {
         pages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
     }
@@ -3579,6 +4219,56 @@ function renderCanvas() {
     requestAnimationFrame(fitToViewport);
 }
 
+function createTileElement(tileImage, { widthMM, heightMM, collapseLeft = false, collapseTop = false }) {
+    const tileStyle = getLayerStyle(tileImage.id);
+    const tileBW = Math.max(0, Number(tileStyle.borderW) || 0);
+    const tileBR = Math.max(0, Number(tileStyle.borderR) || 0);
+    const tileBS = tileStyle.borderStyle === 'dotted' ? 'dotted' : 'solid';
+    const tileBC = normalizeHexColor(tileStyle.borderC) || '#E5E7EB';
+
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    if (widthMM != null) tile.style.width = `${widthMM}mm`;
+    if (heightMM != null) tile.style.height = `${heightMM}mm`;
+
+    const media = document.createElement('div');
+    media.className = 'tile-media';
+    media.style.borderRadius = `${tileBR}px`;
+
+    const borderRing = document.createElement('div');
+    borderRing.className = 'tile-border';
+    borderRing.style.inset = tileStyle.borderPosition === 'inside' ? '0' : `${-tileBW}px`;
+    borderRing.style.border = `${tileBW}px ${tileBS} ${tileBC}`;
+    borderRing.style.borderRadius = `${tileBR + (tileStyle.borderPosition === 'inside' ? 0 : tileBW)}px`;
+
+    if (tileStyle.borderPosition !== 'inside' && collapseLeft) {
+        borderRing.style.borderLeftWidth = '0';
+        borderRing.style.left = '0';
+    }
+    if (tileStyle.borderPosition !== 'inside' && collapseTop) {
+        borderRing.style.borderTopWidth = '0';
+        borderRing.style.top = '0';
+    }
+
+    const img = document.createElement('img');
+    img.src = tileImage.croppedSrc || tileImage.previewSrc || tileImage.src;
+    img.dataset.imageId = tileImage.id;
+    img.alt = '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.style.objectFit = fitObjectFit(tileImage.id);
+    tile.title = `Select ${tileImage.name || 'image layer'}`;
+    tile.style.cursor = 'pointer';
+    tile.onclick = () => selectImage(tileImage.id);
+
+    media.appendChild(img);
+    tile.appendChild(media);
+    if (tileBW > 0) {
+        tile.appendChild(borderRing);
+    }
+    return tile;
+}
+
 function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
     const page = document.createElement('div');
     page.className = 'paper-page';
@@ -3596,7 +4286,9 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
         return page;
     }
 
-    if (layout.cols === 0 || layout.rows === 0) {
+    const plan = computeGroupTilePlan(pg, layout);
+
+    if (!plan.isMixedSize && (layout.cols === 0 || layout.rows === 0)) {
         page.appendChild(emptyState('Tile is larger than the printable area', false));
         return page;
     }
@@ -3612,6 +4304,36 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
     const pageGapH = groupStyle ? groupStyle.gapH : (imgObj ? getLayerStyle(imgObj.id).gapH : appConfig.gapH);
     const pageGapV = groupStyle ? groupStyle.gapV : (imgObj ? getLayerStyle(imgObj.id).gapV : appConfig.gapV);
 
+    if (plan.overflow && idx === activePageIndex) {
+        const warning = document.getElementById('overflowWarning');
+        if (warning) {
+            warning.style.display = 'block';
+            warning.textContent = plan.isMixedSize
+                ? `Requested ${plan.totalRequested} copies, but only ${plan.visibleItems.length} fit on the sheet.`
+                : `Requested ${plan.totalRequested} copies, but only ${plan.capacity} fit. Reduce a layer quantity.`;
+        }
+    }
+
+    if (plan.isMixedSize) {
+        const collage = document.createElement('div');
+        collage.className = 'tile-collage';
+        collage.style.position = 'relative';
+        collage.style.width = `${Math.max(1, plan.boundsW || plan.availW)}mm`;
+        collage.style.height = `${Math.max(1, plan.boundsH || plan.availH)}mm`;
+
+        plan.rects.forEach(rect => {
+            const tileEl = createTileElement(rect.img, { widthMM: rect.w, heightMM: rect.h });
+            tileEl.style.position = 'absolute';
+            tileEl.style.left = `${rect.x}mm`;
+            tileEl.style.top = `${rect.y}mm`;
+            collage.appendChild(tileEl);
+        });
+
+        inner.appendChild(collage);
+        page.appendChild(inner);
+        return page;
+    }
+
     const grid = document.createElement('div');
     grid.className = 'tile-grid';
     grid.style.gridTemplateColumns = `repeat(${layout.cols}, ${layout.t.w}mm)`;
@@ -3619,97 +4341,19 @@ function buildPage(pg, idx, layout, displayPageNumber = idx + 1) {
     grid.style.columnGap = `${pageGapH}mm`;
     grid.style.rowGap = `${pageGapV}mm`;
 
-    const capacity = layout.cols * layout.rows;
-    // Every selected layer can have its own quantity. Auto-fill uses the full
-    // sheet for a standalone layer; in groups, Auto layers share the remainder.
-    let requested;
-    if (pageImageIds.length <= 1) {
-        requested = [pageImages[0]?.quantityOverride == null
-            ? capacity
-            : Math.max(0, Math.min(500, Math.floor(Number(pageImages[0].quantityOverride) || 0)))];
-    } else {
-        const overrides = pageImages.map(obj => obj.quantityOverride == null
-            ? null
-            : Math.max(0, Math.min(500, Math.floor(Number(obj.quantityOverride) || 0))));
-        const fixedTotal = overrides.reduce((sum, qty) => sum + (qty == null ? 0 : qty), 0);
-        const autoIndexes = overrides.map((qty, i) => qty == null ? i : -1).filter(i => i >= 0);
-        const remaining = Math.max(0, capacity - fixedTotal);
-        const eachAuto = autoIndexes.length ? Math.floor(remaining / autoIndexes.length) : 0;
-        let autoRemainder = autoIndexes.length ? remaining % autoIndexes.length : 0;
-        requested = overrides.map((qty, i) => {
-            if (qty != null) return qty;
-            const allocation = eachAuto + (autoRemainder > 0 ? 1 : 0);
-            if (autoRemainder > 0) autoRemainder--;
-            return allocation;
-        });
-    }
-    const totalRequested = requested.reduce((sum, qty) => sum + qty, 0);
-    const total = Math.min(capacity, totalRequested);
-    const allocationEnds = [];
-    requested.forEach((qty, n) => allocationEnds.push((allocationEnds[n - 1] || 0) + qty));
-    const quantityOverflow = totalRequested > capacity;
-    if (quantityOverflow && idx === activePageIndex) {
-        const warning = document.getElementById('overflowWarning');
-        if (warning) {
-            warning.style.display = 'block';
-            warning.textContent = `Requested ${totalRequested} copies, but only ${capacity} fit. Reduce a layer quantity.`;
-        }
-    }
-
+    const total = plan.visibleItems.length;
     for (let i = 0; i < total; i++) {
         const row = Math.floor(i / layout.cols);
         const col = i % layout.cols;
-
-        const imageIndex = allocationEnds.findIndex(end => i < end);
-        const tileImage = pageImages[Math.max(0, imageIndex)] || imgObj;
+        const tileImage = plan.visibleItems[i] || imgObj;
         const tileStyle = getLayerStyle(tileImage.id);
-        const tileBW = Math.max(0, Number(tileStyle.borderW) || 0);
-        const tileBR = Math.max(0, Number(tileStyle.borderR) || 0);
-        const tileBS = tileStyle.borderStyle === 'dotted' ? 'dotted' : 'solid';
-        const tileBC = normalizeHexColor(tileStyle.borderC) || '#E5E7EB';
         const tileGH = isGroupPage ? pageGapH : tileStyle.gapH;
         const tileGV = isGroupPage ? pageGapV : tileStyle.gapV;
 
-        const tile = document.createElement('div');
-        tile.className = 'tile';
-
-        const media = document.createElement('div');
-        media.className = 'tile-media';
-        media.style.borderRadius = `${tileBR}px`;
-
-        const borderRing = document.createElement('div');
-        borderRing.className = 'tile-border';
-        borderRing.style.inset = tileStyle.borderPosition === 'inside' ? '0' : `${-tileBW}px`;
-        borderRing.style.border = `${tileBW}px ${tileBS} ${tileBC}`;
-        borderRing.style.borderRadius = `${tileBR + (tileStyle.borderPosition === 'inside' ? 0 : tileBW)}px`;
-
-        // Collapse doubled outside borders when there is no spacing between tiles
-        if (tileStyle.borderPosition !== 'inside' && tileGH === 0 && col > 0) {
-            borderRing.style.borderLeftWidth = '0';
-            borderRing.style.left = '0';
-        }
-        if (tileStyle.borderPosition !== 'inside' && tileGV === 0 && row > 0) {
-            borderRing.style.borderTopWidth = '0';
-            borderRing.style.top = '0';
-        }
-
-        const img = document.createElement('img');
-        img.src = tileImage.croppedSrc || tileImage.previewSrc || tileImage.src;
-        img.dataset.imageId = tileImage.id;
-        img.alt = '';
-        img.loading = 'lazy';
-        img.decoding = 'async';
-        img.style.objectFit = fitObjectFit(tileImage.id);
-        tile.title = `Select ${tileImage.name || 'image layer'}`;
-        tile.style.cursor = 'pointer';
-        tile.onclick = () => selectImage(tileImage.id);
-
-        media.appendChild(img);
-        tile.appendChild(media);
-        if (tileBW > 0) {
-            tile.appendChild(borderRing);
-        }
-        grid.appendChild(tile);
+        grid.appendChild(createTileElement(tileImage, {
+            collapseLeft: tileGH === 0 && col > 0,
+            collapseTop: tileGV === 0 && row > 0
+        }));
     }
 
     inner.appendChild(grid);
@@ -3734,6 +4378,23 @@ function emptyState(text, showBtn) {
 function updateLayoutInfo(layout) {
     const main = document.getElementById('layoutInfo');
     const sub  = document.getElementById('layoutSub');
+    const currentPage = pages[activePageIndex];
+    const groupIds = currentPage?.imageIds || [];
+
+    if (!uploadedImages.length) {
+        main.innerText = 'No active layout';
+        sub.innerText = `${layout.paper.label} · ${(layout.paper.w / 25.4).toFixed(2)} × ${(layout.paper.h / 25.4).toFixed(2)} in`;
+        return;
+    }
+
+    if (currentPage && groupIds.length > 1 && !isGroupSizeLocked(currentPage)) {
+        const plan = computeGroupTilePlan(currentPage, layout);
+        if (plan.isMixedSize) {
+            main.innerText = `${plan.visibleItems.length} collage tiles`;
+            sub.innerText = `Collage layout · ${groupIds.length} layers · ${layout.paper.label} · ${(layout.paper.w / 25.4).toFixed(2)} × ${(layout.paper.h / 25.4).toFixed(2)} in`;
+            return;
+        }
+    }
 
     if (layout.cols === 0 || layout.rows === 0) {
         main.innerText = 'Tile too large';
@@ -3743,10 +4404,8 @@ function updateLayoutInfo(layout) {
 
     const n = layout.cols * layout.rows;
     main.innerText = `${layout.cols} × ${layout.rows} = ${n} tiles`;
-    const currentPage = pages[activePageIndex];
-    const groupIds = currentPage?.imageIds || [];
     const groupNote = groupIds.length > 1
-        ? ` · ${groupIds.length} layers · quantities auto-split unless overridden`
+        ? ` · ${groupIds.length} layers · ${isGroupSizeLocked(currentPage) ? 'locked size' : 'unlocked sizes'}`
         : '';
     sub.innerText = `${layout.tileW} × ${layout.tileH} in · ${layout.paper.label} · ${(layout.paper.w / 25.4).toFixed(2)} × ${(layout.paper.h / 25.4).toFixed(2)} in${groupNote}`;
 }
@@ -3762,7 +4421,8 @@ async function triggerPrint() {
     const printablePages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
     const hasInvalidPage = printablePages.some(pg => {
         const layout = computeLayout(pg.imageIds?.[0] || pg.imageId);
-        return layout.cols === 0 || layout.rows === 0;
+        const plan = computeGroupTilePlan(pg, layout);
+        return !plan.isMixedSize && (layout.cols === 0 || layout.rows === 0);
     });
     if (hasInvalidPage) {
         await showAlert('Tile Too Large', 'At least one image tile size does not fit on the selected paper. Select that image and reduce its tile size.');
@@ -3790,15 +4450,11 @@ function generateFilename(ext) {
 }
 
 async function prepareExportClone(doc, targetPageIndex) {
-    // Make the target page visible in the cloned document. The live pager hides
-    // inactive pages with display:none, which can otherwise produce a blank capture.
     const clonedPages = Array.from(doc.querySelectorAll('#pagesWrapper .paper-page'));
     clonedPages.forEach(page => {
         page.style.display = Number(page.dataset.pageIndex) === Number(targetPageIndex) ? 'block' : 'none';
     });
 
-    // Use the full-resolution source, then WAIT until every cloned image has
-    // loaded and decoded before html2canvas starts drawing the page.
     const clonedImages = Array.from(doc.querySelectorAll('.tile img[data-image-id]'));
     clonedImages.forEach(img => {
         const source = uploadedImages.find(item => item.id === img.dataset.imageId);
@@ -3824,7 +4480,7 @@ async function prepareExportClone(doc, targetPageIndex) {
     }));
 
     doc.querySelectorAll('.safe-zone-overlay, .paper-label').forEach(el => el.style.display = 'none');
-    doc.querySelectorAll('.modal-overlay, .loading-overlay, .pager').forEach(el => el.style.display = 'none');
+    doc.querySelectorAll('.modal-overlay, .loading-overlay, .pager, .toast-banner').forEach(el => el.style.display = 'none');
 
     const clonedCap = doc.getElementById('captureArea');
     if (clonedCap) {
@@ -3841,12 +4497,10 @@ async function prepareExportClone(doc, targetPageIndex) {
         inner.style.alignItems = cAlign === 'top' ? 'flex-start' : (cAlign === 'bottom' ? 'flex-end' : 'center');
     });
 
-    // html2canvas does not reliably reproduce object-fit; size the decoded image explicitly.
     doc.querySelectorAll('.tile').forEach(tile => {
         const media = tile.querySelector('.tile-media') || tile;
         const img = media.querySelector('img');
         if (!img || !img.naturalWidth || !img.naturalHeight) return;
-        const tileStyle = getLayerStyle(img.dataset.imageId);
         const boxW = tile.clientWidth;
         const boxH = tile.clientHeight;
         if (!boxW || !boxH) return;
@@ -3862,7 +4516,7 @@ async function prepareExportClone(doc, targetPageIndex) {
             else { renderW = boxW; renderH = boxW / imgRatio; }
         }
         tile.style.display = 'block';
-        tile.style.position = 'relative';
+        tile.style.position = tile.style.position || 'relative';
         tile.style.overflow = 'visible';
 
         if (media !== tile) {
@@ -3900,7 +4554,6 @@ async function prepareExportClone(doc, targetPageIndex) {
     });
 }
 
-/* Capture a page even if it is currently hidden by the pager */
 async function capturePageEl(el) {
     const wasHidden = !el.classList.contains('active-page');
     if (wasHidden) el.style.display = 'block';
@@ -3928,7 +4581,8 @@ async function exportFile() {
     const printablePages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
     const hasInvalidPage = printablePages.some(pg => {
         const layout = computeLayout(pg.imageIds?.[0] || pg.imageId);
-        return layout.cols === 0 || layout.rows === 0;
+        const plan = computeGroupTilePlan(pg, layout);
+        return !plan.isMixedSize && (layout.cols === 0 || layout.rows === 0);
     });
     if (hasInvalidPage) {
         await showAlert('Tile Too Large', 'At least one image tile size does not fit on the selected paper. Select that image and reduce its tile size.');
@@ -4007,596 +4661,466 @@ const cropStage   = document.getElementById('cropStage');
 const cropImg     = document.getElementById('cropImg');
 const cropBoxRect = document.getElementById('cropBoxRect');
 
-function setCropZoomInputValue(val) {
-    const value = document.getElementById('cropZoomValue');
-    if (value) value.textContent = Number(val).toFixed(2).replace(/\.00$/, '') + '×';
+function setCropZoomSliderValue(zoom, syncInput = true) {
     const slider = document.getElementById('cropZoomSlider');
-    if (slider) { slider.value = String(val); updateRangeTrack(slider); }
-}
-
-function updateRangeTrack(el) {
-    if (!el) return;
-    const min = Number(el.min || 0), max = Number(el.max || 100), val = Number(el.value || 0);
-    const pct = max === min ? 0 : ((val - min) / (max - min)) * 100;
-    el.style.setProperty('--range-progress', pct + '%');
-}
-
-function getCropFilter() {
-    if (!crop) return 'none';
-    const a = crop.adjustments || { brightness: 100, hue: 0, colorMode: 'color' };
-    return `${a.colorMode === 'bw' ? 'grayscale(1) ' : ''}brightness(${a.brightness}%) contrast(${a.contrast ?? 100}%) hue-rotate(${a.hue}deg)`;
-}
-
-function resetCropSlider(sliderId) {
-    const defaults = { cropZoomSlider: 1, cropBrightness: 100, cropContrast: 100, cropHue: 0 };
-    if (!(sliderId in defaults)) return;
-    const defaultValue = defaults[sliderId];
-    if (sliderId === 'cropZoomSlider') {
-        setCropZoom(defaultValue);
-        return;
+    const label = document.getElementById('cropZoomValue');
+    const min = Number(slider?.min) || 1;
+    const max = Number(slider?.max) || 4;
+    const clamped = Math.min(max, Math.max(min, Number(zoom) || 1));
+    if (slider && syncInput) slider.value = clamped.toFixed(2);
+    if (slider) {
+        const pct = ((clamped - min) / (max - min)) * 100;
+        slider.style.setProperty('--range-progress', `${pct.toFixed(2)}%`);
     }
-    const slider = document.getElementById(sliderId);
-    if (!slider) return;
-    slider.value = String(defaultValue);
-    updateCropAdjustments();
+    if (label) {
+        const rounded = Math.round(clamped * 100) / 100;
+        label.textContent = `${Number.isInteger(rounded) ? rounded : rounded.toFixed(2).replace(/0+$/, '')}×`;
+    }
+}
+
+function getCropFilterString(adj = crop?.adjustments) {
+    const brightness = adj?.brightness ?? 100;
+    const contrast = adj?.contrast ?? 100;
+    const hue = adj?.hue ?? 0;
+    const bw = adj?.colorMode === 'bw' ? ' grayscale(100%)' : '';
+    return `brightness(${brightness}%) contrast(${contrast}%) hue-rotate(${hue}deg)${bw}`;
+}
+
+function syncCropAdjustmentUI(adj) {
+    const sliders = [
+        { id: 'cropBrightness', valueId: 'cropBrightnessValue', val: adj.brightness, suffix: '%' },
+        { id: 'cropContrast', valueId: 'cropContrastValue', val: adj.contrast, suffix: '%' },
+        { id: 'cropHue', valueId: 'cropHueValue', val: adj.hue, suffix: '°' }
+    ];
+    sliders.forEach(({ id, valueId, val, suffix }) => {
+        const input = document.getElementById(id);
+        const label = document.getElementById(valueId);
+        const min = Number(input?.min) || 0;
+        const max = Number(input?.max) || 100;
+        if (input) {
+            input.value = val;
+            const pct = ((val - min) / (max - min)) * 100;
+            input.style.setProperty('--range-progress', `${pct.toFixed(2)}%`);
+        }
+        if (label) label.textContent = `${val}${suffix}`;
+    });
+    const modeSelect = document.getElementById('cropColorMode');
+    if (modeSelect) modeSelect.value = adj.colorMode || 'color';
+    if (cropImg) cropImg.style.filter = getCropFilterString(adj);
 }
 
 function updateCropAdjustments() {
     if (!crop) return;
-    const brightness = Number(document.getElementById('cropBrightness').value);
-    const hue = Number(document.getElementById('cropHue').value);
-    const contrast = Number(document.getElementById('cropContrast').value);
-    const colorMode = document.getElementById('cropColorMode').value;
-    crop.adjustments = { brightness, contrast, hue, colorMode };
-    cropImg.style.filter = getCropFilter();
-    document.getElementById('cropBrightnessValue').textContent = brightness + '%';
-    document.getElementById('cropHueValue').textContent = hue + '°';
-    document.getElementById('cropContrastValue').textContent = contrast + '%';
-    ['cropZoomSlider','cropBrightness','cropContrast','cropHue'].forEach(id => updateRangeTrack(document.getElementById(id)));
-}
-
-function initFreeCropBox() {
-    if (!crop) return;
-    const padX = Math.max(12, Math.round(crop.vw * 0.08));
-    const padY = Math.max(12, Math.round(crop.vh * 0.08));
-    const minW = Math.min(40, crop.vw);
-    const minH = Math.min(40, crop.vh);
-    const w = Math.max(minW, crop.vw - padX * 2);
-    const h = Math.max(minH, crop.vh - padY * 2);
-    crop.freeRect = {
-        x: Math.round((crop.vw - w) / 2),
-        y: Math.round((crop.vh - h) / 2),
-        w: Math.round(w),
-        h: Math.round(h)
+    crop.adjustments = {
+        brightness: Number(document.getElementById('cropBrightness')?.value ?? 100),
+        contrast: Number(document.getElementById('cropContrast')?.value ?? 100),
+        hue: Number(document.getElementById('cropHue')?.value ?? 0),
+        colorMode: document.getElementById('cropColorMode')?.value === 'bw' ? 'bw' : 'color'
     };
+    syncCropAdjustmentUI(crop.adjustments);
 }
 
-function syncCropModeUI() {
+function resetCropSlider(sliderId) {
     if (!crop) return;
-    const isFree = crop.aspectMode === 'free';
-    cropStage.classList.toggle('free-crop-active', isFree);
-    const hint = document.getElementById('cropSubHint');
-    if (hint) {
-        hint.textContent = isFree
-            ? 'Drag box or corners for free-form crop · Enter zoom'
-            : 'Drag to reposition · Scroll or enter zoom';
+    const defaults = { cropZoomSlider: 1, cropBrightness: 100, cropContrast: 100, cropHue: 0 };
+    if (sliderId === 'cropZoomSlider') {
+        onCropZoomInput(defaults[sliderId], true);
+        return;
     }
-    const zoomRow = document.getElementById('cropZoomRow');
-    if (zoomRow) zoomRow.style.display = isFree ? 'block' : 'block';
+    const input = document.getElementById(sliderId);
+    if (input && defaults[sliderId] !== undefined) {
+        input.value = defaults[sliderId];
+        updateCropAdjustments();
+    }
 }
 
-function openCropModal(imgId) {
-    const obj = uploadedImages.find(i => i.id === (imgId || activeImageId));
-    if (!obj) { showAlert('No Image', 'Please upload an image first.'); return; }
-
+function openCropModal(imageId) {
+    const obj = uploadedImages.find(i => i.id === imageId);
+    if (!obj) return;
+    const existing = obj.cropRect;
+    const initialMode = (existing && ['image', 'free', 'tile', 'square'].includes(existing.mode)) ? existing.mode : 'image';
     crop = {
-        obj,
-        aspectMode: 'image',
-        zoom: 1, x: 0, y: 0,
+        imageId,
+        src: obj.src,
         natW: 0, natH: 0,
-        vw: 0, vh: 0, base: 1, dw: 0, dh: 0,
-        freeRect: null,
-        adjustments: { brightness: obj.imageAdjustments?.brightness ?? 100, contrast: obj.imageAdjustments?.contrast ?? 100, hue: obj.imageAdjustments?.hue ?? 0, colorMode: obj.imageAdjustments?.colorMode ?? 'color' },
-        dragging: false, dragMode: null, handle: null,
-        startX: 0, startY: 0, origX: 0, origY: 0, origRect: null
+        stageW: 0, stageH: 0,
+        dispW: 0, dispH: 0,
+        imgX: 0, imgY: 0,
+        zoom: existing?.zoom || 1,
+        aspect: initialMode,
+        box: null,
+        savedBox: existing?.box || null,
+        adjustments: {
+            brightness: existing?.adjustments?.brightness ?? 100,
+            contrast: existing?.adjustments?.contrast ?? 100,
+            hue: existing?.adjustments?.hue ?? 0,
+            colorMode: existing?.adjustments?.colorMode === 'bw' ? 'bw' : 'color'
+        },
+        drag: null
     };
-
-    document.getElementById('cropAspectSelect').value = 'image';
-    setCropZoomInputValue(1);
-    const savedAdj = crop.adjustments;
-    document.getElementById('cropBrightness').value = savedAdj.brightness;
-    document.getElementById('cropHue').value = savedAdj.hue;
-    document.getElementById('cropContrast').value = savedAdj.contrast ?? 100;
-    document.getElementById('cropColorMode').value = savedAdj.colorMode;
-    updateCropAdjustments();
-    syncCropModeUI();
-
+    document.getElementById('cropAspectSelect').value = initialMode;
+    setCropZoomSliderValue(crop.zoom, true);
+    syncCropAdjustmentUI(crop.adjustments);
     cropImg.onload = () => {
-        crop.natW = cropImg.naturalWidth || 1;
-        crop.natH = cropImg.naturalHeight || 1;
-
-        computeCropStage(false);
-
-        if (obj.cropRect) {
-            const r = obj.cropRect;
-            const s0 = crop.base;
-            const needed = Math.min(crop.vw / (r.nw * crop.natW * s0),
-                                    crop.vh / (r.nh * crop.natH * s0));
-            crop.zoom = Math.max(1, Math.min(4, needed));
-
-            const cxSrc = (r.nx + r.nw / 2) * crop.natW;
-            const cySrc = (r.ny + r.nh / 2) * crop.natH;
-            const s = crop.base * crop.zoom;
-            crop.x = crop.vw / 2 - cxSrc * s;
-            crop.y = crop.vh / 2 - cySrc * s;
-            setCropZoomInputValue(crop.zoom);
-        } else {
-            crop.zoom = 1;
-            const s = crop.base;
-            crop.x = (crop.vw - crop.natW * s) / 2;
-            crop.y = (crop.vh - crop.natH * s) / 2;
-            setCropZoomInputValue(1);
-        }
-
-        layoutCrop();
-        document.getElementById('cropModal').classList.add('active');
+        if (!crop || crop.src !== cropImg.src) return;
+        crop.natW = cropImg.naturalWidth;
+        crop.natH = cropImg.naturalHeight;
+        setCropAspect(initialMode, true);
     };
-
     cropImg.src = obj.src;
+    document.getElementById('cropModal').classList.add('active');
 }
-
-function getCropAspect() {
-    if (!crop) return 1;
-    if (crop.aspectMode === 'free') return crop.natW / crop.natH || 1;
-    if (crop.aspectMode === 'square') return 1;
-    if (crop.aspectMode === 'image') return crop.natW / crop.natH || 1;
-    const size = getImageTileSize(activeImageId);
-    return size.w / size.h;
-}
-
-function getCropCenterSource() {
-    const s = crop.base * crop.zoom;
-    return {
-        sx: (crop.vw / 2 - crop.x) / s,
-        sy: (crop.vh / 2 - crop.y) / s
-    };
-}
-
-function computeCropStage(keepCenter) {
-    const prev = (keepCenter && crop.vw) ? getCropCenterSource() : null;
-
-    const aspect = getCropAspect();
-    const MAXW = Math.max(180, Math.min(620, Math.floor(window.innerWidth * (window.innerWidth <= 700 ? 0.82 : 0.58))));
-    const MAXH = Math.max(180, Math.min(620, Math.floor(window.innerHeight * 0.66)));
-
-    let vw, vh;
-    if (aspect >= 1) { vw = MAXW; vh = Math.round(MAXW / aspect); }
-    else             { vh = MAXH; vw = Math.round(MAXH * aspect); }
-
-    vw = Math.max(90, vw);
-    vh = Math.max(90, vh);
-
-    crop.vw = vw;
-    crop.vh = vh;
-
-    cropStage.style.width  = vw + 'px';
-    cropStage.style.height = vh + 'px';
-
-    if (crop.aspectMode === 'free') {
-        crop.base = Math.min(vw / crop.natW, vh / crop.natH);
-        const s = crop.base * crop.zoom;
-        crop.x = (vw - crop.natW * s) / 2;
-        crop.y = (vh - crop.natH * s) / 2;
-        setCropZoomInputValue(crop.zoom);
-        if (!crop.freeRect) initFreeCropBox();
-    } else {
-        crop.base = Math.max(vw / crop.natW, vh / crop.natH);
-        if (prev) {
-            const s = crop.base * crop.zoom;
-            crop.x = vw / 2 - prev.sx * s;
-            crop.y = vh / 2 - prev.sy * s;
-        } else {
-            const s = crop.base * crop.zoom;
-            crop.x = (vw - crop.natW * s) / 2;
-            crop.y = (vh - crop.natH * s) / 2;
-        }
-    }
-
-    layoutCrop();
-}
-
-function layoutFreeCropBox() {
-    if (!crop || !crop.freeRect) return;
-    const minSize = 24;
-    const r = crop.freeRect;
-    r.w = Math.max(minSize, Math.min(crop.vw, r.w));
-    r.h = Math.max(minSize, Math.min(crop.vh, r.h));
-    r.x = Math.max(0, Math.min(crop.vw - r.w, r.x));
-    r.y = Math.max(0, Math.min(crop.vh - r.h, r.y));
-
-    cropBoxRect.style.left   = r.x + 'px';
-    cropBoxRect.style.top    = r.y + 'px';
-    cropBoxRect.style.width  = r.w + 'px';
-    cropBoxRect.style.height = r.h + 'px';
-}
-
-function layoutCrop() {
-    if (!crop) return;
-    const s = crop.base * crop.zoom;
-    crop.dw = crop.natW * s;
-    crop.dh = crop.natH * s;
-
-    if (crop.aspectMode !== 'free') {
-        crop.x = Math.min(0, Math.max(crop.vw - crop.dw, crop.x));
-        crop.y = Math.min(0, Math.max(crop.vh - crop.dh, crop.y));
-    }
-
-    cropImg.style.width  = crop.dw + 'px';
-    cropImg.style.height = crop.dh + 'px';
-    cropImg.style.left   = crop.x + 'px';
-    cropImg.style.top    = crop.y + 'px';
-
-    if (crop.aspectMode === 'free') {
-        layoutFreeCropBox();
-    }
-}
-
-function setCropZoom(z) {
-    if (!crop) return;
-    const oldS = crop.base * crop.zoom;
-    const cx = crop.vw / 2, cy = crop.vh / 2;
-    const sx = (cx - crop.x) / oldS;
-    const sy = (cy - crop.y) / oldS;
-
-    crop.zoom = Math.max(1, Math.min(4, z));
-
-    const s = crop.base * crop.zoom;
-    crop.x = cx - sx * s;
-    crop.y = cy - sy * s;
-
-    setCropZoomInputValue(crop.zoom);
-    layoutCrop();
-}
-
-function onCropZoomInput(rawVal, clampOnBlur = false) {
-    if (!crop) return;
-    if (String(rawVal).trim() === '') {
-        if (clampOnBlur) setCropZoom(1);
-        return;
-    }
-    const parsed = parseFloat(rawVal);
-    if (!Number.isFinite(parsed)) {
-        if (clampOnBlur) setCropZoom(1);
-        return;
-    }
-    const clamped = Math.max(1, Math.min(4, parsed));
-    setCropZoom(clamped);
-    if (clampOnBlur) setCropZoomInputValue(clamped);
-}
-
-function setCropAspect(mode) {
-    if (!crop) return;
-    crop.aspectMode = mode;
-    const modeSelect = document.getElementById('cropAspectSelect');
-    if (modeSelect) modeSelect.value = mode;
-    syncCropModeUI();
-    computeCropStage(true);
-    layoutCrop();
-}
-
-/* --- drag to pan or resize free-form crop box --- */
-cropStage.addEventListener('pointerdown', e => {
-    if (!crop) return;
-    const handleEl = e.target.closest('.crop-handle');
-    crop.dragging = true;
-    crop.startX = e.clientX;
-    crop.startY = e.clientY;
-    crop.origX = crop.x;
-    crop.origY = crop.y;
-
-    if (crop.aspectMode === 'free' && handleEl) {
-        crop.dragMode = 'resize';
-        crop.handle = handleEl.dataset.handle;
-        crop.origRect = { ...crop.freeRect };
-    } else if (crop.aspectMode === 'free' && e.target.closest('#cropBoxRect')) {
-        crop.dragMode = 'move-box';
-        crop.handle = null;
-        crop.origRect = { ...crop.freeRect };
-    } else {
-        crop.dragMode = 'pan';
-        crop.handle = null;
-        crop.origRect = null;
-    }
-
-    try { cropStage.setPointerCapture(e.pointerId); } catch (err) {}
-});
-
-cropStage.addEventListener('pointermove', e => {
-    if (!crop || !crop.dragging) return;
-    const dx = e.clientX - crop.startX;
-    const dy = e.clientY - crop.startY;
-
-    if (crop.aspectMode === 'free' && crop.dragMode === 'move-box' && crop.origRect) {
-        crop.freeRect.x = crop.origRect.x + dx;
-        crop.freeRect.y = crop.origRect.y + dy;
-        layoutFreeCropBox();
-        return;
-    }
-
-    if (crop.aspectMode === 'free' && crop.dragMode === 'resize' && crop.origRect) {
-        const r = { ...crop.origRect };
-        const h = crop.handle;
-        if (h.includes('w')) { r.x = crop.origRect.x + dx; r.w = crop.origRect.w - dx; }
-        if (h.includes('e')) { r.w = crop.origRect.w + dx; }
-        if (h.includes('n')) { r.y = crop.origRect.y + dy; r.h = crop.origRect.h - dy; }
-        if (h.includes('s')) { r.h = crop.origRect.h + dy; }
-        crop.freeRect = r;
-        layoutFreeCropBox();
-        return;
-    }
-
-    if (crop.aspectMode !== 'free') {
-        crop.x = crop.origX + dx;
-        crop.y = crop.origY + dy;
-        layoutCrop();
-    }
-});
-
-['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
-    cropStage.addEventListener(evt, () => {
-        if (crop) {
-            crop.dragging = false;
-            crop.dragMode = null;
-            crop.handle = null;
-            crop.origRect = null;
-        }
-    });
-});
-
-/* --- wheel to zoom --- */
-cropStage.addEventListener('wheel', e => {
-    if (!crop) return;
-    e.preventDefault();
-    const delta = -e.deltaY * 0.0016;
-    setCropZoom(crop.zoom + delta);
-}, { passive: false });
-
-/* --- reset / close / apply --- */
-function resetCrop() {
-    if (!crop) return;
-    crop.obj.croppedSrc = null;
-    crop.obj.cropRect = null;
-    crop.adjustments = { brightness: 100, contrast: 100, hue: 0, colorMode: 'color' };
-    document.getElementById('cropBrightness').value = 100;
-    document.getElementById('cropHue').value = 0;
-    document.getElementById('cropContrast').value = 100;
-    document.getElementById('cropColorMode').value = 'color';
-    updateCropAdjustments();
-
-    if (crop.aspectMode === 'free') {
-        crop.zoom = 1;
-        crop.x = (crop.vw - crop.natW * crop.base) / 2;
-        crop.y = (crop.vh - crop.natH * crop.base) / 2;
-        setCropZoomInputValue(1);
-        initFreeCropBox();
-    } else {
-        crop.zoom = 1;
-        const s = crop.base;
-        crop.x = (crop.vw - crop.natW * s) / 2;
-        crop.y = (crop.vh - crop.natH * s) / 2;
-        setCropZoomInputValue(1);
-    }
-    layoutCrop();
-
-    renderImageQueue();
-    renderCanvas();
-}
-
-
-window.addEventListener('resize', () => {
-    if (crop && document.getElementById('cropModal').classList.contains('active')) {
-        computeCropStage(true);
-        layoutCrop();
-    }
-});
 
 function closeCrop() {
     document.getElementById('cropModal').classList.remove('active');
     crop = null;
 }
 
-function applyCrop() {
-    if (!crop) return;
+function getAspectRatioValue(mode) {
+    if (mode === 'square') return 1;
+    if (mode === 'tile') return getTileAspect();
+    if (mode === 'image' && crop && crop.natW && crop.natH) return crop.natW / crop.natH;
+    return null;
+}
 
-    let sx, sy, sw, sh, aspect;
+function updateCropHint() {
+    const hint = document.getElementById('cropSubHint');
+    if (!hint || !crop) return;
+    hint.textContent = crop.aspect === 'free'
+        ? 'Drag the crop box or its handles to choose any area'
+        : 'Drag the image to position and use Zoom to scale';
+}
 
-    if (crop.aspectMode === 'free' && crop.freeRect) {
-        const r = crop.freeRect;
-        const s = crop.base * crop.zoom;
-        sx = Math.max(0, Math.min(crop.natW, (r.x - crop.x) / s));
-        sy = Math.max(0, Math.min(crop.natH, (r.y - crop.y) / s));
-        const sx2 = Math.max(sx + 1, Math.min(crop.natW, (r.x + r.w - crop.x) / s));
-        const sy2 = Math.max(sy + 1, Math.min(crop.natH, (r.y + r.h - crop.y) / s));
-        sw = sx2 - sx;
-        sh = sy2 - sy;
-        aspect = sw / sh;
+function setCropAspect(mode, keepSavedBox = false) {
+    if (!crop || !crop.natW) return;
+    crop.aspect = mode;
+    updateCropHint();
+    const isFree = mode === 'free';
+    cropStage.classList.toggle('free-crop-active', isFree);
+    document.getElementById('cropZoomRow').style.display = isFree ? 'none' : '';
+
+    const wrap = cropStage.parentElement;
+    const maxW = Math.max(240, (wrap.clientWidth || 640) - 24);
+    const maxH = Math.max(200, (wrap.clientHeight || 420) - 24);
+
+    if (isFree) {
+        const fitScale = Math.min(maxW / crop.natW, maxH / crop.natH);
+        crop.stageW = Math.max(120, Math.round(crop.natW * fitScale));
+        crop.stageH = Math.max(90,  Math.round(crop.natH * fitScale));
+        crop.dispW = crop.stageW;
+        crop.dispH = crop.stageH;
+        crop.imgX = 0;
+        crop.imgY = 0;
+
+        if (keepSavedBox && crop.savedBox) {
+            crop.box = {
+                x: Math.max(0, Math.min(crop.stageW - 24, crop.savedBox.x * crop.stageW)),
+                y: Math.max(0, Math.min(crop.stageH - 24, crop.savedBox.y * crop.stageH)),
+                w: Math.max(24, Math.min(crop.stageW, crop.savedBox.w * crop.stageW)),
+                h: Math.max(24, Math.min(crop.stageH, crop.savedBox.h * crop.stageH))
+            };
+        } else {
+            const pad = 0.1;
+            crop.box = {
+                x: Math.round(crop.stageW * pad),
+                y: Math.round(crop.stageH * pad),
+                w: Math.round(crop.stageW * (1 - pad * 2)),
+                h: Math.round(crop.stageH * (1 - pad * 2))
+            };
+        }
     } else {
-        const s = crop.base * crop.zoom;
-        sx = (0 - crop.x) / s;
-        sy = (0 - crop.y) / s;
-        sw = crop.vw / s;
-        sh = crop.vh / s;
-        aspect = crop.vw / crop.vh;
+        const ratio = getAspectRatioValue(mode) || (crop.natW / crop.natH);
+        let sw = maxW, sh = sw / ratio;
+        if (sh > maxH) { sh = maxH; sw = sh * ratio; }
+        crop.stageW = Math.max(120, Math.round(sw));
+        crop.stageH = Math.max(90,  Math.round(sh));
+        crop.box = null;
+        if (!keepSavedBox) crop.zoom = 1;
+        setCropZoomSliderValue(crop.zoom, true);
+        computeCoverSize(keepSavedBox);
     }
 
-    // Output resolution: aim for ~600 dpi on the longest tile edge, capped
-    const longestTileIn = Math.max(appConfig.tileW, appConfig.tileH);
-    const targetPx = Math.min(2400, Math.max(800, Math.round(longestTileIn * 600)));
+    layoutCropStage();
+}
 
-    let outW, outH;
-    if (aspect >= 1) { outW = targetPx; outH = Math.max(1, Math.round(targetPx / aspect)); }
-    else             { outH = targetPx; outW = Math.max(1, Math.round(targetPx * aspect)); }
+function computeCoverSize(keepSavedCenter = false) {
+    if (!crop) return;
+    const natRatio = crop.natW / crop.natH;
+    const stageRatio = crop.stageW / crop.stageH;
+    let baseW, baseH;
+    if (natRatio > stageRatio) {
+        baseH = crop.stageH;
+        baseW = baseH * natRatio;
+    } else {
+        baseW = crop.stageW;
+        baseH = baseW / natRatio;
+    }
+    crop.dispW = baseW * crop.zoom;
+    crop.dispH = baseH * crop.zoom;
 
-    const cv = document.createElement('canvas');
-    cv.width = outW;
-    cv.height = outH;
+    if (keepSavedCenter && crop.savedBox) {
+        const cx = (crop.savedBox.x + crop.savedBox.w / 2) * crop.dispW;
+        const cy = (crop.savedBox.y + crop.savedBox.h / 2) * crop.dispH;
+        crop.imgX = crop.stageW / 2 - cx;
+        crop.imgY = crop.stageH / 2 - cy;
+    } else {
+        crop.imgX = (crop.stageW - crop.dispW) / 2;
+        crop.imgY = (crop.stageH - crop.dispH) / 2;
+    }
+    clampImagePan();
+}
 
-    const ctx = cv.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.filter = getCropFilter();
+function clampImagePan() {
+    if (!crop) return;
+    if (crop.dispW <= crop.stageW) {
+        crop.imgX = (crop.stageW - crop.dispW) / 2;
+    } else {
+        crop.imgX = Math.min(0, Math.max(crop.stageW - crop.dispW, crop.imgX));
+    }
+    if (crop.dispH <= crop.stageH) {
+        crop.imgY = (crop.stageH - crop.dispH) / 2;
+    } else {
+        crop.imgY = Math.min(0, Math.max(crop.stageH - crop.dispH, crop.imgY));
+    }
+}
+
+function onCropZoomInput(val, fromSlider = false) {
+    if (!crop || crop.aspect === 'free') return;
+    const nextZoom = Math.min(4, Math.max(1, parseFloat(val) || 1));
+    const cx = (crop.stageW / 2 - crop.imgX) / crop.dispW;
+    const cy = (crop.stageH / 2 - crop.imgY) / crop.dispH;
+    crop.zoom = nextZoom;
+    computeCoverSize(false);
+    crop.imgX = crop.stageW / 2 - cx * crop.dispW;
+    crop.imgY = crop.stageH / 2 - cy * crop.dispH;
+    clampImagePan();
+    setCropZoomSliderValue(nextZoom, !fromSlider);
+    layoutCropStage();
+}
+
+function layoutCropStage() {
+    if (!crop) return;
+    cropStage.style.width  = crop.stageW + 'px';
+    cropStage.style.height = crop.stageH + 'px';
+    cropImg.style.width  = crop.dispW + 'px';
+    cropImg.style.height = crop.dispH + 'px';
+    cropImg.style.left   = crop.imgX + 'px';
+    cropImg.style.top    = crop.imgY + 'px';
+    if (crop.box) {
+        cropBoxRect.style.left   = crop.box.x + 'px';
+        cropBoxRect.style.top    = crop.box.y + 'px';
+        cropBoxRect.style.width  = crop.box.w + 'px';
+        cropBoxRect.style.height = crop.box.h + 'px';
+    }
+}
+
+function resetCrop() {
+    if (!crop) return;
+    crop.savedBox = null;
+    crop.zoom = 1;
+    crop.adjustments = { brightness: 100, contrast: 100, hue: 0, colorMode: 'color' };
+    syncCropAdjustmentUI(crop.adjustments);
+    setCropAspect(crop.aspect, false);
+}
+
+cropStage.addEventListener('pointerdown', e => {
+    if (!crop) return;
+    const handle = e.target.dataset?.handle;
+    if (handle && crop.box) {
+        e.preventDefault();
+        crop.drag = { type: 'handle', handle, startX: e.clientX, startY: e.clientY, startBox: { ...crop.box } };
+    } else if (e.target === cropBoxRect && crop.box) {
+        e.preventDefault();
+        crop.drag = { type: 'box', startX: e.clientX, startY: e.clientY, startBox: { ...crop.box } };
+    } else if (crop.aspect !== 'free') {
+        e.preventDefault();
+        crop.drag = { type: 'pan', startX: e.clientX, startY: e.clientY, startImgX: crop.imgX, startImgY: crop.imgY };
+    }
+});
+
+window.addEventListener('pointermove', e => {
+    if (!crop || !crop.drag) return;
+    const dx = e.clientX - crop.drag.startX;
+    const dy = e.clientY - crop.drag.startY;
+
+    if (crop.drag.type === 'pan') {
+        crop.imgX = crop.drag.startImgX + dx;
+        crop.imgY = crop.drag.startImgY + dy;
+        clampImagePan();
+        layoutCropStage();
+    } else if (crop.drag.type === 'box') {
+        const b = crop.drag.startBox;
+        crop.box.x = Math.min(crop.stageW - b.w, Math.max(0, b.x + dx));
+        crop.box.y = Math.min(crop.stageH - b.h, Math.max(0, b.y + dy));
+        layoutCropStage();
+    } else if (crop.drag.type === 'handle') {
+        const b = crop.drag.startBox;
+        const h = crop.drag.handle;
+        const minSize = 24;
+        let left = b.x, right = b.x + b.w, top = b.y, bottom = b.y + b.h;
+        if (h.includes('w')) left   = Math.min(right - minSize, Math.max(0, b.x + dx));
+        if (h.includes('e')) right  = Math.max(left + minSize,  Math.min(crop.stageW, b.x + b.w + dx));
+        if (h.includes('n')) top    = Math.min(bottom - minSize, Math.max(0, b.y + dy));
+        if (h.includes('s')) bottom = Math.max(top + minSize,   Math.min(crop.stageH, b.y + b.h + dy));
+        crop.box = { x: left, y: top, w: right - left, h: bottom - top };
+        layoutCropStage();
+    }
+});
+
+window.addEventListener('pointerup', () => { if (crop) crop.drag = null; });
+
+cropStage.addEventListener('wheel', e => {
+    if (!crop || crop.aspect === 'free') return;
+    e.preventDefault();
+    const step = e.deltaY < 0 ? 0.15 : -0.15;
+    onCropZoomInput(crop.zoom + step, false);
+}, { passive: false });
+
+function applyCrop() {
+    if (!crop || !crop.natW) return;
+    let sx, sy, sw, sh;
+    let savedBox;
+
+    if (crop.aspect === 'free' && crop.box) {
+        const nx = crop.box.x / crop.stageW;
+        const ny = crop.box.y / crop.stageH;
+        const nw = crop.box.w / crop.stageW;
+        const nh = crop.box.h / crop.stageH;
+        sx = nx * crop.natW;
+        sy = ny * crop.natH;
+        sw = nw * crop.natW;
+        sh = nh * crop.natH;
+        savedBox = { x: nx, y: ny, w: nw, h: nh };
+    } else {
+        const nx = Math.max(0, -crop.imgX / crop.dispW);
+        const ny = Math.max(0, -crop.imgY / crop.dispH);
+        const nw = Math.min(1 - nx, crop.stageW / crop.dispW);
+        const nh = Math.min(1 - ny, crop.stageH / crop.dispH);
+        sx = nx * crop.natW;
+        sy = ny * crop.natH;
+        sw = nw * crop.natW;
+        sh = nh * crop.natH;
+        savedBox = { x: nx, y: ny, w: nw, h: nh };
+    }
+
+    const outW = Math.max(1, Math.round(sw));
+    const outH = Math.max(1, Math.round(sh));
+    const canvas = document.createElement('canvas');
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    ctx.filter = getCropFilterString(crop.adjustments);
     ctx.drawImage(cropImg, sx, sy, sw, sh, 0, 0, outW, outH);
-    ctx.filter = 'none';
 
-    crop.obj.croppedSrc = cv.toDataURL('image/png');
-    crop.obj.imageAdjustments = { ...crop.adjustments };
-    crop.obj.cropRect = {
-        nx: sx / crop.natW,
-        ny: sy / crop.natH,
-        nw: sw / crop.natW,
-        nh: sh / crop.natH
-    };
+    const obj = uploadedImages.find(i => i.id === crop.imageId);
+    if (obj) {
+        obj.croppedSrc = canvas.toDataURL('image/png');
+        obj.cropRect = { mode: crop.aspect, zoom: crop.zoom, box: savedBox, adjustments: { ...crop.adjustments } };
+    }
 
     closeCrop();
-    renderImageQueue();
-    renderCanvas();
+    reconcileSelectionAndUI();
 }
 
-/* Close modals on backdrop click */
-document.getElementById('cropModal').addEventListener('click', e => {
-    if (e.target.id === 'cropModal') closeCrop();
-});
-document.getElementById('customModal').addEventListener('click', e => {
-    if (e.target.id === 'customModal') closeModal(false);
-});
-
-/* Toggle the selected layer(s) between square and fully rounded corners. */
-function toggleSelectedLayerBorderRadius() {
-    const groupPage = getSelectedGroupPage();
-    const borderTargets = getSelectedBorderTargetImages();
-    const activeImg = getActiveImage();
-    const targets = borderTargets.length ? borderTargets : (activeImg ? [activeImg] : []);
-
-    const currentRadii = groupPage
-        ? [Number.isFinite(groupPage.styleOverride?.borderR) ? groupPage.styleOverride.borderR : appConfig.borderR]
-        : targets.map(img => getLayerStyle(img.id).borderR);
-    const shouldSquare = currentRadii.length > 0 && currentRadii.every(radius => Number(radius) >= 999);
-    const nextRadius = shouldSquare ? 0 : 999;
-
-    if (groupPage) {
-        groupPage.styleOverride = { ...(groupPage.styleOverride || {}), borderR: nextRadius };
-    } else if (targets.length) {
-        targets.forEach(img => {
-            img.styleOverride = { ...(img.styleOverride || {}), borderR: nextRadius };
-            img.borderR = nextRadius;
-        });
-    } else {
-        appConfig.borderR = nextRadius;
-    }
-
-    const radiusInput = document.getElementById('numBorderR');
-    if (radiusInput) radiusInput.value = String(nextRadius);
-    syncSpacingBorderControls(activeImageId);
-    renderImageQueue();
-    renderCanvas();
-}
-
-/* Keyboard shortcuts */
+/* =========================================================
+   KEYBOARD SHORTCUTS
+   ========================================================= */
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-        if (document.getElementById('cropModal').classList.contains('active')) closeCrop();
-        else if (document.getElementById('customModal').classList.contains('active')) closeModal(false);
+    const tag = e.target.tagName;
+    const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+    if (document.getElementById('customModal').classList.contains('active')) {
+        if (e.key === 'Escape') closeModal(false);
+        if (e.key === 'Enter') closeModal(true);
         return;
     }
-    if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'q') {
+    if (document.getElementById('cropModal').classList.contains('active')) {
+        if (e.key === 'Escape') closeCrop();
+        return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !isTyping) {
+        if (lastDeletedSnapshot) {
+            e.preventDefault();
+            undoLastDeletion();
+            return;
+        }
+    }
+
+    if (!isTyping && e.key === 'ArrowLeft')  prevPage();
+    if (!isTyping && e.key === 'ArrowRight') nextPage();
+
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'q' && !isTyping) {
         e.preventDefault();
-        toggleSelectedLayerBorderRadius();
+        toggleRoundBorderShortcut();
         return;
     }
-    if (e.target.matches('input, select, textarea, [contenteditable="true"]')) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'e' && !isTyping) {
+        const activeLayer = getActiveImage();
+        if (activeLayer) {
+            e.preventDefault();
+            openCropModal(activeLayer.id);
+        }
+        return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd' && !isTyping) {
         e.preventDefault();
         duplicateSelectedLayers();
         return;
     }
-    if (e.key === 'Delete' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        deleteSelectedLayers();
-        return;
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
-        e.preventDefault();
-        const allImageIds = getLayerStackIds();
-        selectedImageIds = new Set(allImageIds);
-        selectedGroupPageId = null;
-        if (!activeImageId || !selectedImageIds.has(activeImageId)) activeImageId = allImageIds[0] || null;
-        layerAnchorIndex = activeImageId ? allImageIds.indexOf(activeImageId) : -1;
-        syncTileControls(activeImageId);
-        syncQuantityControl(activeImageId);
-        syncSpacingBorderControls(activeImageId);
-        renderImageQueue();
-        renderCanvas();
-        return;
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
-        e.preventDefault();
-        if (e.shiftKey) {
-            const group = pages.find(pg => (pg.imageIds || []).length > 1 &&
-                pg.imageIds.every(id => selectedImageIds.has(id)) &&
-                [...selectedImageIds].every(id => pg.imageIds.includes(id)));
-            if (group) ungroupPage(group);
-        } else {
-            toggleGroupSelection();
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && !isTyping) {
+        const ids = getLayerStackIds();
+        if (ids.length) {
+            e.preventDefault();
+            selectedGroupPageId = null;
+            selectedImageIds = new Set(ids);
+            activeImageId = activeImageId && ids.includes(activeImageId) ? activeImageId : ids[0];
+            layerAnchorIndex = ids.indexOf(activeImageId);
+            reconcileSelectionAndUI();
         }
         return;
     }
-    if (e.key === 'ArrowLeft')  { prevPage(); }
-    if (e.key === 'ArrowRight') { nextPage(); }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g' && !isTyping) {
+        const selected = [...selectedImageIds];
+        const groups = pages.filter(pg => (pg.imageIds || []).length > 1);
+        const matchingGroup = groups.find(pg => pg.imageIds.every(id => selectedImageIds.has(id)) &&
+            selected.every(id => pg.imageIds.includes(id)));
+        if (e.shiftKey) {
+            if (matchingGroup) { e.preventDefault(); ungroupPage(matchingGroup); }
+        } else if (selected.length >= 2 && !matchingGroup && !selected.some(id =>
+            groups.some(pg => pg.imageIds.includes(id)))) {
+            e.preventDefault();
+            groupImages(selected);
+        }
+        return;
+    }
+
+    if (!isTyping && (e.key === 'Delete' || e.key === 'Backspace')) {
+        e.preventDefault();
+        deleteSelectedLayers();
+    }
 });
 
 /* =========================================================
    INIT
    ========================================================= */
-function initApp() {
-    try {
-        loadConfig();
-        bindWholeNumberStepControls();
-        loadUIPreferences();
-        bindUIPreferencePersistence();
-        // Keep the initial canvas available, but it is not an exportable page.
-        pages = [{ id: newPageId(), imageId: null }];
-        activePageIndex = 0;
-        setPaperSize(currentPaper);
-        renderImageQueue();
-        renderCanvas();
-        fitToViewport();
-    } catch (err) {
-        console.error('Tile Layout initialization failed:', err);
-        setLoadingText('Workspace loaded with an error. Please refresh.');
-    } finally {
-        // Never leave the loading screen covering the app if one UI step fails.
-        hideLoading();
-    }
-}
+loadUIPreferences();
+bindUIPreferencePersistence();
+loadConfig();
+bindWholeNumberStepControls();
+setPaperSize(currentPaper);
+reconcileSelectionAndUI();
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp, { once: true });
-} else {
-    initApp();
-}
-
-// Fallback in case initialization or a browser event fails unexpectedly.
 window.addEventListener('load', () => {
-    try { fitToViewport(); } catch (err) { console.error('Viewport setup failed:', err); }
-    hideLoading();
-}, { once: true });
-
+    setTimeout(hideLoading, 350);
+});
 setTimeout(() => {
-    if (loadingOverlay && !loadingOverlay.classList.contains('hidden')) {
-        console.warn('Tile Layout loading fallback activated.');
-        hideLoading();
-    }
-}, 2500);
+    if (!loadingOverlay.classList.contains('hidden')) hideLoading();
+}, 4000);
 </script>
 </body>
 </html>

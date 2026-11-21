@@ -19,13 +19,13 @@ const cardsData = [
         href: "Mug_Printing.html"
     },
     {
-        title: "Tile Layout",
+        title: "Print Grid",
         subtitle: "Created Nov 19, 2026",
         description: "Combine multiple images into organized tile layouts for stickers and other prints.",
         category: "Printing",
-        cover: "Assets/Tile_Cover.webp",
-        logo: "T",
-        href: "Tile_Layout.html"
+        cover: "Assets/PrintGrid_Cover.webp",
+        logo: "PG",
+        href: "Print_Grid.html"
     },
     {
         title: "Printing Dimensions",
