@@ -307,6 +307,16 @@
         .btn svg { width: 12px; height: 12px; }
         .btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
         .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+        .undo-btn { min-height: 30px; padding: 6px 10px; gap: 6px; white-space: nowrap; border-radius: 6px; }
+        .undo-btn svg { width: 14px; height: 14px; }
+        .undo-btn kbd {
+            font-family: inherit; font-size: 0.62rem; line-height: 1; font-weight: 600; color: var(--text-muted);
+            background: var(--bg-workspace); border: 1px solid var(--border);
+            border-radius: 3px; padding: 2px 4px;
+        }
+        .undo-btn:disabled { opacity: .42; cursor: not-allowed; }
+        .undo-btn:not(:disabled):hover { border-color: var(--brand-blue); color: var(--brand-blue); }
+
 
         .input-group { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 12px; }
         
@@ -650,7 +660,7 @@
         .crop-name-tag-preview {
             display:none; position:absolute; z-index:4; left:0; bottom:0; width:100%;
             box-sizing:border-box; min-height:25px; padding:4px 7px;
-            background:#fff; color:#111827; border-top:1px solid rgba(0,0,0,.55);
+            background:#fff; color:#111827; border:0;
             font:700 18px Arial,sans-serif; line-height:1.15; text-align:center;
             white-space:nowrap; pointer-events:none; overflow:hidden;
             align-items:center; justify-content:center;
@@ -744,6 +754,26 @@
         }
         .crop-setting-label { display:block; font-size:.78rem; color:var(--text-muted); margin-bottom:6px; }
         .crop-mode-select { width:100%; min-height:36px; background:var(--bg-workspace); color:var(--text-main); border:1px solid var(--border); border-radius:6px; padding:7px 9px; }
+        .crop-name-field-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; min-width:0; }
+        .crop-name-field-row .crop-setting-label { margin:0; }
+        .crop-auto-fit-btn { display:inline-flex; flex:0 0 auto; align-items:center; justify-content:center; gap:5px; min-height:25px; padding:4px 8px; border:1px solid var(--border); border-radius:5px; background:var(--bg-workspace); color:var(--text-main); font-size:.68rem; font-weight:600; line-height:1; cursor:pointer; transition:background .15s,border-color .15s,color .15s; }
+        .crop-auto-fit-btn svg { width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:1.35; stroke-linecap:round; stroke-linejoin:round; }
+        .crop-auto-fit-btn:hover { border-color:var(--brand-blue); color:var(--brand-blue); }
+        .crop-auto-fit-btn:focus-visible { outline:2px solid var(--brand-blue); outline-offset:2px; }
+        .crop-name-tag-preview { align-items:center; justify-content:center; text-align:center; box-sizing:border-box; }
+        .crop-name-tag-preview > span { text-align:center; white-space:nowrap; }
+        .name-border-inner { gap:8px; padding-top:8px; }
+        .name-border-toolbar { display:flex; align-items:center; justify-content:space-between; min-height:30px; }
+        .name-border-caption,.name-border-side { color:var(--text-muted); font-size:.69rem; font-weight:600; }
+        .name-border-color-control { display:inline-flex; align-items:center; gap:7px; height:28px; padding:3px 7px 3px 4px; border:1px solid var(--border); border-radius:6px; background:var(--input-bg); color:var(--text-main); font:600 .68rem ui-monospace,monospace; cursor:pointer; }
+        .name-border-color { width:21px; height:21px; padding:1px; border:1px solid var(--border); border-radius:4px; background:var(--bg-workspace); cursor:pointer; }
+        .name-border-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+        .name-border-cell { display:grid; grid-template-columns:44px minmax(0,1fr); align-items:center; gap:6px; min-width:0; padding:5px 6px; border:1px solid var(--border); border-radius:6px; background:var(--input-bg); }
+        .name-border-input-wrap { display:flex; align-items:center; gap:4px; min-width:0; }
+        .name-border-width { width:100%; min-width:0; height:26px; box-sizing:border-box; padding:3px 5px; background:var(--bg-workspace); color:var(--text-main); border:1px solid var(--border); border-radius:4px; font:inherit; font-size:.72rem; }
+        .name-border-input-wrap small { color:var(--text-muted); font-size:.62rem; }
+        .name-border-width:focus,.name-border-color:focus-visible { outline:2px solid var(--brand-blue); outline-offset:1px; }
+        #cropBorderColorHex { min-width:49px; }
         .crop-zoom-slider, .crop-adjust-slider {
             --range-progress:0%; width:100%; height:18px; border-radius:999px; appearance:none;
             background:transparent; outline:none; cursor:pointer; display:block; margin:8px 0 2px;
@@ -1057,11 +1087,33 @@
         }
 
 
-        /* Font Style controls live in the right-hand editor panel. */
-        #fontStyleSettings .crop-adjust-inner { gap:8px; }
-        #fontStyleSettings .crop-adjust-inner > .crop-adjust-head { margin-top:6px !important; }
-        #fontStyleSettings .crop-adjust-inner > .crop-mode-select { min-height:32px; }
-        #fontStyleSettings .crop-adjust-inner .crop-adjust-slider { margin-top:5px; }
+        /* Compact typography layout: paired basic controls, full-width adjustment sliders. */
+        #fontStyleSettings .typography-inner { gap:11px; padding-top:10px; }
+        #fontStyleSettings .crop-mode-select { min-height:32px; height:32px; padding:5px 7px; font-size:.73rem; box-sizing:border-box; }
+        #fontStyleSettings .typo-field { min-width:0; width:100%; }
+        #fontStyleSettings .typo-family-size-row .typo-field > .crop-mode-select { display:block; width:100%; min-width:0; box-sizing:border-box; }
+        #fontStyleSettings .typo-field .crop-setting-label { display:flex; justify-content:space-between; align-items:center; gap:6px; margin:0 0 5px; font-size:.69rem; line-height:1.2; }
+        #fontStyleSettings .typo-field .crop-setting-label span { flex:0 0 auto; color:var(--text-muted); font-size:.66rem; font-variant-numeric:tabular-nums; }
+        .typo-family-size-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; align-items:end; width:100%; }
+        .typo-weight-style-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; align-items:end; width:100%; }
+        .typo-number-input { display:block; width:100%; min-width:0; color:var(--text-main); background:var(--input-bg); border:1px solid var(--border); border-radius:6px; }
+        .typo-slider-stack { display:flex; flex-direction:column; gap:12px; width:100%; min-width:0; }
+        #fontStyleSettings .typo-slider-field { display:block; width:100%; min-width:0; }
+        #fontStyleSettings .typo-slider-field .crop-adjust-slider { display:block; width:100%; max-width:none; box-sizing:border-box; margin:5px 0 0; height:17px; }
+        .typo-color-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:1px; width:100%; }
+        .typo-color-control { min-width:0; display:grid; grid-template-columns:26px minmax(0,1fr); grid-template-rows:auto auto; align-items:center; gap:5px 7px; padding:8px; border:1px solid var(--border); border-radius:7px; background:var(--input-bg); color:var(--text-main); font-size:.69rem; box-sizing:border-box; }
+        .typo-color-control > span:first-child { grid-column:1 / -1; color:var(--text-muted); }
+        .typo-color-control input[type=color] { width:26px; height:26px; padding:2px; border:1px solid var(--border); border-radius:5px; background:var(--bg-workspace); cursor:pointer; }
+        .typo-color-hex { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.65rem; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+        @media (max-width:360px) {
+            .typo-family-size-row { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+            .typo-weight-style-row { gap:6px; }
+            .typo-color-row { gap:6px; }
+        }
+        .crop-undo-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:7px 9px !important; font-size:.75rem; }
+        .crop-undo-btn kbd { font:inherit; font-size:.62rem; color:var(--text-muted); border:1px solid var(--border); border-radius:3px; padding:1px 4px; background:var(--bg-workspace); }
+        .crop-undo-btn:disabled { opacity:.45; cursor:not-allowed; }
+        @media (max-width:980px) { .crop-settings-left { grid-column:1; grid-row:2; } }
 
 </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1116,7 +1168,7 @@
                     <div style="font-size: 0.7rem; color: #9CA3AF; width: 100%; text-align: center;">No images uploaded</div>
                 </div>
                 
-                <div style="display: flex; justify-content: flex-start; margin-top: 8px; margin-bottom: 16px;">
+                <div style="margin-top: 8px; margin-bottom: 16px;">
                     <button class="text-btn text-muted" onclick="clearAll()">Clear All Images</button>
                 </div>
             </div>
@@ -1232,7 +1284,10 @@
     <div class="right-sidebar">
         <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
             <div class="logo-title">
-                <h1>Settings</h1>
+                <button class="btn undo-btn" id="undoBtn" type="button" onclick="undoLastAction()" title="Undo last change (Ctrl+Z)" aria-label="Undo" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-15.6-6L3 13"></path></svg>
+                    Undo <kbd>Ctrl Z</kbd>
+                </button>
             </div>
             <button class="btn" onclick="triggerPrint()" style="border-radius: 6px; padding: 6px 12px; font-size: 0.8rem;" title="Print">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -1517,18 +1572,79 @@
             <div class="crop-content">
                 <!-- LEFT PANEL: NAME TAG -->
                 <div class="crop-settings crop-settings-left">
-                    <details class="crop-adjust-details" open>
+                    <details class="crop-adjust-details" id="cropNameTagSettings" open>
                         <summary>Name tag</summary>
                         <div class="crop-adjust-inner">
                             
-                            <label class="crop-setting-label" for="cropNameText">Name</label>
-                            <input id="cropNameText" class="crop-mode-select" type="text" placeholder="Enter name" oninput="updateNameTagPreview()">
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-                                <label class="crop-setting-label">Text color<input id="cropNameColor" type="color" value="#111827" style="display:block;width:100%;height:30px" oninput="updateNameTagPreview()"></label>
-                                <label class="crop-setting-label">Tag background<input id="cropNameBg" type="color" value="#ffffff" style="display:block;width:100%;height:30px" oninput="updateNameTagPreview()"></label>
+                            <div class="crop-name-field-row">
+                                <label class="crop-setting-label" for="cropNameText">Name</label>
+                                <button class="crop-auto-fit-btn" type="button" onclick="autoFitNameTag()" title="Automatically fit the name to the tag" aria-label="Auto fit name tag">
+                                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.2 1.4 10.1 5l3.5.9-3.5.9-.9 3.5-.9-3.5-3.5-.9L8.3 5l.9-3.6Z"/><path d="m3.1 9.4.5 1.9 1.9.5-1.9.5-.5 1.9-.5-1.9-1.9-.5 1.9-.5.5-1.9Z"/></svg>
+                                    Auto fit
+                                </button>
                             </div>
-                            <div class="crop-adjust-head" style="margin-top:8px"><label class="crop-setting-label" for="cropNameBgOpacity" style="margin:0">Background opacity</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropNameBgOpacityValue">100%</span><button type="button" class="crop-mini-reset" aria-label="Reset background opacity" title="Reset background opacity" onclick="resetCropSlider('cropNameBgOpacity')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
-                            <input class="crop-adjust-slider" id="cropNameBgOpacity" type="range" min="0" max="100" value="100" oninput="updateNameTagPreview()">
+                            <input id="cropNameText" class="crop-mode-select" type="text" placeholder="Enter name" oninput="updateNameTagPreview()">
+                        </div>
+                    </details>
+                    <details class="crop-adjust-details" id="fontStyleSettings" open>
+                        <summary>Typography</summary>
+                        <div class="crop-adjust-inner typography-inner">
+                            <div class="typo-family-size-row">
+                                <div class="typo-field">
+                                    <label class="crop-setting-label" for="cropNameFont">Font family</label>
+                                    <select id="cropNameFont" class="crop-mode-select" onchange="updateNameTagPreview()">
+                                        <option selected>Arial</option><option>Roboto</option><option>Open Sans</option><option>Lato</option><option>Montserrat</option><option>Poppins</option><option>Inter</option><option>Oswald</option><option>Georgia</option><option>Times New Roman</option>
+                                    </select>
+                                </div>
+                                <div class="typo-field">
+                                    <label class="crop-setting-label" for="cropNameSize">Size</label>
+                                    <input class="crop-mode-select typo-number-input" id="cropNameSize" type="number" min="8" max="120" step="1" value="18" oninput="updateNameTagPreview()">
+                                </div>
+                            </div>
+                            <div class="typo-weight-style-row">
+                                <div class="typo-field">
+                                    <label class="crop-setting-label" for="cropNameWeight">Weight</label>
+                                    <select id="cropNameWeight" class="crop-mode-select" onchange="updateNameTagPreview()"><option value="400">Regular</option><option value="500">Medium</option><option value="600">Semibold</option><option value="700" selected>Bold</option><option value="800">Extra bold</option></select>
+                                </div>
+                                <div class="typo-field">
+                                    <label class="crop-setting-label" for="cropNameItalic">Style</label>
+                                    <select id="cropNameItalic" class="crop-mode-select" onchange="updateNameTagPreview()"><option value="normal" selected>Default</option><option value="italic">Italic</option></select>
+                                </div>
+                            </div>
+                            <div class="typo-slider-stack">
+                                <div class="typo-field typo-slider-field">
+                                    <label class="crop-setting-label" for="cropNameHeight">Line height <span id="cropNameHeightValue">100%</span></label>
+                                    <input class="crop-adjust-slider" id="cropNameHeight" type="range" min="50" max="160" value="100" step="1" oninput="updateNameTagPreview()">
+                                </div>
+                                <div class="typo-field typo-slider-field">
+                                    <label class="crop-setting-label" for="cropNameSpacing">Letter spacing <span id="cropNameSpacingValue">0px</span></label>
+                                    <input class="crop-adjust-slider" id="cropNameSpacing" type="range" min="-1" max="8" value="0" step="0.25" oninput="updateNameTagPreview()">
+                                </div>
+                                <div class="typo-field typo-slider-field">
+                                    <label class="crop-setting-label" for="cropNameStretch">Text width <span id="cropNameStretchValue">140%</span></label>
+                                    <input class="crop-adjust-slider" id="cropNameStretch" type="range" min="50" max="240" value="140" step="1" oninput="updateNameTagPreview()">
+                                </div>
+                            </div>
+                            <div class="typo-color-row">
+                                <label class="typo-color-control" for="cropNameColor"><span>Text</span><input id="cropNameColor" type="color" value="#111827" oninput="updateNameTagPreview()"><span class="typo-color-hex" id="cropNameColorHex">#111827</span></label>
+                                <label class="typo-color-control" for="cropNameBg"><span>Background</span><input id="cropNameBg" type="color" value="#ffffff" oninput="updateNameTagPreview()"><span class="typo-color-hex" id="cropNameBgHex">#FFFFFF</span></label>
+                            </div>
+                        </div>
+                    </details>
+                    <details class="crop-adjust-details" id="nameBorderSettings">
+                        <summary>Borders</summary>
+                        <div class="crop-adjust-inner name-border-inner">
+                            <div class="name-border-toolbar">
+                                <span class="name-border-caption">Color</span>
+                                <label class="name-border-color-control" title="Border color"><input class="name-border-color" id="cropBorderColor" type="color" value="#111827" aria-label="Border color" oninput="updateNameTagPreview()"><span id="cropBorderColorHex">#111827</span></label>
+                            </div>
+                            <div class="name-border-grid">
+                                <label class="name-border-cell"><span class="name-border-side">Top</span><span class="name-border-input-wrap"><input class="name-border-width" id="cropBorderTopWidth" type="number" min="0" max="20" step="0.5" value="0" aria-label="Top border width in pixels" oninput="updateNameTagPreview()"><small>px</small></span></label>
+                                <label class="name-border-cell"><span class="name-border-side">Right</span><span class="name-border-input-wrap"><input class="name-border-width" id="cropBorderRightWidth" type="number" min="0" max="20" step="0.5" value="0" aria-label="Right border width in pixels" oninput="updateNameTagPreview()"><small>px</small></span></label>
+                                <label class="name-border-cell"><span class="name-border-side">Bottom</span><span class="name-border-input-wrap"><input class="name-border-width" id="cropBorderBottomWidth" type="number" min="0" max="20" step="0.5" value="0" aria-label="Bottom border width in pixels" oninput="updateNameTagPreview()"><small>px</small></span></label>
+                                <label class="name-border-cell"><span class="name-border-side">Left</span><span class="name-border-input-wrap"><input class="name-border-width" id="cropBorderLeftWidth" type="number" min="0" max="20" step="0.5" value="0" aria-label="Left border width in pixels" oninput="updateNameTagPreview()"><small>px</small></span></label>
+                            </div>
+                            <span class="crop-sub">Set each side separately. Use 0 to turn it off.</span>
                         </div>
                     </details>
                 </div>
@@ -1570,27 +1686,7 @@
                         </div>
                         <input class="crop-zoom-slider" type="range" id="cropZoomSlider" min="1" max="4" step="0.05" value="1" aria-label="Zoom" oninput="onCropZoomInput(this.value, true)">
                     </div>
-                    <details class="crop-adjust-details" id="fontStyleSettings">
-                        <summary>Font Style</summary>
-                        <div class="crop-adjust-inner">
-                            <label class="crop-setting-label" for="cropNameFont" style="margin-top:8px">Font</label>
-                            <select id="cropNameFont" class="crop-mode-select" onchange="updateNameTagPreview()">
-                                <option selected>Arial</option><option>Roboto</option><option>Open Sans</option><option>Lato</option><option>Montserrat</option><option>Poppins</option><option>Inter</option><option>Oswald</option><option>Georgia</option><option>Times New Roman</option>
-                            </select>
-                            <div class="crop-adjust-head" style="margin-top:8px"><label class="crop-setting-label" for="cropNameSize" style="margin:0">Font size</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropNameSizeValue">18px</span><button type="button" class="crop-mini-reset" aria-label="Reset font size" title="Reset font size" onclick="resetCropSlider('cropNameSize')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
-                            <input class="crop-adjust-slider" id="cropNameSize" type="range" min="8" max="48" value="18" oninput="updateNameTagPreview()">
-                            <div class="crop-adjust-head" style="margin-top:8px"><label class="crop-setting-label" for="cropNameStretch" style="margin:0">Text stretch</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropNameStretchValue">140%</span><button type="button" class="crop-mini-reset" aria-label="Reset text stretch" title="Reset text stretch" onclick="resetCropSlider('cropNameStretch')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
-                            <input class="crop-adjust-slider" id="cropNameStretch" type="range" min="50" max="240" value="140" step="1" oninput="updateNameTagPreview()">
-                            <div class="crop-adjust-head" style="margin-top:8px"><label class="crop-setting-label" for="cropNameSpacing" style="margin:0">Letter spacing</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropNameSpacingValue">0px</span><button type="button" class="crop-mini-reset" aria-label="Reset letter spacing" title="Reset letter spacing" onclick="resetCropSlider('cropNameSpacing')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
-                            <input class="crop-adjust-slider" id="cropNameSpacing" type="range" min="-1" max="8" value="0" step="0.25" oninput="updateNameTagPreview()">
-                            <div class="crop-adjust-head" style="margin-top:8px"><label class="crop-setting-label" for="cropNameHeight" style="margin:0">Text height</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropNameHeightValue">100%</span><button type="button" class="crop-mini-reset" aria-label="Reset text height" title="Reset text height" onclick="resetCropSlider('cropNameHeight')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
-                            <input class="crop-adjust-slider" id="cropNameHeight" type="range" min="50" max="160" value="100" step="1" oninput="updateNameTagPreview()">
-                            <label class="crop-setting-label" for="cropNameWeight" style="margin-top:8px">Font weight</label>
-                            <select id="cropNameWeight" class="crop-mode-select" onchange="updateNameTagPreview()"><option value="400">Regular</option><option value="500">Medium</option><option value="600">Semibold</option><option value="700" selected>Bold</option><option value="800">Extra bold</option></select>
-                            <label style="display:flex;gap:8px;align-items:center;font-size:.76rem;margin-top:8px"><input type="checkbox" id="cropNameItalic" onchange="updateNameTagPreview()"> Italic</label>
-                        </div>
-                    </details>
-                    <details class="crop-adjust-details">
+                    <details class="crop-adjust-details" id="cropColorAdjustSettings">
                         <summary>Color adjustments</summary>
                         <div class="crop-adjust-inner">
                             <div class="crop-adjust-group">
@@ -1629,6 +1725,10 @@
                     </div>
                 </div>
                 <div class="crop-footer-right">
+                    <button class="btn crop-undo-btn" id="cropUndoBtn" type="button" onclick="undoLastAction()" title="Undo last edit (Ctrl+Z)" aria-label="Undo last edit" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 1 1 0 14h-2"/></svg>
+                        <span>Undo</span><kbd>Ctrl Z</kbd>
+                    </button>
                     <button class="btn btn-primary" type="button" onclick="applyCrop()">Apply Changes</button>
                     <button class="btn crop-reset-btn" type="button" onclick="resetCrop()" title="Reset image edits" aria-label="Reset image edits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg></button>
                 </div>
@@ -1756,6 +1856,166 @@
         let isDarkMode = true; 
         let currentPageIndex = 0;
         let crop = null;
+
+        /* =========================================================
+           UNDO HISTORY — snapshots of the editable workspace
+           ========================================================= */
+        const undoHistory = [];
+        const UNDO_LIMIT = 30;
+        let lastUndoSnapshotKey = '';
+
+        function getUndoSnapshot() {
+            const root = document.documentElement;
+            const controls = {};
+            document.querySelectorAll('input, select, textarea').forEach((el, index) => {
+                if (!el.id) return;
+                controls[el.id] = {
+                    value: el.value,
+                    checked: el.type === 'checkbox' ? el.checked : undefined
+                };
+            });
+
+            const cssVars = [
+                '--paper-width', '--paper-height', '--paper-size-name',
+                '--preview-scale', '--gap-v', '--gap-h', '--border-w',
+                '--border-c', '--border-style', '--border-radius',
+                '--layout-align-x'
+            ];
+            const styles = {};
+            cssVars.forEach(name => styles[name] = root.style.getPropertyValue(name));
+
+            return {
+                uploadedImages: uploadedImages.map(img => ({
+                    ...img,
+                    nameTagVariants: { ...(img.nameTagVariants || {}) },
+                    cropRect: img.cropRect ? { ...img.cropRect } : null,
+                    freeCropRectNormalized: img.freeCropRectNormalized ? { ...img.freeCropRectNormalized } : null
+                })),
+                canvasItems: canvasItems.map(item => ({ ...item })),
+                appConfig: { ...appConfig },
+                activeImageId,
+                currentPaper,
+                currentPageIndex,
+                crop: crop ? { ...crop, box: crop.box ? { ...crop.box } : null, freeRect: crop.freeRect ? { ...crop.freeRect } : null, drag: null } : null,
+                controls,
+                styles,
+                strokePosition: root.getAttribute('data-stroke-position'),
+                theme: document.body.getAttribute('data-theme')
+            };
+        }
+
+        function snapshotKey(snapshot) {
+            // Exclude image data URLs so history checks stay lightweight.
+            return JSON.stringify({
+                images: snapshot.uploadedImages.map(img => ({
+                    id: img.id, cropMode: img.cropMode, brightness: img.brightness,
+                    contrast: img.contrast, hue: img.hue, saturation: img.saturation,
+                    croppedLength: img.croppedSrc ? img.croppedSrc.length : 0,
+                    tagKeys: Object.keys(img.nameTagVariants || {})
+                })),
+                items: snapshot.canvasItems,
+                config: snapshot.appConfig,
+                activeImageId: snapshot.activeImageId,
+                currentPaper: snapshot.currentPaper,
+                crop: snapshot.crop ? { ...snapshot.crop, drag: null } : null,
+                controls: snapshot.controls,
+                styles: snapshot.styles,
+                strokePosition: snapshot.strokePosition
+            });
+        }
+
+        function recordUndoState() {
+            if (!Array.isArray(uploadedImages) || !Array.isArray(canvasItems)) return;
+            const snapshot = getUndoSnapshot();
+            const key = snapshotKey(snapshot);
+            if (key === lastUndoSnapshotKey) return;
+            undoHistory.push(snapshot);
+            if (undoHistory.length > UNDO_LIMIT) undoHistory.shift();
+            lastUndoSnapshotKey = key;
+            updateUndoButton();
+        }
+
+        function updateUndoButton() {
+            const button = document.getElementById('undoBtn');
+            if (!button) return;
+            button.disabled = undoHistory.length === 0;
+            button.setAttribute('aria-label', undoHistory.length
+                ? `Undo last change. ${undoHistory.length} undo step${undoHistory.length === 1 ? '' : 's'} available`
+                : 'Nothing to undo');
+            const modalButton = document.getElementById('cropUndoBtn');
+            if (modalButton) {
+                modalButton.disabled = undoHistory.length === 0;
+                modalButton.title = undoHistory.length ? `Undo last edit (${undoHistory.length} step${undoHistory.length === 1 ? '' : 's'} available)` : 'Nothing to undo';
+            }
+        }
+
+        function undoLastAction() {
+            if (!undoHistory.length) return;
+            const state = undoHistory.pop();
+
+            uploadedImages = state.uploadedImages;
+            canvasItems = state.canvasItems;
+            appConfig = state.appConfig;
+            activeImageId = state.activeImageId;
+            currentPaper = state.currentPaper;
+            currentPageIndex = state.currentPageIndex;
+            crop = state.crop ? { ...state.crop, box: state.crop.box ? { ...state.crop.box } : null, freeRect: state.crop.freeRect ? { ...state.crop.freeRect } : null, drag: null } : null;
+
+            Object.entries(state.styles || {}).forEach(([name, value]) => {
+                if (value) document.documentElement.style.setProperty(name, value);
+                else document.documentElement.style.removeProperty(name);
+            });
+            if (state.strokePosition) document.documentElement.setAttribute('data-stroke-position', state.strokePosition);
+            else document.documentElement.removeAttribute('data-stroke-position');
+            if (state.theme) document.body.setAttribute('data-theme', state.theme);
+
+            Object.entries(state.controls || {}).forEach(([id, saved]) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (el.type === 'checkbox') el.checked = !!saved.checked;
+                else el.value = saved.value;
+            });
+
+            localStorage.setItem('rushid_config', JSON.stringify(appConfig));
+            document.querySelectorAll('#paperSelector button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.paper === currentPaper);
+            });
+            const rowGroup = document.getElementById('itemsPerRowGroup');
+            if (rowGroup) rowGroup.style.display = currentPaper === '5R' ? 'none' : 'block';
+
+            renderImageQueue();
+            renderCanvas(false);
+            loadSizesToInputs();
+            if (crop && document.getElementById('cropModal')?.classList.contains('active')) {
+                layoutCrop();
+                updateCropAdjustments();
+                updateNameTagPreview();
+                syncCropAspectUI();
+            }
+            updateUndoButton();
+            lastUndoSnapshotKey = snapshotKey(getUndoSnapshot());
+        }
+
+        // Capture the state before a control is changed or a button is activated.
+        // This also covers settings sliders, selects, quantity fields and toolbar actions.
+        document.addEventListener('pointerdown', event => {
+            const target = event.target.closest('button, input, select, textarea, .click-label, #cropStage, #crop-box-rect, .crop-handle');
+            if (target && !target.closest('#undoBtn, #cropUndoBtn')) recordUndoState();
+        }, true);
+
+        document.addEventListener('focusin', event => {
+            const target = event.target;
+            if (target.matches('input, select, textarea')) recordUndoState();
+        }, true);
+
+        document.addEventListener('keydown', event => {
+            if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z' || event.shiftKey) return;
+            const target = event.target;
+            // Preserve normal text-edit undo while typing in text fields.
+            if (target && target.matches('input:not([type="range"]):not([type="checkbox"]):not([type="color"]), textarea, [contenteditable="true"]')) return;
+            event.preventDefault();
+            undoLastAction();
+        });
 
         const paperSizes = {
             'A4': { w: 210, h: 297, name: 'A4' },  
@@ -2228,6 +2488,7 @@
 
         function handleFiles(files) {
             const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+            if (validFiles.length) recordUndoState();
             if (validFiles.length === 0) return;
 
             showLoading(`Loading ${validFiles.length} image${validFiles.length > 1 ? 's' : ''}...`);
@@ -2318,6 +2579,7 @@
         }
 
         function removeImage(idToRemove) {
+            recordUndoState();
             uploadedImages = uploadedImages.filter(img => img.id !== idToRemove);
             canvasItems = canvasItems.filter(item => item.imgId !== idToRemove);
             if (activeImageId === idToRemove) activeImageId = uploadedImages.length > 0 ? uploadedImages[0].id : null;
@@ -2328,6 +2590,7 @@
         }
 
         function resetCanvas() {
+            recordUndoState();
             canvasItems = [];
             
             appConfig.cols2x2 = 4;
@@ -2357,6 +2620,7 @@
         }
 
         function clearAll() {
+            recordUndoState();
             uploadedImages = [];
             canvasItems = [];
             activeImageId = null;
@@ -2453,6 +2717,7 @@
         }
 
         function setPaperSize(size) {
+            if (typeof recordUndoState === 'function' && currentPaper !== size) recordUndoState();
             currentPaper = size;
             
             document.querySelectorAll('#paperSelector button').forEach(btn => {
@@ -2482,6 +2747,7 @@
                 showAlert("No Image", "Please upload and select an image first.");
                 return;
             }
+            recordUndoState();
             const newId = Date.now();
 
             if (preset === 'Package') { 
@@ -2516,6 +2782,7 @@
         }
 
         function removePackage() {
+            recordUndoState();
             canvasItems = canvasItems.filter(item => !item.type.startsWith('pkg'));
             syncInputsToCanvas();
             renderCanvas(false);
@@ -3330,18 +3597,57 @@
             }
         }
 
+        function autoFitNameTag() {
+            const nameInput = document.getElementById('cropNameText');
+            const preview = document.getElementById('cropNameTagPreview');
+            if (!nameInput) return;
+            const value = nameInput.value.trim();
+            if (!value) { nameInput.focus(); return; }
+
+            const font = document.getElementById('cropNameFont')?.value || 'Arial';
+            const weight = document.getElementById('cropNameWeight')?.value || '700';
+            const italic = document.getElementById('cropNameItalic')?.value === 'italic';
+            const sampleCanvas = document.createElement('canvas');
+            const sampleContext = sampleCanvas.getContext('2d');
+            if (!sampleContext) return;
+
+            const previewWidth = (preview && preview.clientWidth) || (crop && crop.stageW) || 400;
+            const previewHeight = (crop && crop.stageH) || (preview && preview.clientHeight) || 400;
+            const targetWidth = Math.max(1, previewWidth * 0.72);
+            const maxFontSize = Math.max(20, Math.min(36, previewHeight * 0.075));
+            const minFontSize = 18;
+            sampleContext.font = `${italic ? 'italic ' : ''}${weight} 100px "${font}", Arial, sans-serif`;
+            const measuredAt100 = sampleContext.measureText(value.toUpperCase()).width;
+            if (!measuredAt100) return;
+
+            // Keep the tag height controlled while using horizontal stretch to fill the available width.
+            const idealSize = targetWidth / ((measuredAt100 / 100) * 1.4);
+            const size = Math.round(Math.max(minFontSize, Math.min(maxFontSize, idealSize)));
+            const measuredAtSize = measuredAt100 * (size / 100);
+            const stretch = Math.round(Math.max(50, Math.min(190, (targetWidth / Math.max(1, measuredAtSize)) * 100)));
+
+            document.getElementById('cropNameSize').value = size;
+            document.getElementById('cropNameStretch').value = stretch;
+            document.getElementById('cropNameSpacing').value = 0;
+            document.getElementById('cropNameHeight').value = 100;
+            updateNameTagPreview();
+            nameInput.focus();
+        }
+
         function updateNameTagPreview() {
+            const borderColor = document.getElementById('cropBorderColor')?.value || '#111827';
+            const borderHex = document.getElementById('cropBorderColorHex');
+            if (borderHex) borderHex.textContent = borderColor.toUpperCase();
             const preview = document.getElementById('cropNameTagPreview');
             const previewText = document.getElementById('cropNameTagTextPreview');
             if (!preview || !previewText) return;
             const value = document.getElementById('cropNameText').value.trim();
             const font = document.getElementById('cropNameFont').value || 'Arial';
-            const size = Number(document.getElementById('cropNameSize').value) || 18;
+            const size = Math.max(8, Math.min(120, Number(document.getElementById('cropNameSize').value) || 18));
             const weight = document.getElementById('cropNameWeight').value || '700';
-            const italic = document.getElementById('cropNameItalic').checked;
+            const italic = document.getElementById('cropNameItalic').value === 'italic';
             const color = document.getElementById('cropNameColor').value || '#111827';
             const bg = document.getElementById('cropNameBg').value || '#ffffff';
-            const opacity = Number(document.getElementById('cropNameBgOpacity').value);
             const stretch = Number(document.getElementById('cropNameStretch').value) || 140;
             const spacing = Number(document.getElementById('cropNameSpacing').value) || 0;
             const textHeight = Number(document.getElementById('cropNameHeight').value) || 100;
@@ -3349,25 +3655,57 @@
             preview.classList.toggle('visible', !!value);
             preview.style.fontFamily = `"${font}", Arial, sans-serif`;
             preview.style.fontSize = `${size}px`;
-            preview.style.minHeight = value ? `${Math.max(25, size * 1.15 * (textHeight / 100) + 8)}px` : '25px';
+            const tagPreviewHeight = value ? Math.max(25, size * 1.15 * (textHeight / 100) + 8) : 25;
+            preview.style.height = `${tagPreviewHeight}px`;
+            preview.style.minHeight = `${tagPreviewHeight}px`;
+            preview.style.alignItems = 'center';
+            preview.style.justifyContent = 'center';
+            preview.style.textAlign = 'center';
             preview.style.fontWeight = weight;
             preview.style.fontStyle = italic ? 'italic' : 'normal';
             previewText.style.letterSpacing = `${spacing}px`;
             preview.style.color = color;
-            preview.style.backgroundColor = hexToRgba(bg, Math.max(0, Math.min(100, opacity)) / 100);
+            preview.style.backgroundColor = bg;
+            ['Top','Right','Bottom','Left'].forEach(side => {
+                const width = Math.max(0, Math.min(20, Number(document.getElementById(`cropBorder${side}Width`)?.value) || 0));
+                const color = document.getElementById('cropBorderColor')?.value || '#111827';
+                preview.style[`border${side}`] = width ? `${width}px solid ${color}` : '0 solid transparent';
+            });
             preview.style.left = '0';
             preview.style.bottom = '0';
             preview.style.width = '100%';
-            previewText.style.transform = `scale(${stretch / 100}, ${textHeight / 100})`;
+            previewText.style.display = 'block';
+            previewText.style.position = 'relative';
+            previewText.style.left = '0';
+            previewText.style.margin = '0 auto';
+            previewText.style.textAlign = 'center';
             previewText.style.transformOrigin = 'center center';
             previewText.style.maxWidth = 'none';
-            document.getElementById('cropNameSizeValue').textContent = `${size}px`;
+
+            // Keep even unusually long names centered and fully inside the tag preview.
+            let previewScaleX = stretch / 100;
+            if (value) {
+                const measureCanvas = document.createElement('canvas');
+                const measureContext = measureCanvas.getContext('2d');
+                if (measureContext) {
+                    measureContext.font = `${italic ? 'italic ' : ''}${weight} ${size}px "${font}", Arial, sans-serif`;
+                    const measuredWidth = measureContext.measureText(value.toUpperCase()).width + Math.max(0, value.length - 1) * spacing;
+                    const safeWidth = Math.max(1, (preview.clientWidth || (crop && crop.stageW) || 400) - 24);
+                    const scaledWidth = measuredWidth * previewScaleX;
+                    if (scaledWidth > safeWidth && scaledWidth > 0) previewScaleX *= safeWidth / scaledWidth;
+                }
+            }
+            previewText.style.transform = `scale(${previewScaleX}, ${textHeight / 100})`;
+            const sizeValueLabel = document.getElementById('cropNameSizeValue');
+            if (sizeValueLabel) sizeValueLabel.textContent = `${size}px`;
             document.getElementById('cropNameStretchValue').textContent = `${stretch}%`;
             document.getElementById('cropNameSpacingValue').textContent = `${spacing.toFixed(2).replace(/\.?0+$/, '')}px`;
             document.getElementById('cropNameHeightValue').textContent = `${textHeight}%`;
-            document.getElementById('cropNameBgOpacityValue').textContent = `${opacity}%`;
+            document.getElementById('cropNameColorHex').textContent = color.toUpperCase();
+            document.getElementById('cropNameBgHex').textContent = bg.toUpperCase();
             updateCropRangeProgress(document.getElementById('cropNameSpacing'));
             updateCropRangeProgress(document.getElementById('cropNameHeight'));
+            updateCropRangeProgress(document.getElementById('cropNameStretch'));
         }
         function hexToRgba(hex, alpha) { const n=parseInt(hex.slice(1),16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${alpha})`; }
         function buildEditedCropCanvas(includeNameTag = true) {
@@ -3414,35 +3752,69 @@
                 const font = document.getElementById('cropNameFont').value || 'Arial';
                 const fontSize = Number(document.getElementById('cropNameSize').value) || 18;
                 const weight = document.getElementById('cropNameWeight').value || '700';
-                const italic = document.getElementById('cropNameItalic').checked ? 'italic ' : '';
+                const italic = document.getElementById('cropNameItalic').value === 'italic' ? 'italic ' : '';
                 const scale = output.width / Math.max(1, crop.box.w);
                 const px = Math.max(8, fontSize * scale);
                 const nameHeightScale = (Number(document.getElementById('cropNameHeight').value) || 100) / 100;
                 const tagH = Math.max(px * 1.55 * nameHeightScale, output.height * 0.085);
                 const tagY = output.height - tagH;
                 const bg = document.getElementById('cropNameBg').value || '#ffffff';
-                const opacity = Number(document.getElementById('cropNameBgOpacity').value) / 100;
                 const textStretch = (Number(document.getElementById('cropNameStretch').value) || 140) / 100;
                 const textHeight = (Number(document.getElementById('cropNameHeight').value) || 100) / 100;
                 const letterSpacing = (Number(document.getElementById('cropNameSpacing').value) || 0) * scale;
                 ctx.save();
-                ctx.fillStyle = hexToRgba(bg, Math.max(0, Math.min(1, opacity)));
+                ctx.fillStyle = bg;
                 ctx.fillRect(0, tagY, output.width, tagH);
                 ctx.font = `${italic}${weight} ${px}px "${font}", Arial, sans-serif`;
-                ctx.textAlign = 'left';
+                ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = document.getElementById('cropNameColor').value || '#111827';
-                const chars = Array.from(tagText.toUpperCase());
-                const charWidths = chars.map(char => ctx.measureText(char).width);
-                const rawTextWidth = charWidths.reduce((sum, width) => sum + width, 0) + Math.max(0, chars.length - 1) * letterSpacing;
-                const textMaxWidth = Math.max(1, output.width - px * 0.7);
-                const fitScale = rawTextWidth > 0 ? Math.min(1, textMaxWidth / (rawTextWidth * textStretch)) : 1;
+                const text = tagText.toUpperCase();
+                const chars = Array.from(text);
+                const baseWidth = ctx.measureText(text).width;
+                const letterSpacingTotal = Math.max(0, chars.length - 1) * letterSpacing;
+                const naturalWidth = baseWidth + letterSpacingTotal;
+                const textMaxWidth = Math.max(1, output.width - px * 1.2);
+                const fitScale = naturalWidth > 0 ? Math.min(1, textMaxWidth / (naturalWidth * textStretch)) : 1;
+                // Center from the full measured string (preserving font kerning), not the sum
+                // of separately measured glyphs. This keeps the visual text block centered.
                 ctx.translate(output.width / 2, tagY + tagH / 2);
                 ctx.scale(textStretch * fitScale, textHeight);
-                let cursorX = -rawTextWidth / 2;
-                chars.forEach((char, index) => {
-                    ctx.fillText(char, cursorX, 0);
-                    cursorX += charWidths[index] + letterSpacing;
+                if (letterSpacing === 0 || !('letterSpacing' in ctx)) {
+                    if (letterSpacing === 0) {
+                        ctx.fillText(text, 0, 0);
+                    } else {
+                        const glyphWidths = chars.map(char => ctx.measureText(char).width);
+                        const glyphRunWidth = glyphWidths.reduce((sum, width) => sum + width, 0) + letterSpacingTotal;
+                        let cursorX = -glyphRunWidth / 2;
+                        ctx.textAlign = 'left';
+                        chars.forEach((char, index) => {
+                            ctx.fillText(char, cursorX, 0);
+                            cursorX += glyphWidths[index] + letterSpacing;
+                        });
+                    }
+                } else {
+                    ctx.letterSpacing = `${letterSpacing}px`;
+                    ctx.fillText(text, 0, 0);
+                    ctx.letterSpacing = '0px';
+                }
+                // Draw independent border strokes on the tag rectangle.
+                const edgeScale = scale;
+                const edges = [
+                    ['Top', 0, tagY, output.width, tagH],
+                    ['Right', output.width, tagY, output.width, tagH],
+                    ['Bottom', 0, output.height, output.width, tagH],
+                    ['Left', 0, tagY, output.width, tagH]
+                ];
+                edges.forEach(([side]) => {
+                    const width = Math.max(0, Math.min(20, Number(document.getElementById(`cropBorder${side}Width`)?.value) || 0)) * edgeScale;
+                    const color = document.getElementById('cropBorderColor')?.value || '#111827';
+                    if (!width) return;
+                    ctx.fillStyle = color;
+                    if (side === 'Top') ctx.fillRect(0, tagY, output.width, width);
+                    if (side === 'Right') ctx.fillRect(output.width - width, tagY, width, tagH);
+                    if (side === 'Bottom') ctx.fillRect(0, output.height - width, output.width, width);
+                    if (side === 'Left') ctx.fillRect(0, tagY, width, tagH);
                 });
                 ctx.restore();
             }
@@ -3499,7 +3871,7 @@
         }
 
         function resetCropSlider(sliderId) {
-            const defaults = { cropZoomSlider: 1, cropBrightness: 100, cropContrast: 100, cropHue: 0, cropSaturation: 100, cropNameSize: 18, cropNameStretch: 140, cropNameSpacing: 0, cropNameHeight: 100, cropNameBgOpacity: 100 };
+            const defaults = { cropZoomSlider: 1, cropBrightness: 100, cropContrast: 100, cropHue: 0, cropSaturation: 100, cropNameSize: 18, cropNameStretch: 140, cropNameSpacing: 0, cropNameHeight: 100 };
             const slider = document.getElementById(sliderId);
             if (!slider || !(sliderId in defaults)) return;
             slider.value = defaults[sliderId];
@@ -3522,7 +3894,6 @@
             document.getElementById('cropNameStretch').value = 140;
             document.getElementById('cropNameSpacing').value = 0;
             document.getElementById('cropNameHeight').value = 100;
-            document.getElementById('cropNameBgOpacity').value = 100;
             if (crop.aspectMode === 'free') {
                 crop.box = { x: crop.stageW * 0.1, y: crop.stageH * 0.1, w: crop.stageW * 0.8, h: crop.stageH * 0.8 };
             }
@@ -3538,6 +3909,7 @@
 
         function applyCrop() {
             if (!crop) return;
+            recordUndoState();
             const obj = uploadedImages.find(image => image.id === crop.imageId);
             if (!obj) { closeCrop(); return; }
             const output = buildEditedCropCanvas(false);
@@ -3652,14 +4024,86 @@
             if (event.key === '0') resetCrop();
         });
 
+
+        // Persist the user's crop-editor preferences between sessions.
+        // Image-specific name text and crop position are intentionally excluded.
+        const CROP_PREF_KEY = 'rushid_crop_editor_preferences_v1';
+        const CROP_PREF_CONTROL_IDS = [
+            'cropNameFont', 'cropNameSize', 'cropNameWeight', 'cropNameItalic',
+            'cropNameHeight', 'cropNameSpacing', 'cropNameStretch',
+            'cropNameColor', 'cropNameBg',
+            'cropBorderColor', 'cropBorderTopWidth', 'cropBorderRightWidth',
+            'cropBorderBottomWidth', 'cropBorderLeftWidth',
+            'cropAspectSelect', 'cropBrightness', 'cropContrast', 'cropSaturation',
+            'cropZoomSlider'
+        ];
+
+        function loadCropEditorPreferences() {
+            let saved = {};
+            try { saved = JSON.parse(localStorage.getItem(CROP_PREF_KEY) || '{}') || {}; }
+            catch (e) { saved = {}; }
+
+            CROP_PREF_CONTROL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el || !Object.prototype.hasOwnProperty.call(saved.controls || {}, id)) return;
+                const value = saved.controls[id];
+                if (el.type === 'checkbox') el.checked = !!value;
+                else el.value = value;
+            });
+
+            document.querySelectorAll('#cropModal details[id]').forEach(details => {
+                const state = saved.accordions && saved.accordions[details.id];
+                if (typeof state === 'boolean') details.open = state;
+            });
+
+            // Refresh labels and preview after restoring the saved controls.
+            if (typeof updateNameTagPreview === 'function') updateNameTagPreview();
+            if (typeof updateCropAdjustments === 'function') updateCropAdjustments();
+        }
+
+        function saveCropEditorPreferences() {
+            const controls = {};
+            CROP_PREF_CONTROL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) controls[id] = el.type === 'checkbox' ? el.checked : el.value;
+            });
+            const accordions = {};
+            document.querySelectorAll('#cropModal details[id]').forEach(details => {
+                accordions[details.id] = details.open;
+            });
+            try {
+                localStorage.setItem(CROP_PREF_KEY, JSON.stringify({ controls, accordions }));
+            } catch (e) {
+                // Keep the editor usable if browser storage is unavailable or full.
+            }
+        }
+
+        function initCropEditorPreferences() {
+            loadCropEditorPreferences();
+            const modal = document.getElementById('cropModal');
+            if (!modal) return;
+
+            modal.addEventListener('input', event => {
+                if (event.target.matches('input, select, textarea')) saveCropEditorPreferences();
+            });
+            modal.addEventListener('change', event => {
+                if (event.target.matches('input, select, textarea')) saveCropEditorPreferences();
+            });
+            modal.querySelectorAll('details[id]').forEach(details => {
+                details.addEventListener('toggle', saveCropEditorPreferences);
+            });
+        }
+
         function initApp() {
             loadConfig();
             loadStats();
             initAccordions();
+            initCropEditorPreferences();
             setPaperSize('A4');
             syncInputsToCanvas();
             fitToViewport();
             renderCanvas(false);
+            updateUndoButton();
         }
 
         if (document.readyState === 'loading') {
