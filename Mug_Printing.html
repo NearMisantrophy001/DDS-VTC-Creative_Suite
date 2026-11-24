@@ -302,8 +302,12 @@
         background: var(--border);
         flex-shrink: 0;
         border: 1px solid var(--border);
-        pointer-events: none;
+        pointer-events: auto;
+        position: relative;
     }
+    .layer-thumb .layer-edit-overlay { position:absolute; inset:0; width:100%; height:100%; border:0; padding:0; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,.68); color:#fff; opacity:0; cursor:pointer; z-index:2; transition:opacity .15s; }
+    .layer-item:hover .layer-thumb .layer-edit-overlay,.layer-item:focus-within .layer-thumb .layer-edit-overlay { opacity:1; }
+    .layer-thumb .layer-edit-overlay svg { width:14px; height:14px; }
     .layer-thumb img {
         width: 100%; height: 100%;
         object-fit: cover;
@@ -409,6 +413,15 @@
     }
     .input-wrapper input:focus { border-color: var(--primary); }
     .input-wrapper input.wide { width: 64px; }
+    .printer-paper-row { display:grid; grid-template-columns:72px minmax(0,1fr); gap:10px; align-items:center; }
+    .printer-paper-row .static-label { flex-grow:0; padding:0; }
+    .printer-paper-row .select-wrapper { width:100%; min-width:0; }
+    .dimension-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; width:100%; }
+    .dimension-field { display:flex; flex-direction:column; gap:5px; min-width:0; }
+    .dimension-label { color:var(--text-muted); font-size:.7rem; font-weight:600; }
+    .dimension-input { width:100%; min-width:0; gap:5px; }
+    .dimension-input input { width:100%; min-width:0; flex:1 1 auto; height:30px; padding:4px 5px; }
+    .dimension-input span { color:var(--text-muted); font-size:.68rem; font-weight:600; }
 
     .segmented-control {
         display: flex; background: var(--bg-workspace); border: 1px solid var(--border);
@@ -563,11 +576,8 @@
         box-sizing: border-box;
     }
     
-    .mug-frame.is-selected {
-        outline: 5px solid #000000 !important;
-        outline-offset: -5px;
-        z-index: 50;
-    }
+    .mug-frame.is-selected { z-index:50; }
+    .mug-frame.is-selected::after { content:''; position:absolute; inset:0; z-index:20; border:2px solid #111827; pointer-events:none; }
 
     .mug-frame img {
         width: 100%; height: 100%;
@@ -782,6 +792,97 @@
         50%      { opacity: 1;    }
     }
 
+
+    /* Print Grid-inspired spacing and border controls */
+    .alignment-block { margin-bottom: 14px; }
+    .alignment-block .setting-label { display:block; margin-bottom:8px; }
+    .alignment-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .alignment-group { display:flex; height:30px; gap:2px; padding:2px; border:1px solid var(--border); border-radius:6px; background:var(--bg-workspace); }
+    .alignment-group button { flex:1; min-width:0; height:100%; padding:0; display:flex; align-items:center; justify-content:center; border:0; border-radius:4px; background:transparent; color:var(--text-muted); cursor:pointer; }
+    .alignment-group button:hover { background:var(--hover-bg); color:var(--text-main); }
+    .alignment-group button.active { background:var(--primary); color:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); }
+    .alignment-group svg { width:14px; height:14px; }
+    .compact-setting-row { display:grid; grid-template-columns:76px minmax(0,1fr); align-items:center; column-gap:10px; min-height:36px; margin-bottom:12px; }
+    .compact-setting-row:last-of-type { margin-bottom:8px; }
+    .spacing-control-group { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; min-width:0; width:100%; }
+    .icon-number-control { display:grid; grid-template-columns:15px minmax(0,1fr); align-items:center; gap:4px; min-width:0; }
+    .control-icon { width:15px; height:15px; color:var(--text-muted); justify-self:center; }
+    .compact-setting-row .setting-value-wrapper { display:grid; grid-template-columns:minmax(0,1fr) 17px; align-items:center; gap:4px; min-width:0; }
+    .compact-setting-row .setting-value-wrapper input { width:100%; min-width:0; height:30px; padding:2px 4px; border:1px solid var(--border); border-radius:4px; background:var(--input-bg); color:var(--text-main); text-align:center; font-size:.8rem; font-weight:600; outline:none; -moz-appearance:textfield; }
+    .compact-setting-row .setting-value-wrapper input::-webkit-outer-spin-button,.compact-setting-row .setting-value-wrapper input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+    .compact-setting-row .setting-value-wrapper span { width:auto; text-align:left; font-size:.68rem; color:var(--text-muted); }
+    .stroke-select-group { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; width:100%; }
+    .stroke-select-group .select-wrapper { width:100%; min-width:0; }
+    .border-color-group { display:grid; grid-template-columns:minmax(0,1fr) 34px; gap:6px; min-width:0; }
+    .border-color-group input[type="text"] { width:100%; min-width:0; height:30px; padding:4px 7px; border:1px solid var(--border); border-radius:4px; background:var(--input-bg); color:var(--text-main); font:600 .75rem ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .border-color-group input[type="color"] { width:34px; height:30px; padding:2px; border:1px solid var(--border); border-radius:4px; background:var(--bg-workspace); cursor:pointer; }
+    .compact-reset-row { display:flex; justify-content:flex-end; margin-top:4px; }
+    .undo-action-btn { min-width:82px; padding:6px 10px; }
+    .undo-action-btn svg { width:14px; height:14px; }
+    .undo-action-btn:disabled,.crop-undo-btn:disabled { opacity:.38; cursor:not-allowed; }
+
+    /* Image editing modal — roomier layout with clearer separation */
+    .crop-box { width:min(97vw,1180px); max-width:1180px; max-height:96vh; overflow:auto; padding:28px; display:flex; flex-direction:column; gap:24px; background:var(--bg-panel); color:var(--text-main); border:1px solid var(--border); border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.55); transform:translateY(20px); transition:transform .2s; }
+    .modal-overlay.active .crop-box { transform:translateY(0); }
+    .crop-head { display:flex; justify-content:space-between; align-items:flex-start; flex-shrink:0; padding-bottom:2px; }
+    .crop-sub { margin-top:6px; color:var(--text-muted); font-size:.74rem; line-height:1.5; }
+    .crop-close-btn { width:32px; height:32px; border:0; border-radius:6px; background:transparent; color:var(--text-muted); cursor:pointer; font-size:17px; }
+    .crop-close-btn:hover { background:var(--hover-bg); color:var(--text-main); }
+    .crop-content { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:24px; min-height:0; align-items:stretch; }
+    .crop-stage-wrap { min-width:0; min-height:420px; display:flex; align-items:center; justify-content:center; padding:24px; overflow:auto; background:var(--bg-workspace); border:1px solid var(--border); border-radius:10px; }
+    .crop-stage { position:relative; flex:0 0 auto; overflow:hidden; background:#111; border-radius:3px; cursor:grab; touch-action:none; box-shadow:0 0 0 1px rgba(0,0,0,.25); }
+    .crop-stage:active { cursor:grabbing; }
+    .crop-stage img { position:absolute; max-width:none; user-select:none; -webkit-user-drag:none; pointer-events:none; }
+    .crop-grid-lines { position:absolute; inset:0; z-index:1; pointer-events:none; background-image:linear-gradient(to right,rgba(255,255,255,.22) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.22) 1px,transparent 1px); background-size:33.3333% 33.3333%; box-shadow:inset 0 0 0 1px rgba(255,255,255,.6); }
+    .crop-box-rect { position:absolute; z-index:2; display:none; border:2px solid #fff; box-shadow:0 0 0 9999px rgba(0,0,0,.45),0 0 0 1px rgba(0,0,0,.45); cursor:move; touch-action:none; }
+    .crop-stage.free-crop-active>.crop-grid-lines { display:none; }
+    .crop-stage.free-crop-active .crop-box-rect { display:block; }
+    .crop-box-rect .crop-grid-lines { display:block; }
+    .crop-handle { position:absolute; z-index:3; width:10px; height:10px; border:1.5px solid var(--primary); border-radius:2px; background:#fff; }
+    .crop-handle.nw { top:-5px;left:-5px;cursor:nwse-resize; } .crop-handle.ne { top:-5px;right:-5px;cursor:nesw-resize; }
+    .crop-handle.sw { bottom:-5px;left:-5px;cursor:nesw-resize; } .crop-handle.se { bottom:-5px;right:-5px;cursor:nwse-resize; }
+    .crop-handle.n { top:-5px;left:50%;transform:translateX(-50%);cursor:ns-resize; } .crop-handle.s { bottom:-5px;left:50%;transform:translateX(-50%);cursor:ns-resize; }
+    .crop-handle.w { left:-5px;top:50%;transform:translateY(-50%);cursor:ew-resize; } .crop-handle.e { right:-5px;top:50%;transform:translateY(-50%);cursor:ew-resize; }
+    .crop-settings { display:flex; flex-direction:column; gap:20px; min-width:0; padding:8px 2px; }
+    .crop-setting-label { display:block; margin-bottom:9px; color:var(--text-muted); font-size:.8rem; }
+    .crop-mode-select { width:100%; min-height:40px; padding:9px 11px; border:1px solid var(--border); border-radius:7px; background:var(--bg-workspace); color:var(--text-main); }
+    .crop-adjust-group { display:flex; flex-direction:column; gap:8px; }
+    .crop-adjust-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .crop-adjust-value { min-width:42px; text-align:right; color:var(--text-muted); font-size:.72rem; font-variant-numeric:tabular-nums; }
+    .crop-zoom-slider,.crop-adjust-slider { width:100%; height:22px; margin:10px 0 3px; appearance:none; background:transparent; outline:none; cursor:pointer; }
+    .crop-zoom-slider::-webkit-slider-runnable-track,.crop-adjust-slider::-webkit-slider-runnable-track { height:4px; border-radius:999px; background:linear-gradient(to right,var(--primary) 0 var(--range-progress,50%),#737987 var(--range-progress,50%) 100%); }
+    .crop-zoom-slider::-moz-range-track,.crop-adjust-slider::-moz-range-track { height:4px; border-radius:999px; background:#737987; }
+    .crop-zoom-slider::-moz-range-progress,.crop-adjust-slider::-moz-range-progress { height:4px; border-radius:999px; background:var(--primary); }
+    .crop-zoom-slider::-webkit-slider-thumb,.crop-adjust-slider::-webkit-slider-thumb { appearance:none; width:12px; height:12px; margin-top:-4px; border:0; border-radius:50%; background:var(--primary); }
+    .crop-zoom-slider::-moz-range-thumb,.crop-adjust-slider::-moz-range-thumb { width:12px; height:12px; border:0; border-radius:50%; background:var(--primary); }
+    .crop-mini-reset { width:23px; height:23px; padding:0; display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:5px; background:transparent; color:var(--text-muted); cursor:pointer; }
+    .crop-mini-reset svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+    .crop-mini-reset:hover { background:var(--bg-workspace); color:var(--primary); }
+    .crop-apply-all { display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid var(--border); border-radius:7px; background:var(--bg-workspace); cursor:pointer; min-height:44px; }
+    .crop-apply-all input { accent-color:var(--primary); flex:0 0 auto; width:16px; height:16px; }
+    .crop-apply-all strong { display:block; color:var(--text-main); font-size:.75rem; }
+    .crop-footer { display:flex; justify-content:flex-end; align-items:center; gap:10px; flex-shrink:0; padding-top:2px; }
+    .crop-footer .btn { min-height:40px; padding:8px 13px; }
+    .crop-undo-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+    .crop-undo-btn svg { width:14px; height:14px; flex:0 0 auto; }
+    .crop-reset-btn { width:36px; min-width:36px; height:36px; padding:0!important; font-size:0!important; }
+    .crop-reset-btn svg { width:16px!important; height:16px!important; }
+    @media(max-width:760px) {
+        .crop-box { width:96vw; max-height:96vh; padding:20px; gap:18px; }
+        .crop-content { grid-template-columns:minmax(0,1fr); gap:20px; }
+        .crop-stage-wrap { min-height:300px; padding:18px; }
+        .crop-settings { gap:16px; padding:2px 0; }
+        .crop-footer { gap:8px; flex-wrap:wrap; }
+    }
+    @media(max-width:420px) {
+        .crop-box { padding:16px; gap:16px; }
+        .crop-stage-wrap { min-height:240px; padding:12px; }
+        .crop-content { gap:16px; }
+        .crop-settings { gap:14px; }
+        .crop-footer .btn { padding:7px 10px; }
+    }
+    @media(max-width:360px) { .compact-setting-row { grid-template-columns:68px minmax(0,1fr); column-gap:7px; } .spacing-control-group { gap:5px; } }
+
     /* ---------- PRINT ---------- */
     @media print {
         body { background: #fff; height: auto; overflow: visible; display: block; }
@@ -796,13 +897,15 @@
             border: none !important;
         }
         .paper-page {
-            width: 210mm !important; height: 297mm !important;
-            padding: 3mm !important; margin: 0 !important; box-shadow: none !important;
+            width: var(--paper-width) !important; height: var(--paper-height) !important;
+            padding-top:3mm!important; padding-bottom:3mm!important;
+            padding-left:calc(3mm + var(--gap-h, 0mm))!important; padding-right:calc(3mm + var(--gap-h, 0mm))!important;
+            margin: 0 !important; box-shadow: none !important;
             page-break-after: always;
         }
         .safe-zone-overlay, .paper-label, .empty-state, .modal-overlay, .loading-overlay { display: none !important; }
-        .mug-frame.is-selected { outline: none !important; }
-        @page { size: A4; margin: 0; }
+        .mug-frame.is-selected { outline:none!important; }
+        .mug-frame.is-selected::after { display:none!important; }
     }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -870,7 +973,7 @@
                     <button class="text-btn text-muted" onclick="clearAllLayers()">Clear all</button>
                 </div>
                 <div class="layer-list" id="layerList"></div>
-                <div class="warning-text" id="overflowWarning">Warning: layout exceeds the A4 sheet!</div>
+                <div class="warning-text" id="overflowWarning">Warning: layout exceeds the selected paper size!</div>
             </div>
         </div>
     </div>
@@ -896,7 +999,9 @@
     <!-- ============ RIGHT SIDEBAR : SETTINGS ============ -->
     <div class="right-sidebar">
         <div class="header">
-            <div class="logo-title"><h1>Settings</h1></div>
+            <button type="button" class="btn undo-action-btn" id="undoActionBtn" onclick="undoAction()" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-2"/></svg>Undo
+            </button>
             <button class="btn" onclick="triggerPrint()" style="border-radius: 6px; padding: 6px 12px; font-size: 0.8rem;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 6 2 18 2 18 9"></polyline>
@@ -912,6 +1017,16 @@
             <details open id="acc-safezone">
                 <summary>Printer</summary>
                 <div class="details-content">
+                    <div class="input-group printer-paper-row" style="margin-bottom:10px;">
+                        <label class="static-label" for="paperSizeSelect">Paper Size</label>
+                        <div class="select-wrapper full">
+                            <select id="paperSizeSelect" onchange="setPaperSize(this.value)" aria-label="Paper size">
+                                <option value="a4">A4 — 8.27 × 11.69 in</option>
+                                <option value="letter">Letter — 8.5 × 11 in</option>
+                                <option value="legal">Legal — 8.5 × 13 in</option>
+                            </select>
+                        </div>
+                    </div>
                     <label class="toggle-label">
                         <input type="checkbox" id="safeZoneToggle" checked onchange="toggleSafeZone()">
                         Show Printer Safe Zone
@@ -919,110 +1034,76 @@
                 </div>
             </details>
 
-            <!-- FRAME -->
-            <details open id="acc-frame" style="display: none;">
-                <summary>Frame</summary>
-                <div class="details-content">
-                    <div class="hint-box" id="frameHint">Select a layer on the left to adjust its frame.</div>
-                    
-                    <div id="frameControls" style="display: none;">
-                        <div class="input-group" style="margin-bottom: 16px;">
-                            <div class="static-label">Fit</div>
-                            <div class="segmented-control" style="width: 132px;">
-                                <button id="fitCover" onclick="setFit('cover')">Cover</button>
-                                <button id="fitContain" onclick="setFit('contain')">Contain</button>
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <div class="static-label">Width (in)</div>
-                            <div class="input-wrapper">
-                                <input type="number" id="frameW" class="wide" step="0.01" min="1" max="8.03" value="8" oninput="applyFrameInputs()">
-                            </div>
-                        </div>
-                        <div class="input-group" style="margin-bottom: 0;">
-                            <div class="static-label">Height (in)</div>
-                            <div class="input-wrapper">
-                                <input type="number" id="frameH" class="wide" step="0.01" min="0.5" max="11.5" value="3.74" oninput="applyFrameInputs()">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </details>
-
-            <!-- TRANSFORM -->
-            <details open id="acc-transform" style="display: none;">
-                <summary>Transform</summary>
-                <div class="details-content">
-                    <div id="transformControls" style="display: none;">
-                        <div class="setting-row">
-                            <div class="setting-header">
-                                <span class="setting-label">Zoom</span>
-                                <div class="setting-value-wrapper">
-                                    <input type="number" id="numZoom" step="1" min="10" max="300" value="100" oninput="syncSlider('numZoom','sliderZoom'); applyFrameInputs()">
-                                    <span>%</span>
-                                </div>
-                            </div>
-                            <input type="range" id="sliderZoom" class="setting-slider" step="1" min="10" max="300" value="100" oninput="syncNumber('sliderZoom','numZoom'); applyFrameInputs()">
-                        </div>
-
-                        <div class="setting-row">
-                            <div class="setting-header">
-                                <span class="setting-label">Offset X</span>
-                                <div class="setting-value-wrapper">
-                                    <input type="number" id="numOx" step="1" min="-50" max="50" value="0" oninput="syncSlider('numOx','sliderOx'); applyFrameInputs()">
-                                    <span>%</span>
-                                </div>
-                            </div>
-                            <input type="range" id="sliderOx" class="setting-slider" step="1" min="-50" max="50" value="0" oninput="syncNumber('sliderOx','numOx'); applyFrameInputs()">
-                        </div>
-
-                        <div class="setting-row">
-                            <div class="setting-header">
-                                <span class="setting-label">Offset Y</span>
-                                <div class="setting-value-wrapper">
-                                    <input type="number" id="numOy" step="1" min="-50" max="50" value="0" oninput="syncSlider('numOy','sliderOy'); applyFrameInputs()">
-                                    <span>%</span>
-                                </div>
-                            </div>
-                            <input type="range" id="sliderOy" class="setting-slider" step="1" min="-50" max="50" value="0" oninput="syncNumber('sliderOy','numOy'); applyFrameInputs()">
-                        </div>
-
-                        <button class="btn" style="width: 100%;" onclick="resetFrame()">Reset Frame</button>
-                    </div>
-                </div>
-            </details>
-
-            <!-- LAYOUT -->
+            <!-- SPACING & BORDER -->
             <details open id="acc-layout">
-                <summary>Layout</summary>
+                <summary>Spacing &amp; Border</summary>
                 <div class="details-content">
-                    <div class="setting-row">
-                        <div class="setting-header">
-                            <span class="setting-label">Vertical Gap</span>
-                            <div class="setting-value-wrapper">
-                                <input type="number" id="numGapV" step="0.1" min="0" max="10" value="2.1" oninput="syncSlider('numGapV','sliderGapV'); updateLayoutSettings()">
-                                <span>mm</span>
+                    <div class="alignment-block">
+                        <span class="setting-label">Alignment</span>
+                        <div class="alignment-row">
+                            <div class="alignment-group" role="group" aria-label="Horizontal alignment">
+                                <button id="alignLeftBtn" type="button" onclick="setAlignH('left')" title="Align left" aria-label="Align left"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 2v12M4.5 4.5h8v3h-8zM4.5 8.5H10v3H4.5z" fill="currentColor" stroke="none"/></svg></button>
+                                <button id="alignCenterHBtn" type="button" onclick="setAlignH('center')" title="Align center" aria-label="Align center"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v12"/><path d="M3.5 4.5h9v3h-9zM5 8.5h6v3H5z" fill="currentColor" stroke="none"/></svg></button>
+                                <button id="alignRightBtn" type="button" onclick="setAlignH('right')" title="Align right" aria-label="Align right"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 2v12M3.5 4.5h8v3h-8zM6 8.5h5.5v3H6z" fill="currentColor" stroke="none"/></svg></button>
+                            </div>
+                            <div class="alignment-group" role="group" aria-label="Vertical alignment">
+                                <button id="alignTopBtn" type="button" onclick="setAlignV('top')" title="Align top" aria-label="Align top"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2.5h12"/><path d="M4.5 4.5h3v8h-3zM8.5 4.5h3v5.5h-3z" fill="currentColor" stroke="none"/></svg></button>
+                                <button id="alignCenterVBtn" type="button" onclick="setAlignV('center')" title="Align middle" aria-label="Align middle"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 8h12"/><path d="M4.5 3.5h3v9h-3zM8.5 5h3v6h-3z" fill="currentColor" stroke="none"/></svg></button>
+                                <button id="alignBottomBtn" type="button" onclick="setAlignV('bottom')" title="Align bottom" aria-label="Align bottom"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13.5h12"/><path d="M4.5 3.5h3v8h-3zM8.5 6h3v5.5h-3z" fill="currentColor" stroke="none"/></svg></button>
                             </div>
                         </div>
-                        <input type="range" id="sliderGapV" class="setting-slider" step="0.1" min="0" max="10" value="2.1" oninput="syncNumber('sliderGapV','numGapV'); updateLayoutSettings()">
                     </div>
-
-                    <div class="setting-row">
-                        <div class="setting-header">
-                            <span class="setting-label">Border Width</span>
-                            <div class="setting-value-wrapper">
-                                <input type="number" id="numBorderW" step="0.1" min="0" max="5" value="0.1" oninput="syncSlider('numBorderW','sliderBorderW'); updateLayoutSettings()">
-                                <span>px</span>
-                            </div>
+                    <div class="compact-setting-row">
+                        <span class="setting-label">Spacing</span>
+                        <div class="spacing-control-group">
+                            <div class="icon-number-control" title="Horizontal page inset"><svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4-4"/></svg><div class="setting-value-wrapper"><input type="number" id="numGapH" min="0" max="200" step="1" value="0" oninput="updateLayoutSettings()" aria-label="Horizontal spacing"><span>px</span></div></div>
+                            <div class="icon-number-control" title="Vertical gap between mug frames"><svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/></svg><div class="setting-value-wrapper"><input type="number" id="numGapV" min="0" max="200" step="1" value="8" oninput="updateLayoutSettings()" aria-label="Vertical spacing"><span>px</span></div></div>
                         </div>
-                        <input type="range" id="sliderBorderW" class="setting-slider" step="0.1" min="0" max="5" value="0.1" oninput="syncNumber('sliderBorderW','numBorderW'); updateLayoutSettings()">
                     </div>
-
-                    <div class="setting-header" style="margin-bottom: 0;">
+                    <div class="compact-setting-row">
+                        <span class="setting-label">Border</span>
+                        <div class="spacing-control-group">
+                            <div class="icon-number-control" title="Border width"><svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M4 12h16" stroke-width="3"/></svg><div class="setting-value-wrapper"><input type="number" id="numBorderW" min="0" max="20" step="0.1" value="0.1" oninput="updateLayoutSettings()" aria-label="Border width"><span>px</span></div></div>
+                            <div class="icon-number-control" title="Border corner radius"><svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 18v-8a6 6 0 0 1 6-6h8"/></svg><div class="setting-value-wrapper"><input type="number" id="numBorderR" min="0" max="999" step="1" value="0" oninput="updateLayoutSettings()" aria-label="Border radius"><span>px</span></div></div>
+                        </div>
+                    </div>
+                    <div class="compact-setting-row">
+                        <span class="setting-label">Stroke</span>
+                        <div class="stroke-select-group">
+                            <div class="select-wrapper full"><select id="borderStyleSelect" onchange="setBorderStyle(this.value)" aria-label="Border style"><option value="solid">Line</option><option value="dotted">Dotted</option></select></div>
+                            <div class="select-wrapper full"><select id="borderPositionSelect" onchange="setBorderPosition(this.value)" aria-label="Border position"><option value="inside">Inside</option><option value="outside">Outside</option></select></div>
+                        </div>
+                    </div>
+                    <div class="compact-setting-row">
                         <span class="setting-label">Border Color</span>
-                        <input type="color" id="setBorderC" value="#D1D5DB" oninput="updateLayoutSettings()"
-                            style="width: 36px; height: 28px; padding: 2px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: var(--bg-workspace);">
+                        <div class="border-color-group"><input type="text" id="hexBorderC" value="#D1D5DB" maxlength="7" spellcheck="false" onchange="onBorderHexBlur()" oninput="onBorderHexInput(this.value)" aria-label="Border color hex"><input type="color" id="setBorderC" value="#D1D5DB" oninput="onBorderColorPicker(this.value)" aria-label="Border color picker"></div>
+                    </div>
+                    <div class="compact-reset-row"><button type="button" class="text-btn text-muted" onclick="resetLayoutStyle()">Reset style</button></div>
+                </div>
+            </details>
+
+            <!-- ADJUST LAYOUT -->
+            <details open id="acc-adjust-layout">
+                <summary>Adjust Layout</summary>
+                <div class="details-content">
+                    <div id="frameControls">
+                        <div class="input-group" style="margin-bottom:12px;">
+                            <div class="static-label">Image</div>
+                            <div class="segmented-control" style="width:150px;">
+                                <button id="fitFill" type="button" onclick="setFit('cover')">Fill</button>
+                                <button id="fitFit" type="button" onclick="setFit('contain')">Fit</button>
+                            </div>
+                        </div>
+                        <div class="dimension-row">
+                            <div class="dimension-field">
+                                <label class="dimension-label" for="frameW">Width</label>
+                                <div class="input-wrapper dimension-input"><input type="number" id="frameW" step="0.01" min="1" max="8.5" value="8" oninput="applyFrameInputs()"><span>in</span></div>
+                            </div>
+                            <div class="dimension-field">
+                                <label class="dimension-label" for="frameH">Height</label>
+                                <div class="input-wrapper dimension-input"><input type="number" id="frameH" step="0.01" min="0.5" max="13" value="3.74" oninput="applyFrameInputs()"><span>in</span></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </details>
@@ -1068,6 +1149,34 @@
         </div>
     </div>
 
+    <!-- IMAGE EDIT MODAL -->
+    <div id="cropModal" class="modal-overlay" aria-modal="true" role="dialog" aria-labelledby="cropModalTitle">
+        <div class="crop-box">
+            <div class="crop-head">
+                <div><div class="modal-header" id="cropModalTitle" style="margin-bottom:0;">Edit Image</div><div class="crop-sub" id="cropSubHint">Drag to pan, or choose Free Form to resize the crop area</div></div>
+                <button type="button" class="crop-close-btn" onclick="closeCrop()" title="Close" aria-label="Close editor">✕</button>
+            </div>
+            <div class="crop-content">
+                <div class="crop-stage-wrap"><div class="crop-stage" id="cropStage"><img id="cropImg" alt="Image being edited" draggable="false"><div class="crop-grid-lines"></div><div class="crop-box-rect" id="cropBoxRect"><div class="crop-grid-lines"></div><div class="crop-handle nw" data-handle="nw"></div><div class="crop-handle n" data-handle="n"></div><div class="crop-handle ne" data-handle="ne"></div><div class="crop-handle w" data-handle="w"></div><div class="crop-handle e" data-handle="e"></div><div class="crop-handle sw" data-handle="sw"></div><div class="crop-handle s" data-handle="s"></div><div class="crop-handle se" data-handle="se"></div></div></div></div>
+                <div class="crop-settings">
+                    <div><label class="crop-setting-label" for="cropAspectSelect">Crop mode</label><select id="cropAspectSelect" class="crop-mode-select" onchange="setCropAspect(this.value)"><option value="image">Original Image</option><option value="free">Free Form</option></select></div>
+                    <div id="cropZoomRow" class="crop-adjust-group"><div class="crop-adjust-head"><label class="crop-setting-label" for="cropZoomSlider" style="margin:0">Zoom</label><span class="crop-adjust-value" id="cropZoomValue">1×</span></div><input class="crop-zoom-slider" type="range" id="cropZoomSlider" min="1" max="4" step="0.05" value="1" oninput="onCropZoomInput(this.value)"></div>
+                    <div class="crop-adjust-group"><div class="crop-adjust-head"><label class="crop-setting-label" for="cropBrightness" style="margin:0">Brightness</label><span class="crop-adjust-value" id="cropBrightnessValue">100%</span></div><input class="crop-adjust-slider" type="range" id="cropBrightness" min="0" max="200" value="100" oninput="updateCropAdjustments()"></div>
+                    <div class="crop-adjust-group"><div class="crop-adjust-head"><label class="crop-setting-label" for="cropContrast" style="margin:0">Contrast</label><span class="crop-adjust-value" id="cropContrastValue">100%</span></div><input class="crop-adjust-slider" type="range" id="cropContrast" min="0" max="200" value="100" oninput="updateCropAdjustments()"></div>
+                    <div class="crop-adjust-group"><div class="crop-adjust-head"><label class="crop-setting-label" for="cropHue" style="margin:0">Hue</label><span class="crop-adjust-value" id="cropHueValue">0°</span></div><input class="crop-adjust-slider" type="range" id="cropHue" min="0" max="360" value="0" oninput="updateCropAdjustments()"></div>
+                    <div class="crop-adjust-group"><div class="crop-adjust-head"><label class="crop-setting-label" for="cropSaturation" style="margin:0">Saturation</label><span class="crop-adjust-value" id="cropSaturationValue">100%</span></div><input class="crop-adjust-slider" type="range" id="cropSaturation" min="0" max="200" value="100" oninput="updateCropAdjustments()"></div>
+                    <label class="crop-apply-all"><input type="checkbox" id="cropApplyAll"><strong>Apply to all</strong></label>
+                </div>
+            </div>
+            <div class="crop-footer">
+                <button type="button" class="btn crop-undo-btn" id="cropUndoBtn" onclick="undoCropAction()" title="Undo edit adjustment (Ctrl+Z)" aria-label="Undo edit adjustment" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-2"/></svg>Undo</button>
+                <button type="button" class="btn" onclick="closeCrop()">Cancel</button>
+                <button type="button" class="btn crop-reset-btn" onclick="resetCrop()" title="Reset edits" aria-label="Reset edits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+                <button type="button" class="btn btn-primary" onclick="applyCrop()">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
 <script>
     /* =========================================================
        STATE
@@ -1080,6 +1189,11 @@
         ox: 0,
         oy: 0
     };
+    const PAPER_SIZES = {
+        a4: { label: 'A4', widthMm: 210, heightMm: 297 },
+        letter: { label: 'Letter', widthMm: 215.9, heightMm: 279.4 },
+        legal: { label: 'Legal', widthMm: 215.9, heightMm: 330.2 }
+    };
 
     let layers = [];
     let selectedIds = new Set();
@@ -1089,11 +1203,10 @@
     const MAX_LAYERS_PER_PAGE = 3;
 
     const settings = {
-        gapV: 2.1,
-        borderW: 0.1,
-        borderC: '#D1D5DB',
-        safeZone: true,
-        theme: 'dark'
+        gapH: 0, gapV: 2.1, borderW: 0.1, borderR: 0,
+        borderStyle: 'solid', borderPosition: 'inside', borderC: '#D1D5DB',
+        alignH: 'center', alignV: 'top', safeZone: true, theme: 'dark',
+        paperSize: 'a4', frameW: DEFAULT_FRAME.wIn, frameH: DEFAULT_FRAME.hIn, frameFit: DEFAULT_FRAME.fit
     };
 
     /* =========================================================
@@ -1168,6 +1281,39 @@
         }, 320);
     }
 
+    function getPaperSize() { return PAPER_SIZES[settings.paperSize] || PAPER_SIZES.a4; }
+    function getPageCapacity() {
+        const paper = getPaperSize();
+        const tallestFrame = layers.length
+            ? Math.max(...layers.map(layer => Math.max(0.5, Number(layer.hIn) || settings.frameH || DEFAULT_FRAME.hIn)))
+            : Math.max(0.5, Number(settings.frameH) || DEFAULT_FRAME.hIn);
+        const gapIn = Math.max(0, Number(settings.gapV) || 0) / 25.4;
+        const availableIn = paper.heightMm / 25.4 - (6 / 25.4);
+        const fitCount = Math.floor((availableIn + gapIn) / (tallestFrame + gapIn));
+        return Math.max(1, Math.min(MAX_LAYERS_PER_PAGE, fitCount || 1));
+    }
+    function applyPaperSize() {
+        const paper = getPaperSize();
+        document.documentElement.style.setProperty('--paper-width', paper.widthMm + 'mm');
+        document.documentElement.style.setProperty('--paper-height', paper.heightMm + 'mm');
+        const select = document.getElementById('paperSizeSelect');
+        if (select) select.value = settings.paperSize;
+        let pageRule = document.getElementById('dynamicPaperRule');
+        if (!pageRule) { pageRule = document.createElement('style'); pageRule.id = 'dynamicPaperRule'; document.head.appendChild(pageRule); }
+        pageRule.textContent = `@page { size: ${paper.widthMm}mm ${paper.heightMm}mm; margin: 0; }`;
+    }
+    function setPaperSize(value) {
+        if (!PAPER_SIZES[value] || value === settings.paperSize) return;
+        beginUndoCapture();
+        settings.paperSize = value;
+        applyPaperSize();
+        const pages = getActivePages();
+        currentPageIndex = Math.max(0, Math.min(currentPageIndex, Math.max(0, pages.length - 1)));
+        saveSettings();
+        renderLayerList(); renderCanvas(); fitToViewport();
+        finalizeUndoCapture();
+    }
+
     /* =========================================================
        PERSISTENCE (Settings only)
        ========================================================= */
@@ -1175,19 +1321,36 @@
         try { localStorage.setItem('mug_settings', JSON.stringify(settings)); } catch (e) {}
     }
 
+    const MM_TO_PX = 3.7795275591;
+    function syncLayoutControlsFromSettings() {
+        document.getElementById('numGapH').value = Math.round((settings.gapH || 0) * MM_TO_PX);
+        document.getElementById('numGapV').value = Math.round((settings.gapV || 0) * MM_TO_PX);
+        document.getElementById('numBorderW').value = Number(settings.borderW ?? 0);
+        document.getElementById('numBorderR').value = Number(settings.borderR ?? 0);
+        document.getElementById('borderStyleSelect').value = settings.borderStyle || 'solid';
+        document.getElementById('borderPositionSelect').value = settings.borderPosition || 'inside';
+        document.getElementById('setBorderC').value = settings.borderC || '#D1D5DB';
+        document.getElementById('hexBorderC').value = (settings.borderC || '#D1D5DB').toUpperCase();
+        document.getElementById('safeZoneToggle').checked = Boolean(settings.safeZone);
+        const paperSelect = document.getElementById('paperSizeSelect');
+        if (paperSelect) paperSelect.value = settings.paperSize || 'a4';
+        syncAlignmentControls();
+    }
     function loadSettings() {
-        try {
-            const raw = localStorage.getItem('mug_settings');
-            if (raw) Object.assign(settings, JSON.parse(raw));
-        } catch (e) {}
-
-        document.getElementById('numGapV').value = settings.gapV;
-        document.getElementById('sliderGapV').value = settings.gapV;
-        document.getElementById('numBorderW').value = settings.borderW;
-        document.getElementById('sliderBorderW').value = settings.borderW;
-        document.getElementById('setBorderC').value = settings.borderC;
-        document.getElementById('safeZoneToggle').checked = settings.safeZone;
-
+        try { const raw = localStorage.getItem('mug_settings'); if (raw) Object.assign(settings, JSON.parse(raw)); } catch (e) {}
+        if (!['left','center','right'].includes(settings.alignH)) settings.alignH = 'center';
+        if (!['top','center','bottom'].includes(settings.alignV)) settings.alignV = 'top';
+        if (!['solid','dotted'].includes(settings.borderStyle)) settings.borderStyle = 'solid';
+        if (!['inside','outside'].includes(settings.borderPosition)) settings.borderPosition = 'inside';
+        if (!Number.isFinite(Number(settings.gapH))) settings.gapH = 0;
+        if (!Number.isFinite(Number(settings.gapV))) settings.gapV = 2.1;
+        if (!Number.isFinite(Number(settings.borderR))) settings.borderR = 0;
+        if (!PAPER_SIZES[settings.paperSize]) settings.paperSize = 'a4';
+        if (!Number.isFinite(Number(settings.frameW))) settings.frameW = DEFAULT_FRAME.wIn;
+        if (!Number.isFinite(Number(settings.frameH))) settings.frameH = DEFAULT_FRAME.hIn;
+        if (!['cover','contain'].includes(settings.frameFit)) settings.frameFit = DEFAULT_FRAME.fit;
+        syncLayoutControlsFromSettings();
+        applyPaperSize();
         applyTheme();
         updateLayoutSettings();
         toggleSafeZone();
@@ -1225,6 +1388,56 @@
         if (modalResolve) { modalResolve(isConfirmed); modalResolve = null; }
     }
 
+    /* ============ GLOBAL UNDO HISTORY ============ */
+    const UNDO_HISTORY_LIMIT=40;
+    let undoHistory=[], pendingUndoSnapshot=null, undoCaptureTimer=null, undoPointerActive=false, undoRestoring=false;
+    function captureStateSnapshot(){return {layers:layers.map(l=>({...l})),settings:{...settings},selectedIds:Array.from(selectedIds),lastSelectedId,currentPageIndex};}
+    function stateSignature(v){return JSON.stringify(v);}
+    function updateUndoButton(){const b=document.getElementById('undoActionBtn');if(!b)return;const yes=undoHistory.length>0||!!pendingUndoSnapshot;b.disabled=!yes;b.title=yes?'Undo (Ctrl+Z)':'Nothing to undo';}
+    function recordUndoSnapshot(v){if(!v||undoRestoring)return;undoHistory.push(v);if(undoHistory.length>UNDO_HISTORY_LIMIT)undoHistory.shift();updateUndoButton();}
+    function finalizeUndoCapture(){if(undoCaptureTimer){clearTimeout(undoCaptureTimer);undoCaptureTimer=null;}if(!pendingUndoSnapshot)return;const before=pendingUndoSnapshot;pendingUndoSnapshot=null;undoPointerActive=false;if(stateSignature(before)!==stateSignature(captureStateSnapshot()))recordUndoSnapshot(before);else updateUndoButton();}
+    function beginUndoCapture(delay=240){if(undoRestoring)return;if(!pendingUndoSnapshot)pendingUndoSnapshot=captureStateSnapshot();if(undoCaptureTimer)clearTimeout(undoCaptureTimer);if(!undoPointerActive)undoCaptureTimer=setTimeout(finalizeUndoCapture,delay);updateUndoButton();}
+    function restoreStateSnapshot(v){if(!v)return;undoRestoring=true;try{layers=v.layers.map(l=>({...l}));Object.assign(settings,v.settings||{});selectedIds=new Set(v.selectedIds||[]);lastSelectedId=v.lastSelectedId||null;currentPageIndex=v.currentPageIndex||0;syncLayoutControlsFromSettings();applyPaperSize();applyTheme();document.documentElement.style.setProperty('--gap-h',settings.gapH+'mm');document.documentElement.style.setProperty('--gap-v',settings.gapV+'mm');document.documentElement.style.setProperty('--border-w',settings.borderW+'px');document.documentElement.style.setProperty('--border-r',settings.borderR+'px');document.documentElement.style.setProperty('--border-c',settings.borderC);saveSettings();const active=getActivePages();currentPageIndex=Math.max(0,Math.min(currentPageIndex,Math.max(0,active.length-1)));renderLayerList();renderCanvas();updateFrameControls();fitToViewport();}finally{undoRestoring=false;updateUndoButton();}}
+    function undoAction(){finalizeUndoCapture();const snapshot=undoHistory.pop();if(!snapshot){updateUndoButton();return;}restoreStateSnapshot(snapshot);}
+    function installUndoHistory(){
+        const inEditor=el=>!!el?.closest?.('.sidebar,.right-sidebar');
+        const skip=el=>!!el?.closest?.('#undoActionBtn,#cropModal,#customModal,button[onclick="triggerPrint()"],button[onclick="exportFile()"]');
+        document.addEventListener('pointerdown',e=>{if(!inEditor(e.target)||skip(e.target))return;beginUndoCapture(400);undoPointerActive=true;},true);
+        document.addEventListener('pointerup',()=>{if(undoPointerActive){undoPointerActive=false;beginUndoCapture(220);}},true);
+        document.addEventListener('pointercancel',()=>{if(undoPointerActive){undoPointerActive=false;finalizeUndoCapture();}},true);
+        document.addEventListener('input',e=>{if(!inEditor(e.target)||skip(e.target)||e.target===fileInput)return;beginUndoCapture(500);},true);
+        document.addEventListener('change',e=>{if(!inEditor(e.target)||skip(e.target)||e.target===fileInput)return;beginUndoCapture(250);},true);
+    }
+
+    /* ============ IMAGE EDIT MODAL + TEMPORARY UNDO ============ */
+    let crop=null, cropUndoHistory=[], pendingCropUndoSnapshot=null, cropUndoCaptureTimer=null, cropUndoPointerActive=false;
+    const CROP_UNDO_LIMIT=40;
+    function cloneCrop(v){return v?{...v,box:v.box?{...v.box}:null,drag:null}:null;}
+    function updateCropUndoButton(){const b=document.getElementById('cropUndoBtn');if(b)b.disabled=!(cropUndoHistory.length||pendingCropUndoSnapshot);}
+    function finishCropUndo(){if(cropUndoCaptureTimer){clearTimeout(cropUndoCaptureTimer);cropUndoCaptureTimer=null;}if(!pendingCropUndoSnapshot||!crop)return;const old=pendingCropUndoSnapshot;pendingCropUndoSnapshot=null;cropUndoPointerActive=false;if(JSON.stringify(old)!==JSON.stringify(cloneCrop(crop))){cropUndoHistory.push(old);if(cropUndoHistory.length>CROP_UNDO_LIMIT)cropUndoHistory.shift();}updateCropUndoButton();}
+    function beginCropUndo(delay=350){if(!crop)return;if(!pendingCropUndoSnapshot)pendingCropUndoSnapshot=cloneCrop(crop);if(cropUndoCaptureTimer)clearTimeout(cropUndoCaptureTimer);if(!cropUndoPointerActive)cropUndoCaptureTimer=setTimeout(finishCropUndo,delay);updateCropUndoButton();}
+    function undoCropAction(){finishCropUndo();const v=cropUndoHistory.pop();if(!v||!crop)return;crop=cloneCrop(v);syncCropModal();updateCropUndoButton();}
+    function updateRangeProgress(el){if(!el)return;const min=+el.min||0,max=+el.max||100,val=+el.value||0;el.style.setProperty('--range-progress',`${max>min?(val-min)/(max-min)*100:0}%`);}
+    function updateCropAdjustments(capture=true){if(!crop)return;if(capture)beginCropUndo(450);crop.brightness=+document.getElementById('cropBrightness').value;crop.contrast=+document.getElementById('cropContrast').value;crop.hue=+document.getElementById('cropHue').value;crop.saturation=+document.getElementById('cropSaturation').value;document.getElementById('cropZoomValue').textContent=crop.zoom.toFixed(2)+'×';document.getElementById('cropBrightnessValue').textContent=crop.brightness+'%';document.getElementById('cropContrastValue').textContent=crop.contrast+'%';document.getElementById('cropHueValue').textContent=crop.hue+'°';document.getElementById('cropSaturationValue').textContent=crop.saturation+'%';['cropZoomSlider','cropBrightness','cropContrast','cropHue','cropSaturation'].forEach(id=>updateRangeProgress(document.getElementById(id)));document.getElementById('cropImg').style.filter=`brightness(${crop.brightness}%) contrast(${crop.contrast}%) hue-rotate(${crop.hue}deg) saturate(${crop.saturation}%)`;}
+    function syncCropAspectUI(){if(!crop)return;const free=crop.aspectMode==='free';document.getElementById('cropStage').classList.toggle('free-crop-active',free);document.getElementById('cropZoomRow').style.display=free?'none':'';document.getElementById('cropSubHint').textContent=free?'Drag inside the crop area to move it, or drag an edge or corner to resize':'Drag to pan · Use the zoom slider or scroll over the image to zoom';}
+    function layoutCrop(){if(!crop)return;const img=document.getElementById('cropImg'),boxEl=document.getElementById('cropBoxRect');if(crop.aspectMode==='free'){img.style.width=crop.stageW+'px';img.style.height=crop.stageH+'px';img.style.left='0px';img.style.top='0px';crop.box.w=Math.max(24,Math.min(crop.stageW,crop.box.w));crop.box.h=Math.max(24,Math.min(crop.stageH,crop.box.h));crop.box.x=Math.max(0,Math.min(crop.stageW-crop.box.w,crop.box.x));crop.box.y=Math.max(0,Math.min(crop.stageH-crop.box.h,crop.box.y));boxEl.style.left=crop.box.x+'px';boxEl.style.top=crop.box.y+'px';boxEl.style.width=crop.box.w+'px';boxEl.style.height=crop.box.h+'px';return;}const w=crop.stageW*crop.zoom,h=crop.stageH*crop.zoom,left0=(crop.stageW-w)/2,top0=(crop.stageH-h)/2,left=Math.max(crop.stageW-w,Math.min(0,left0+crop.panX)),top=Math.max(crop.stageH-h,Math.min(0,top0+crop.panY));crop.panX=left-left0;crop.panY=top-top0;img.style.width=w+'px';img.style.height=h+'px';img.style.left=left+'px';img.style.top=top+'px';}
+    function syncCropModal(){if(!crop)return;const stage=document.getElementById('cropStage'),img=document.getElementById('cropImg');stage.style.width=crop.stageW+'px';stage.style.height=crop.stageH+'px';img.src=crop.src;document.getElementById('cropAspectSelect').value=crop.aspectMode;document.getElementById('cropZoomSlider').value=crop.zoom;document.getElementById('cropBrightness').value=crop.brightness;document.getElementById('cropContrast').value=crop.contrast;document.getElementById('cropHue').value=crop.hue;document.getElementById('cropSaturation').value=crop.saturation;syncCropAspectUI();layoutCrop();updateCropAdjustments(false);}
+    function openCropModal(layerId){const layer=layers.find(l=>l.id===layerId);if(!layer)return;const img=new Image();img.onload=()=>{const scale=Math.min(780/img.naturalWidth,560/img.naturalHeight,1),stageW=Math.max(1,Math.round(img.naturalWidth*scale)),stageH=Math.max(1,Math.round(img.naturalHeight*scale));const selection=selectedIds.has(layerId)?layers.filter(l=>selectedIds.has(l.id)).map(l=>l.id):[layerId];crop={layerId,targetIds:selection,src:layer.imgSrc,natW:img.naturalWidth,natH:img.naturalHeight,stageW,stageH,aspectMode:'image',zoom:1,panX:0,panY:0,brightness:100,contrast:100,hue:0,saturation:100,box:{x:stageW*.1,y:stageH*.1,w:stageW*.8,h:stageH*.8},drag:null};cropUndoHistory=[];pendingCropUndoSnapshot=null;document.getElementById('cropApplyAll').checked=false;document.getElementById('cropModalTitle').textContent='Edit Image · '+layer.name;syncCropModal();updateCropUndoButton();document.getElementById('cropModal').classList.add('active');};img.onerror=()=>showAlert('Unable to Edit Image','This image could not be opened in the editor.');img.src=layer.imgSrc;}
+    function setCropAspect(value){if(!crop)return;beginCropUndo();crop.aspectMode=value==='free'?'free':'image';crop.zoom=1;crop.panX=0;crop.panY=0;if(crop.aspectMode==='free')crop.box={x:crop.stageW*.1,y:crop.stageH*.1,w:crop.stageW*.8,h:crop.stageH*.8};syncCropAspectUI();layoutCrop();}
+    function onCropZoomInput(value){if(!crop)return;beginCropUndo(450);crop.zoom=clamp(parseFloat(value)||1,1,4);layoutCrop();updateCropAdjustments(false);}
+    function resetCrop(){if(!crop)return;beginCropUndo();crop.zoom=1;crop.panX=0;crop.panY=0;crop.brightness=100;crop.contrast=100;crop.hue=0;crop.saturation=100;crop.box={x:crop.stageW*.1,y:crop.stageH*.1,w:crop.stageW*.8,h:crop.stageH*.8};['cropZoomSlider','cropBrightness','cropContrast','cropSaturation'].forEach(id=>document.getElementById(id).value=id==='cropZoomSlider'?1:100);document.getElementById('cropHue').value=0;layoutCrop();updateCropAdjustments(false);}
+    function closeCrop(){document.getElementById('cropModal').classList.remove('active');crop=null;cropUndoHistory=[];pendingCropUndoSnapshot=null;if(cropUndoCaptureTimer)clearTimeout(cropUndoCaptureTimer);cropUndoCaptureTimer=null;cropUndoPointerActive=false;updateCropUndoButton();}
+    function getCropFractions(){if(crop.aspectMode==='free')return {x:crop.box.x/crop.stageW,y:crop.box.y/crop.stageH,w:crop.box.w/crop.stageW,h:crop.box.h/crop.stageH};const img=document.getElementById('cropImg'),left=parseFloat(img.style.left)||0,top=parseFloat(img.style.top)||0,w=parseFloat(img.style.width)||crop.stageW,h=parseFloat(img.style.height)||crop.stageH;return {x:(0-left)/w,y:(0-top)/h,w:crop.stageW/w,h:crop.stageH/h};}
+    async function makeEditedImage(src,fractions,filters){const source=new Image();source.src=src;if(source.decode)await source.decode();else await new Promise((res,rej)=>{source.onload=res;source.onerror=rej;});const sx=clamp(fractions.x,0,1)*source.naturalWidth,sy=clamp(fractions.y,0,1)*source.naturalHeight,sw=Math.max(1,Math.min(source.naturalWidth-sx, fractions.w*source.naturalWidth)),sh=Math.max(1,Math.min(source.naturalHeight-sy,fractions.h*source.naturalHeight));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(sw));canvas.height=Math.max(1,Math.round(sh));const ctx=canvas.getContext('2d');ctx.filter=`brightness(${filters.brightness}%) contrast(${filters.contrast}%) hue-rotate(${filters.hue}deg) saturate(${filters.saturation}%)`;ctx.drawImage(source,sx,sy,sw,sh,0,0,canvas.width,canvas.height);return canvas.toDataURL('image/jpeg',.94);}
+    async function applyCrop(){if(!crop)return;finishCropUndo();const fractions=getCropFractions(),filters={brightness:crop.brightness,contrast:crop.contrast,hue:crop.hue,saturation:crop.saturation};const applyAll=document.getElementById('cropApplyAll').checked;let targetIds=applyAll?layers.map(l=>l.id):crop.targetIds.filter(id=>selectedIds.has(id));if(!applyAll&&!targetIds.length)targetIds=[crop.layerId];const targets=layers.filter(l=>targetIds.includes(l.id));if(!targets.length){closeCrop();return;}undoPointerActive=true;beginUndoCapture(250);try{const edited=await Promise.all(targets.map(async layer=>({id:layer.id,src:await makeEditedImage(layer.imgSrc,fractions,filters)})));edited.forEach(item=>{const target=layers.find(l=>l.id===item.id);if(target)target.imgSrc=item.src;});closeCrop();renderLayerList();renderCanvas();undoPointerActive=false;finalizeUndoCapture();}catch(err){undoPointerActive=false;finalizeUndoCapture();console.error(err);showAlert('Edit Failed','One or more images could not be processed. Please try again.');}}
+    const cropStageEl=document.getElementById('cropStage'),cropBoxRectEl=document.getElementById('cropBoxRect');
+    cropStageEl.addEventListener('pointerdown',e=>{if(!crop||e.button!==0)return;beginCropUndo(500);cropUndoPointerActive=true;if(crop.aspectMode==='free'){const handle=e.target.dataset?.handle||null;if(!handle&&!(e.target===cropBoxRectEl||cropBoxRectEl.contains(e.target)))return;crop.drag={mode:handle?'resize':'move',handle,startX:e.clientX,startY:e.clientY,origin:{...crop.box}};}else crop.drag={mode:'pan',startX:e.clientX,startY:e.clientY,origX:crop.panX,origY:crop.panY};cropStageEl.setPointerCapture(e.pointerId);e.preventDefault();});
+    cropStageEl.addEventListener('pointermove',e=>{if(!crop||!crop.drag)return;const dx=e.clientX-crop.drag.startX,dy=e.clientY-crop.drag.startY;if(crop.drag.mode==='move'){crop.box.x=crop.drag.origin.x+dx;crop.box.y=crop.drag.origin.y+dy;layoutCrop();return;}if(crop.drag.mode==='resize'){const o=crop.drag.origin,h=crop.drag.handle;let x1=o.x,y1=o.y,x2=o.x+o.w,y2=o.y+o.h;if(h.includes('w'))x1+=dx;if(h.includes('e'))x2+=dx;if(h.includes('n'))y1+=dy;if(h.includes('s'))y2+=dy;if(x2-x1<24){if(h.includes('w'))x1=x2-24;else x2=x1+24;}if(y2-y1<24){if(h.includes('n'))y1=y2-24;else y2=y1+24;}crop.box={x:x1,y:y1,w:x2-x1,h:y2-y1};layoutCrop();return;}crop.panX=crop.drag.origX+dx;crop.panY=crop.drag.origY+dy;layoutCrop();});
+    function endCropDrag(){if(crop)crop.drag=null;if(cropUndoPointerActive){cropUndoPointerActive=false;beginCropUndo(260);}}
+    cropStageEl.addEventListener('pointerup',endCropDrag);cropStageEl.addEventListener('pointercancel',endCropDrag);
+    cropStageEl.addEventListener('wheel',e=>{if(!crop||crop.aspectMode==='free')return;e.preventDefault();beginCropUndo(300);crop.zoom=clamp(crop.zoom+(e.deltaY<0?.05:-.05),1,4);document.getElementById('cropZoomSlider').value=crop.zoom;layoutCrop();updateCropAdjustments(false);},{passive:false});
+    document.getElementById('cropModal').addEventListener('click',e=>{if(e.target.id==='cropModal')closeCrop();});
+
     /* =========================================================
        THEME
        ========================================================= */
@@ -1249,6 +1462,7 @@
             settings.borderC = '#E5E7EB';
         }
         document.getElementById('setBorderC').value = settings.borderC;
+        document.getElementById('hexBorderC').value = settings.borderC.toUpperCase();
         applyTheme();
         saveSettings();
         updateLayoutSettings();
@@ -1281,16 +1495,36 @@
        LAYOUT SETTINGS
        ========================================================= */
     function updateLayoutSettings() {
-        settings.gapV = Math.max(0, parseFloat(document.getElementById('numGapV').value) || 0);
-        settings.borderW = Math.max(0, parseFloat(document.getElementById('numBorderW').value) || 0);
-        settings.borderC = document.getElementById('setBorderC').value;
-
+        const gapHpx = clamp(parseFloat(document.getElementById('numGapH').value) || 0, 0, 200);
+        const gapVpx = clamp(parseFloat(document.getElementById('numGapV').value) || 0, 0, 200);
+        settings.gapH = gapHpx / MM_TO_PX;
+        settings.gapV = gapVpx / MM_TO_PX;
+        settings.borderW = clamp(parseFloat(document.getElementById('numBorderW').value) || 0, 0, 20);
+        settings.borderR = clamp(parseFloat(document.getElementById('numBorderR').value) || 0, 0, 999);
+        settings.borderC = document.getElementById('setBorderC').value || '#D1D5DB';
+        document.documentElement.style.setProperty('--gap-h', settings.gapH + 'mm');
         document.documentElement.style.setProperty('--gap-v', settings.gapV + 'mm');
         document.documentElement.style.setProperty('--border-w', settings.borderW + 'px');
+        document.documentElement.style.setProperty('--border-r', settings.borderR + 'px');
         document.documentElement.style.setProperty('--border-c', settings.borderC);
-
-        saveSettings();
-        renderCanvas();
+        syncAlignmentControls(); saveSettings(); renderCanvas();
+    }
+    function syncAlignmentControls() {
+        const map = {alignH:{left:'alignLeftBtn',center:'alignCenterHBtn',right:'alignRightBtn'},alignV:{top:'alignTopBtn',center:'alignCenterVBtn',bottom:'alignBottomBtn'}};
+        Object.entries(map).forEach(([key,vals]) => Object.entries(vals).forEach(([val,id]) => document.getElementById(id)?.classList.toggle('active', settings[key] === val)));
+    }
+    function setAlignH(value) { if (!['left','center','right'].includes(value)) return; beginUndoCapture(); settings.alignH=value; syncAlignmentControls(); saveSettings(); renderCanvas(); finalizeUndoCapture(); }
+    function setAlignV(value) { if (!['top','center','bottom'].includes(value)) return; beginUndoCapture(); settings.alignV=value; syncAlignmentControls(); saveSettings(); renderCanvas(); finalizeUndoCapture(); }
+    function setBorderStyle(value) { settings.borderStyle=value === 'dotted' ? 'dotted' : 'solid'; saveSettings(); renderCanvas(); }
+    function setBorderPosition(value) { settings.borderPosition=value === 'outside' ? 'outside' : 'inside'; saveSettings(); renderCanvas(); }
+    function onBorderHexInput(value) {
+        if (/^#[0-9a-fA-F]{6}$/.test(String(value || '').trim())) { document.getElementById('setBorderC').value=value; settings.borderC=value; saveSettings(); renderCanvas(); }
+    }
+    function onBorderHexBlur() { const el=document.getElementById('hexBorderC'); if (!/^#[0-9a-fA-F]{6}$/.test(el.value.trim())) el.value=settings.borderC.toUpperCase(); }
+    function onBorderColorPicker(value) { settings.borderC=value; document.getElementById('hexBorderC').value=value.toUpperCase(); saveSettings(); renderCanvas(); }
+    function resetLayoutStyle() {
+        beginUndoCapture(); Object.assign(settings,{gapH:0,gapV:2.1,borderW:0.1,borderR:0,borderStyle:'solid',borderPosition:'inside',borderC:settings.theme==='dark'?'#D1D5DB':'#E5E7EB',alignH:'center',alignV:'top'});
+        syncLayoutControlsFromSettings(); saveSettings(); renderCanvas(); finalizeUndoCapture();
     }
 
     function toggleSafeZone() {
@@ -1367,6 +1601,7 @@
     function handleFiles(files) {
         const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
         if (valid.length === 0) return;
+        undoPointerActive=true; beginUndoCapture(1500);
 
         showLoading(`Uploading ${valid.length} image${valid.length > 1 ? 's' : ''}...`);
 
@@ -1382,9 +1617,9 @@
                         name: cleanName,
                         imgSrc: compressedSrc,
                         visible: true,
-                        wIn: DEFAULT_FRAME.wIn,
-                        hIn: DEFAULT_FRAME.hIn,
-                        fit: DEFAULT_FRAME.fit,
+                        wIn: settings.frameW,
+                        hIn: settings.frameH,
+                        fit: settings.frameFit,
                         zoom: DEFAULT_FRAME.zoom,
                         ox: DEFAULT_FRAME.ox,
                         oy: DEFAULT_FRAME.oy
@@ -1396,7 +1631,7 @@
 
                     if (--remaining === 0) {
                         const totalVisible = layers.filter(l => l.visible).length;
-                        currentPageIndex = Math.ceil(totalVisible / MAX_LAYERS_PER_PAGE) - 1;
+                        currentPageIndex = Math.ceil(totalVisible / getPageCapacity()) - 1;
                         if (currentPageIndex < 0) currentPageIndex = 0;
 
                         renderLayerList();
@@ -1404,6 +1639,7 @@
                         updateFrameControls();
                         fitToViewport();
                         hideLoading();
+                        undoPointerActive=false; finalizeUndoCapture();
                     }
                 });
             };
@@ -1413,6 +1649,7 @@
                     renderCanvas();
                     fitToViewport();
                     hideLoading();
+                    undoPointerActive=false; finalizeUndoCapture();
                 }
             };
             reader.readAsDataURL(file);
@@ -1440,11 +1677,11 @@
         let currentVisualPage = 0;
 
         layers.forEach((layer, index) => {
-            const pageNum = Math.floor(index / MAX_LAYERS_PER_PAGE) + 1;
+            const pageNum = Math.floor(index / getPageCapacity()) + 1;
             if (pageNum !== currentVisualPage) {
                 currentVisualPage = pageNum;
                 
-                const pageLayers = layers.slice((pageNum - 1) * MAX_LAYERS_PER_PAGE, pageNum * MAX_LAYERS_PER_PAGE);
+                const pageLayers = layers.slice((pageNum - 1) * getPageCapacity(), pageNum * getPageCapacity());
                 const allHidden = pageLayers.every(l => !l.visible);
 
                 const pageHeader = document.createElement('div');
@@ -1508,6 +1745,11 @@
             timg.src = layer.imgSrc;
             timg.draggable = false;
             thumb.appendChild(timg);
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button'; editBtn.className = 'layer-edit-overlay'; editBtn.title = 'Edit image'; editBtn.setAttribute('aria-label', `Edit ${layer.name}`);
+            editBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';
+            editBtn.addEventListener('click', e => { e.stopPropagation(); openCropModal(layer.id); });
+            thumb.appendChild(editBtn);
 
             const name = document.createElement('div');
             name.className = 'layer-name';
@@ -1581,8 +1823,8 @@
 
     function getActivePages() {
         const activePages = [];
-        for (let i = 0; i < layers.length; i += MAX_LAYERS_PER_PAGE) {
-            const chunk = layers.slice(i, i + MAX_LAYERS_PER_PAGE);
+        for (let i = 0; i < layers.length; i += getPageCapacity()) {
+            const chunk = layers.slice(i, i + getPageCapacity());
             if (chunk.some(l => l.visible)) {
                 activePages.push(chunk);
             }
@@ -1627,10 +1869,10 @@
             let activePageIdx = -1;
             let currentChunkIdx = 0;
             
-            for (let i = 0; i < layers.length; i += MAX_LAYERS_PER_PAGE) {
-                const chunk = layers.slice(i, i + MAX_LAYERS_PER_PAGE);
+            for (let i = 0; i < layers.length; i += getPageCapacity()) {
+                const chunk = layers.slice(i, i + getPageCapacity());
                 if (chunk.some(l => l.visible)) {
-                    if (i <= index && index < i + MAX_LAYERS_PER_PAGE) {
+                    if (i <= index && index < i + getPageCapacity()) {
                         activePageIdx = currentChunkIdx;
                         break;
                     }
@@ -1651,6 +1893,7 @@
     }
 
     function deleteLayer(id) {
+        beginUndoCapture();
         layers = layers.filter(l => l.id !== id);
         selectedIds.delete(id);
         
@@ -1664,8 +1907,9 @@
     }
 
     function deletePage(pageNum) {
-        const startIdx = (pageNum - 1) * MAX_LAYERS_PER_PAGE;
-        layers.splice(startIdx, MAX_LAYERS_PER_PAGE);
+        beginUndoCapture();
+        const startIdx = (pageNum - 1) * getPageCapacity();
+        layers.splice(startIdx, getPageCapacity());
         
         const activePages = getActivePages();
         if (currentPageIndex >= activePages.length) currentPageIndex = Math.max(0, activePages.length - 1);
@@ -1680,6 +1924,7 @@
         if (layers.length === 0) return;
         const ok = await showConfirm('Clear Layers', 'Remove all layers from the canvas? This cannot be undone.');
         if (!ok) return;
+        beginUndoCapture();
         layers = [];
         selectedIds.clear();
         lastSelectedId = null;
@@ -1688,6 +1933,7 @@
         renderCanvas();
         updateFrameControls();
         fitToViewport();
+        finalizeUndoCapture();
     }
 
     function getNextCopyName(originalName) {
@@ -1712,6 +1958,7 @@
 
     function duplicateSelected() {
         if (selectedIds.size === 0) return;
+        beginUndoCapture();
         
         const duplicates = [];
         const newIds = [];
@@ -1732,13 +1979,14 @@
         newIds.forEach(id => selectedIds.add(id));
         lastSelectedId = newIds[0] || null;
 
-        currentPageIndex = Math.ceil(layers.length / MAX_LAYERS_PER_PAGE) - 1;
+        currentPageIndex = Math.ceil(layers.length / getPageCapacity()) - 1;
         if (currentPageIndex < 0) currentPageIndex = 0;
         
         renderLayerList();
         renderCanvas();
         updateFrameControls();
         fitToViewport();
+        finalizeUndoCapture();
     }
 
     function getSelectedImageLayers() {
@@ -1817,41 +2065,12 @@
 
     function updateFrameControls() {
         const selected = getSelectedImageLayers();
-        const frameSection = document.getElementById('acc-frame');
-        const transformSection = document.getElementById('acc-transform');
-
-        if (selected.length === 0 || layers.length === 0) {
-            frameSection.style.display = 'none';
-            transformSection.style.display = 'none';
-            return;
-        }
-
-        frameSection.style.display = 'block';
-        transformSection.style.display = 'block';
-
-        const hint = document.getElementById('frameHint');
-        const controls = document.getElementById('frameControls');
-        const transformControls = document.getElementById('transformControls');
-
-        hint.style.display = 'none';
-        controls.style.display = 'block';
-        transformControls.style.display = 'block';
-
-        const l = selected[0];
-        document.getElementById('frameW').value = round2(l.wIn);
-        document.getElementById('frameH').value = round2(l.hIn);
-
-        const zoomPct = Math.round(l.zoom * 100);
-        document.getElementById('numZoom').value = zoomPct;
-        document.getElementById('sliderZoom').value = zoomPct;
-
-        document.getElementById('numOx').value = Math.round(l.ox);
-        document.getElementById('sliderOx').value = Math.round(l.ox);
-        document.getElementById('numOy').value = Math.round(l.oy);
-        document.getElementById('sliderOy').value = Math.round(l.oy);
-
-        document.getElementById('fitCover').classList.toggle('active', l.fit === 'cover');
-        document.getElementById('fitContain').classList.toggle('active', l.fit === 'contain');
+        const layer = selected[0] || null;
+        document.getElementById('frameW').value = round2(layer ? layer.wIn : settings.frameW);
+        document.getElementById('frameH').value = round2(layer ? layer.hIn : settings.frameH);
+        const fit = layer ? layer.fit : settings.frameFit;
+        document.getElementById('fitFill').classList.toggle('active', fit === 'cover');
+        document.getElementById('fitFit').classList.toggle('active', fit === 'contain');
     }
 
     function updateSelectedFramesDOM() {
@@ -1872,47 +2091,38 @@
 
     function applyFrameInputs() {
         const selected = getSelectedImageLayers();
-        if (selected.length === 0) return;
-
         const w = parseFloat(document.getElementById('frameW').value);
         const h = parseFloat(document.getElementById('frameH').value);
-        const z = parseFloat(document.getElementById('numZoom').value);
-        const ox = parseFloat(document.getElementById('numOx').value);
-        const oy = parseFloat(document.getElementById('numOy').value);
-
-        selected.forEach(layer => {
-            if (!isNaN(w)) layer.wIn = clamp(w, 1, 8.03);
-            if (!isNaN(h)) layer.hIn = clamp(h, 0.5, 11.5);
-            if (!isNaN(z)) layer.zoom = clamp(z, 10, 300) / 100;
-            if (!isNaN(ox)) layer.ox = clamp(ox, -50, 50);
-            if (!isNaN(oy)) layer.oy = clamp(oy, -50, 50);
-        });
-
-        updateSelectedFramesDOM();
+        beginUndoCapture(500);
+        if (selected.length) {
+            selected.forEach(layer => {
+                if (!Number.isNaN(w)) layer.wIn = clamp(w, 1, 8.5);
+                if (!Number.isNaN(h)) layer.hIn = clamp(h, .5, 13);
+            });
+            updateSelectedFramesDOM();
+        } else {
+            if (!Number.isNaN(w)) settings.frameW = clamp(w, 1, 8.5);
+            if (!Number.isNaN(h)) settings.frameH = clamp(h, .5, 13);
+            saveSettings();
+        }
     }
-
     function setFit(mode) {
         const selected = getSelectedImageLayers();
-        selected.forEach(layer => layer.fit = mode);
-        document.getElementById('fitCover').classList.toggle('active', mode === 'cover');
-        document.getElementById('fitContain').classList.toggle('active', mode === 'contain');
-        updateSelectedFramesDOM();
+        const fit = mode === 'contain' ? 'contain' : 'cover';
+        beginUndoCapture();
+        if (selected.length) selected.forEach(layer => layer.fit = fit);
+        else settings.frameFit = fit;
+        saveSettings(); updateFrameControls(); updateSelectedFramesDOM(); finalizeUndoCapture();
     }
-
     function resetFrame() {
         const selected = getSelectedImageLayers();
-        selected.forEach(layer => {
-            Object.assign(layer, {
-                wIn: DEFAULT_FRAME.wIn,
-                hIn: DEFAULT_FRAME.hIn,
-                fit: DEFAULT_FRAME.fit,
-                zoom: DEFAULT_FRAME.zoom,
-                ox: DEFAULT_FRAME.ox,
-                oy: DEFAULT_FRAME.oy
-            });
-        });
-        updateFrameControls();
-        updateSelectedFramesDOM();
+        beginUndoCapture();
+        if (selected.length) {
+            selected.forEach(layer => Object.assign(layer,{wIn:DEFAULT_FRAME.wIn,hIn:DEFAULT_FRAME.hIn,fit:DEFAULT_FRAME.fit,zoom:DEFAULT_FRAME.zoom,ox:DEFAULT_FRAME.ox,oy:DEFAULT_FRAME.oy}));
+        } else {
+            settings.frameW = DEFAULT_FRAME.wIn; settings.frameH = DEFAULT_FRAME.hIn; settings.frameFit = DEFAULT_FRAME.fit; saveSettings();
+        }
+        updateFrameControls(); updateSelectedFramesDOM(); finalizeUndoCapture();
     }
 
     /* =========================================================
@@ -1941,11 +2151,15 @@
         const createPage = (pageLayers = [], isEmptyState = false) => {
             const page = document.createElement('div');
             page.className = 'paper-page';
+            page.style.paddingLeft = `calc(3mm + ${settings.gapH}mm)`;
+            page.style.paddingRight = `calc(3mm + ${settings.gapH}mm)`;
+            page.style.alignItems = settings.alignH === 'left' ? 'flex-start' : (settings.alignH === 'right' ? 'flex-end' : 'center');
+            page.style.justifyContent = settings.alignV === 'center' ? 'center' : (settings.alignV === 'bottom' ? 'flex-end' : 'flex-start');
             if (settings.safeZone) page.classList.add('safe-zone-active');
             
             const label = document.createElement('div');
             label.className = 'paper-label';
-            label.innerText = `A4 - Page ${currentPageIndex + 1}`;
+            label.innerText = `${getPaperSize().label} - Page ${currentPageIndex + 1}`;
             page.appendChild(label);
 
             const safeZone = document.createElement('div');
@@ -1967,6 +2181,7 @@
                 const stack = document.createElement('div');
                 stack.className = 'mug-stack';
                 stack.style.gap = settings.gapV + 'mm';
+                stack.style.alignItems = settings.alignH === 'left' ? 'flex-start' : (settings.alignH === 'right' ? 'flex-end' : 'center');
 
                 pageLayers.forEach(layer => {
                     if (layer.visible) {
@@ -2001,6 +2216,9 @@
         el.className = 'mug-frame' + (selectedIds.has(layer.id) ? ' is-selected' : '');
         el.style.width = layer.wIn + 'in';
         el.style.height = layer.hIn + 'in';
+        el.style.borderRadius = settings.borderR + 'px';
+        if (settings.borderPosition === 'outside' && settings.borderW > 0) { el.style.border='0'; el.style.outline=`${settings.borderW}px ${settings.borderStyle} ${settings.borderC}`; }
+        else { el.style.border=`${settings.borderW}px ${settings.borderStyle} ${settings.borderC}`; el.style.outline='none'; }
         el.dataset.id = layer.id;
 
         el.addEventListener('click', (e) => {
@@ -2037,8 +2255,9 @@
         const availW = workspace.clientWidth - 80; 
         const availH = workspace.clientHeight - 120; 
 
-        const paperW_px = 210 * 3.7795;
-        const paperH_px = 297 * 3.7795;
+        const paper = getPaperSize();
+        const paperW_px = paper.widthMm * 3.7795;
+        const paperH_px = paper.heightMm * 3.7795;
 
         const scaleW = availW / paperW_px;
         const scaleH = availH / paperH_px;
@@ -2058,6 +2277,7 @@
             showAlert('Empty Canvas', 'Please add at least one layer before printing.');
             return;
         }
+        applyPaperSize();
         showLoading('Preparing print...');
         await new Promise(r => setTimeout(r, 80));
         window.print();
@@ -2099,7 +2319,8 @@
 
             if (format === 'pdf') {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
+                const paper = getPaperSize();
+                const pdf = new jsPDF('p', 'mm', [paper.widthMm, paper.heightMm]);
 
                 const exportContainer = document.createElement('div');
                 exportContainer.style.position = 'absolute';
@@ -2115,12 +2336,19 @@
                     
                     const pageEl = document.createElement('div');
                     pageEl.className = 'paper-page';
+                    pageEl.style.width = paper.widthMm + 'mm';
+                    pageEl.style.height = paper.heightMm + 'mm';
                     pageEl.style.boxShadow = 'none';
                     pageEl.style.margin = '0';
+                    pageEl.style.paddingLeft = `calc(3mm + ${settings.gapH}mm)`;
+                    pageEl.style.paddingRight = `calc(3mm + ${settings.gapH}mm)`;
+                    pageEl.style.alignItems = settings.alignH === 'left' ? 'flex-start' : (settings.alignH === 'right' ? 'flex-end' : 'center');
+                    pageEl.style.justifyContent = settings.alignV === 'center' ? 'center' : (settings.alignV === 'bottom' ? 'flex-end' : 'flex-start');
                     
                     const stack = document.createElement('div');
                     stack.className = 'mug-stack';
                     stack.style.gap = settings.gapV + 'mm';
+                    stack.style.alignItems = settings.alignH === 'left' ? 'flex-start' : (settings.alignH === 'right' ? 'flex-end' : 'center');
 
                     pageLayers.forEach(layer => {
                         if (layer.visible) {
@@ -2144,7 +2372,7 @@
                     const imgData = canvas.toDataURL('image/jpeg', 1.0);
                     
                     if (i > 0) pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, paper.widthMm, paper.heightMm);
                 }
 
                 document.body.removeChild(exportContainer);
@@ -2217,33 +2445,21 @@
        KEYBOARD SHORTCUTS
        ========================================================= */
     document.addEventListener('keydown', (e) => {
-        const tag = (e.target.tagName || '').toLowerCase();
-        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
-
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
-            e.preventDefault();
-            selectedIds.clear();
-            layers.forEach(l => selectedIds.add(l.id));
-            lastSelectedId = layers.length > 0 ? layers[0].id : null;
-            renderLayerList();
-            renderCanvas();
-            updateFrameControls();
-            return;
+        const tag=(e.target.tagName||'').toLowerCase();
+        const typing=e.target.isContentEditable||tag==='textarea'||tag==='input'||tag==='select';
+        const mod=e.ctrlKey||e.metaKey;
+        const cropOpen=document.getElementById('cropModal').classList.contains('active');
+        if(mod&&!e.altKey&&e.key.toLowerCase()==='s'){e.preventDefault();e.stopPropagation();exportFile();return;}
+        if(mod&&!e.altKey&&e.key.toLowerCase()==='z'&&(cropOpen||!typing)){e.preventDefault();e.stopPropagation();if(cropOpen)undoCropAction();else undoAction();return;}
+        if(cropOpen){if(e.key==='Escape'){e.preventDefault();closeCrop();}return;}
+        if(typing||tag==='select')return;
+        if(!mod&&!e.altKey&&e.key.toLowerCase()==='e'){
+            const selected=getSelectedImageLayers();const id=selectedIds.has(lastSelectedId)?lastSelectedId:(selected[0]?.id);
+            if(id){e.preventDefault();openCropModal(id);}return;
         }
-
-        if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'd' || e.key.toLowerCase() === 'j')) {
-            e.preventDefault();
-            duplicateSelected();
-            return;
-        }
-
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            e.preventDefault();
-            if (selectedIds.size > 0) {
-                const selArr = Array.from(selectedIds);
-                selArr.forEach(id => deleteLayer(id));
-            }
-        }
+        if(mod&&e.key.toLowerCase()==='a'){e.preventDefault();beginUndoCapture();selectedIds.clear();layers.forEach(l=>selectedIds.add(l.id));lastSelectedId=layers[0]?.id||null;renderLayerList();renderCanvas();updateFrameControls();finalizeUndoCapture();return;}
+        if(mod&&(e.key.toLowerCase()==='d'||e.key.toLowerCase()==='j')){e.preventDefault();duplicateSelected();return;}
+        if(e.key==='Delete'||e.key==='Backspace'){if(selectedIds.size){e.preventDefault();beginUndoCapture();Array.from(selectedIds).forEach(deleteLayer);finalizeUndoCapture();}}
     });
 
     /* =========================================================
@@ -2253,6 +2469,8 @@
     initAccordions();
     renderLayerList();
     updateFrameControls();
+    installUndoHistory();
+    updateUndoButton();
 
     // start the loading bar animation
     paintProgress(0);
