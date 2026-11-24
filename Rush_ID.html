@@ -245,25 +245,25 @@
         }
         .thumb-container .remove-btn:hover { background: var(--danger); }
 
-        .stats-panel { display: flex; flex-direction: column; gap: 8px; margin-top: 0; }
+        .stats-panel { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:0; }
+        .stats-panel .stat-item-package { grid-column:1 / -1; }
         .stat-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 6px 10px; background: var(--bg-workspace);
-            border: 1px solid var(--border); border-radius: 4px;
-            transition: border-color 0.2s;
+            display:flex; align-items:center; justify-content:space-between; gap:6px; min-width:0;
+            padding:6px 7px; background:var(--bg-workspace);
+            border:1px solid var(--border); border-radius:5px;
+            transition:border-color .2s;
         }
-        .stat-item:focus-within { border-color: var(--brand-blue); }
-        
+        .stat-item:focus-within { border-color:var(--brand-blue); }
         .stat-input {
-            width: 65px; height: 28px; text-align: right; padding-right: 8px;
-            background: var(--input-bg); border: 1px solid var(--border); border-radius: 4px;
-            color: var(--primary); font-size: 0.9rem; font-weight: 700;
-            outline: none; cursor: text; transition: all 0.2s;
+            width:42px; min-width:0; flex:0 0 42px; height:27px;
+            text-align:center; padding:2px 3px;
+            background:var(--input-bg); border:1px solid var(--border); border-radius:4px;
+            color:var(--primary); font-size:.76rem; font-weight:700;
+            outline:none; cursor:text; transition:all .2s;
         }
-        .stat-input:focus { box-shadow: 0 0 0 1px var(--brand-blue); }
-        [data-theme="dark"] .stat-input { color: #60A5FA; }
-        
-        .stat-label { font-size: 0.75rem; color: var(--text-main); text-transform: uppercase; font-weight: 600; }
+        .stat-input:focus { box-shadow:0 0 0 1px var(--brand-blue); }
+        [data-theme="dark"] .stat-input { color:#60A5FA; }
+        .stat-label { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.68rem; color:var(--text-main); text-transform:uppercase; font-weight:600; }
         [data-theme="dark"] .stat-label { color: #E5E5E5; }
 
         .stats-footer {
@@ -309,11 +309,6 @@
         .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
         .undo-btn { min-height: 30px; padding: 6px 10px; gap: 6px; white-space: nowrap; border-radius: 6px; }
         .undo-btn svg { width: 14px; height: 14px; }
-        .undo-btn kbd {
-            font-family: inherit; font-size: 0.62rem; line-height: 1; font-weight: 600; color: var(--text-muted);
-            background: var(--bg-workspace); border: 1px solid var(--border);
-            border-radius: 3px; padding: 2px 4px;
-        }
         .undo-btn:disabled { opacity: .42; cursor: not-allowed; }
         .undo-btn:not(:disabled):hover { border-color: var(--brand-blue); color: var(--brand-blue); }
 
@@ -412,6 +407,24 @@
             background: var(--bg-workspace); color: var(--text-main); text-align: center; font-weight: 600; outline: none; font-size: 0.8rem;
         }
         .setting-value-wrapper span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; width: 16px; }
+
+        /* Compact preset, printer and row-count controls */
+        .layout-preset-control { display:flex; flex-direction:column; gap:7px; padding-bottom:2px; }
+        .layout-preset-control .section-title { display:block; margin:0; }
+        .layout-preset-control .select-wrapper,
+        .printer-settings .select-wrapper { width:100%; min-width:0; }
+        .layout-preset-control select,
+        .printer-settings select { min-height:35px; padding:7px 26px 7px 9px; }
+        .layout-preset-select-wrap select { font-size:.75rem; font-weight:600; }
+        .layout-preset-select-wrap select { color:var(--text-muted); }
+        .layout-preset-select-wrap select optgroup { font-weight:700; color:var(--text-muted); }
+        .layout-preset-select-wrap select option { color:var(--text-main); background:var(--bg-panel); font-weight:500; }
+        .printer-settings { display:flex; flex-direction:column; gap:12px; }
+        .printer-paper-select { display:flex; flex-direction:column; gap:6px; }
+        .items-per-row-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+        .items-per-row-item { display:flex; align-items:center; justify-content:space-between; gap:6px; min-width:0; padding:6px 7px; border:1px solid var(--border); border-radius:5px; background:var(--bg-workspace); color:var(--text-muted); font-size:.7rem; font-weight:600; }
+        .items-per-row-item input { width:42px; min-width:0; height:27px; padding:2px 3px; border:1px solid var(--border); border-radius:4px; background:var(--input-bg); color:var(--text-main); text-align:center; font-size:.76rem; font-weight:700; outline:none; }
+        .items-per-row-item input:focus { border-color:var(--brand-blue); }
 
         /* Compact Spacing & Border controls */
         .spacing-border-panel { display: flex; flex-direction: column; gap: 16px; }
@@ -1111,7 +1124,6 @@
             .typo-color-row { gap:6px; }
         }
         .crop-undo-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:7px 9px !important; font-size:.75rem; }
-        .crop-undo-btn kbd { font:inherit; font-size:.62rem; color:var(--text-muted); border:1px solid var(--border); border-radius:3px; padding:1px 4px; background:var(--bg-workspace); }
         .crop-undo-btn:disabled { opacity:.45; cursor:not-allowed; }
         @media (max-width:980px) { .crop-settings-left { grid-column:1; grid-row:2; } }
 
@@ -1173,18 +1185,27 @@
                 </div>
             </div>
 
-            <details open id="acc-presets">
-                <summary>Layout Presets</summary>
-                <div class="details-content">
-                    <div class="grid-2">
-                        <button class="btn" onclick="applyPreset('Max2x2')">Max 2x2</button>
-                        <button class="btn" onclick="applyPreset('Max1x1')">Max 1x1</button>
-                        <button class="btn" onclick="applyPreset('MaxPassport')">Max Passport</button>
-                        <button class="btn" onclick="applyPreset('MaxAsa')">Max ASA</button>
-                        <button class="btn" onclick="applyPreset('MixAll')">All Sets</button>
-                    </div>
+            <div class="layout-preset-control" id="layoutPresetControl">
+                <label class="section-title" for="layoutPresetSelect">Layout Presets</label>
+                <div class="select-wrapper full layout-preset-select-wrap">
+                    <select id="layoutPresetSelect" onchange="handleLayoutPresetSelect(this)" aria-label="Choose a layout or photo size preset">
+                        <option value="">Choose a preset…</option>
+                        <optgroup label="Maximum Layout">
+                            <option value="layout:Max2x2">Fill Sheet · 2×2 Photos</option>
+                            <option value="layout:Max1x1">Fill Sheet · 1×1 Photos</option>
+                            <option value="layout:MaxPassport">Fill Sheet · Passport / Visa</option>
+                            <option value="layout:MaxAsa">Fill Sheet · ASA</option>
+                            <option value="layout:MixAll">Mixed Sets</option>
+                        </optgroup>
+                        <optgroup label="Passport & Visa">
+                            <option value="photo:35x45">35 × 45 mm — Passport</option>
+                            <option value="photo:51x51">51 × 51 mm — US</option>
+                            <option value="photo:50x70">50 × 70 mm — CA (Passport)</option>
+                            <option value="photo:33x48">33 × 48 mm — CN (Visa)</option>
+                        </optgroup>
+                    </select>
                 </div>
-            </details>
+            </div>
 
             <details open id="acc-idsizes">
                 <summary>ID Sizes</summary>
@@ -1235,29 +1256,23 @@
             <details open id="itemsPerRowGroup">
                 <summary>Items per Row</summary>
                 <div class="details-content">
-                    <div class="input-group">
-                        <div class="static-label">2x2 Size</div>
-                        <div class="input-wrapper">
+                    <div class="items-per-row-grid">
+                        <label class="items-per-row-item" for="col2x2">
+                            <span>2×2</span>
                             <input type="number" id="col2x2" min="1" max="4" value="4" onchange="changeCols('2x2', this.value)">
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <div class="static-label">1x1 Size</div>
-                        <div class="input-wrapper">
+                        </label>
+                        <label class="items-per-row-item" for="col1x1">
+                            <span>1×1</span>
                             <input type="number" id="col1x1" min="1" max="8" value="6" onchange="changeCols('1x1', this.value)">
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <div class="static-label">Passport</div>
-                        <div class="input-wrapper">
+                        </label>
+                        <label class="items-per-row-item" for="colPassport">
+                            <span>Passport</span>
                             <input type="number" id="colPassport" min="1" max="5" value="5" onchange="changeCols('passport', this.value)">
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <div class="static-label">ASA</div>
-                        <div class="input-wrapper">
+                        </label>
+                        <label class="items-per-row-item" for="colAsa">
+                            <span>ASA</span>
                             <input type="number" id="colAsa" min="1" max="2" value="2" onchange="changeCols('asa', this.value)">
-                        </div>
+                        </label>
                     </div>
                 </div>
             </details>
@@ -1284,9 +1299,9 @@
     <div class="right-sidebar">
         <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
             <div class="logo-title">
-                <button class="btn undo-btn" id="undoBtn" type="button" onclick="undoLastAction()" title="Undo last change (Ctrl+Z)" aria-label="Undo" disabled>
+                <button class="btn undo-btn" id="undoBtn" type="button" onclick="undoLastAction()" title="Undo last change" aria-label="Undo" disabled>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-15.6-6L3 13"></path></svg>
-                    Undo <kbd>Ctrl Z</kbd>
+                    Undo
                 </button>
             </div>
             <button class="btn" onclick="triggerPrint()" style="border-radius: 6px; padding: 6px 12px; font-size: 0.8rem;" title="Print">
@@ -1297,11 +1312,16 @@
         
         <div class="sidebar-content">
             <details open id="acc-papersize">
-                <summary>Paper Size & Safe Zone</summary>
-                <div class="details-content">
-                    <div class="segmented-control" id="paperSelector" style="margin-bottom: 12px;">
-                        <button onclick="setPaperSize('A4')" class="active" data-paper="A4">A4</button>
-                        <button onclick="setPaperSize('5R')" data-paper="5R">5R</button>
+                <summary>Printer</summary>
+                <div class="details-content printer-settings">
+                    <div class="printer-paper-select">
+                        <label class="setting-label" for="paperSizeSelect">Paper Size</label>
+                        <div class="select-wrapper full">
+                            <select id="paperSizeSelect" onchange="setPaperSize(this.value)" aria-label="Paper size">
+                                <option value="A4" selected>A4 · 8.27 × 11.69 in</option>
+                                <option value="5R">5R · 5 × 7 in</option>
+                            </select>
+                        </div>
                     </div>
                     <label class="toggle-label">
                         <input type="checkbox" id="safeZoneToggle" checked onchange="toggleSafeZone()">
@@ -1439,51 +1459,51 @@
                     </div>
                 </div>
                 <div style="display:flex;justify-content:flex-end;margin-top:4px;">
-                    <button type="button" class="text-btn" onclick="resetSpacingBorderSettings()" title="Reset spacing, alignment, and border settings">Reset settings</button>
+                    <button type="button" class="text-btn text-muted" onclick="resetSpacingBorderSettings()" title="Reset spacing, alignment, and border settings">Reset settings</button>
                 </div>
             </div>
         </details>
 
             <details id="customSizesGroup">
-                <summary>Custom Sizes (Selected Img)</summary>
+                <summary>Dimensions (Selected Image)</summary>
                 <div class="details-content">
                     <div class="input-group">
-                        <div class="static-label">2x2 (in)</div>
+                        <div class="static-label">2×2 (in)</div>
                         <div class="input-wrapper" style="gap: 4px;">
-                            <input type="number" id="size2x2W" step="0.1" min="0.5" max="5" value="2" onchange="updateCustomSizes()">
+                            <input type="number" id="size2x2W" step="0.01" min="0.2" max="5" value="2" onchange="updateCustomSizes('id')">
                             <span class="dim-tag">W</span>
                             <span style="font-size:12px; color:var(--text-muted); font-weight:600;">×</span>
-                            <input type="number" id="size2x2H" step="0.1" min="0.5" max="5" value="2" onchange="updateCustomSizes()">
+                            <input type="number" id="size2x2H" step="0.01" min="0.2" max="5" value="2" onchange="updateCustomSizes('id')">
                             <span class="dim-tag">H</span>
                         </div>
                     </div>
                     <div class="input-group">
-                        <div class="static-label">1x1 (in)</div>
+                        <div class="static-label">1×1 (in)</div>
                         <div class="input-wrapper" style="gap: 4px;">
-                            <input type="number" id="size1x1W" step="0.1" min="0.5" max="5" value="1" onchange="updateCustomSizes()">
+                            <input type="number" id="size1x1W" step="0.01" min="0.2" max="5" value="1" onchange="updateCustomSizes('id')">
                             <span class="dim-tag">W</span>
                             <span style="font-size:12px; color:var(--text-muted); font-weight:600;">×</span>
-                            <input type="number" id="size1x1H" step="0.1" min="0.5" max="5" value="1" onchange="updateCustomSizes()">
+                            <input type="number" id="size1x1H" step="0.01" min="0.2" max="5" value="1" onchange="updateCustomSizes('id')">
                             <span class="dim-tag">H</span>
                         </div>
                     </div>
                     <div class="input-group">
                         <div class="static-label">Passport (mm)</div>
                         <div class="input-wrapper" style="gap: 4px;">
-                            <input type="number" id="sizePassW" step="1" min="10" max="100" value="35" onchange="updateCustomSizes()">
+                            <input type="number" id="sizePassW" step="1" min="10" max="100" value="35" onchange="updateCustomSizes('passport')">
                             <span class="dim-tag">W</span>
                             <span style="font-size:12px; color:var(--text-muted); font-weight:600;">×</span>
-                            <input type="number" id="sizePassH" step="1" min="10" max="100" value="45" onchange="updateCustomSizes()">
+                            <input type="number" id="sizePassH" step="1" min="10" max="100" value="45" onchange="updateCustomSizes('passport')">
                             <span class="dim-tag">H</span>
                         </div>
                     </div>
                     <div class="input-group" style="margin-bottom: 0;">
                         <div class="static-label">ASA</div>
                         <div class="input-wrapper" style="gap: 4px;">
-                            <input type="number" id="sizeAsaW" step="0.1" min="0.5" max="6" value="3" onchange="updateCustomSizes()">
+                            <input type="number" id="sizeAsaW" step="0.1" min="0.5" max="6" value="3" onchange="updateCustomSizes('other')">
                             <span class="dim-tag">W</span>
                             <span style="font-size:12px; color:var(--text-muted); font-weight:600;">×</span>
-                            <input type="number" id="sizeAsaH" step="0.1" min="0.5" max="6" value="1.5" onchange="updateCustomSizes()">
+                            <input type="number" id="sizeAsaH" step="0.1" min="0.5" max="6" value="1.5" onchange="updateCustomSizes('other')">
                             <span class="dim-tag">H</span>
                         </div>
                     </div>
@@ -1494,12 +1514,16 @@
                 <summary>Counter Check</summary>
                 <div class="details-content">
                     <div class="stats-panel">
+                        <div class="stat-item stat-item-package">
+                            <span class="stat-label">Packages</span>
+                            <input type="number" class="stat-input" id="stat-pkg" min="0" step="1" value="0" oninput="updateManualStat('pkg', this.value)" onclick="this.select()">
+                        </div>
                         <div class="stat-item">
-                            <span class="stat-label">2x2 Size</span>
+                            <span class="stat-label">2×2</span>
                             <input type="number" class="stat-input" id="stat-2x2" min="0" step="1" value="0" oninput="updateManualStat('2x2', this.value)" onclick="this.select()">
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">1x1 Size</span>
+                            <span class="stat-label">1×1</span>
                             <input type="number" class="stat-input" id="stat-1x1" min="0" step="1" value="0" oninput="updateManualStat('1x1', this.value)" onclick="this.select()">
                         </div>
                         <div class="stat-item">
@@ -1509,10 +1533,6 @@
                         <div class="stat-item">
                             <span class="stat-label">ASA</span>
                             <input type="number" class="stat-input" id="stat-asa" min="0" step="1" value="0" oninput="updateManualStat('asa', this.value)" onclick="this.select()">
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Packages</span>
-                            <input type="number" class="stat-input" id="stat-pkg" min="0" step="1" value="0" oninput="updateManualStat('pkg', this.value)" onclick="this.select()">
                         </div>
                     </div>
                     <div class="stats-footer">
@@ -1644,7 +1664,6 @@
                                 <label class="name-border-cell"><span class="name-border-side">Bottom</span><span class="name-border-input-wrap"><input class="name-border-width" id="cropBorderBottomWidth" type="number" min="0" max="20" step="0.5" value="0" aria-label="Bottom border width in pixels" oninput="updateNameTagPreview()"><small>px</small></span></label>
                                 <label class="name-border-cell"><span class="name-border-side">Left</span><span class="name-border-input-wrap"><input class="name-border-width" id="cropBorderLeftWidth" type="number" min="0" max="20" step="0.5" value="0" aria-label="Left border width in pixels" oninput="updateNameTagPreview()"><small>px</small></span></label>
                             </div>
-                            <span class="crop-sub">Set each side separately. Use 0 to turn it off.</span>
                         </div>
                     </details>
                 </div>
@@ -1725,9 +1744,9 @@
                     </div>
                 </div>
                 <div class="crop-footer-right">
-                    <button class="btn crop-undo-btn" id="cropUndoBtn" type="button" onclick="undoLastAction()" title="Undo last edit (Ctrl+Z)" aria-label="Undo last edit" disabled>
+                    <button class="btn crop-undo-btn" id="cropUndoBtn" type="button" onclick="undoLastAction()" title="Undo last edit" aria-label="Undo last edit" disabled>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 1 1 0 14h-2"/></svg>
-                        <span>Undo</span><kbd>Ctrl Z</kbd>
+                        <span>Undo</span>
                     </button>
                     <button class="btn btn-primary" type="button" onclick="applyCrop()">Apply Changes</button>
                     <button class="btn crop-reset-btn" type="button" onclick="resetCrop()" title="Reset image edits" aria-label="Reset image edits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg></button>
@@ -1910,6 +1929,11 @@
                 images: snapshot.uploadedImages.map(img => ({
                     id: img.id, cropMode: img.cropMode, brightness: img.brightness,
                     contrast: img.contrast, hue: img.hue, saturation: img.saturation,
+                    size2x2W: img.size2x2W, size2x2H: img.size2x2H,
+                    size1x1W: img.size1x1W, size1x1H: img.size1x1H,
+                    sizePassW: img.sizePassW, sizePassH: img.sizePassH,
+                    sizeAsaW: img.sizeAsaW, sizeAsaH: img.sizeAsaH,
+                    passportStandard: img.passportStandard, visaStandard: img.visaStandard, photoStandard: img.photoStandard, idStandard: img.idStandard,
                     croppedLength: img.croppedSrc ? img.croppedSrc.length : 0,
                     tagKeys: Object.keys(img.nameTagVariants || {})
                 })),
@@ -1977,9 +2001,8 @@
             });
 
             localStorage.setItem('rushid_config', JSON.stringify(appConfig));
-            document.querySelectorAll('#paperSelector button').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.paper === currentPaper);
-            });
+            const paperSelect = document.getElementById('paperSizeSelect');
+            if (paperSelect) paperSelect.value = currentPaper;
             const rowGroup = document.getElementById('itemsPerRowGroup');
             if (rowGroup) rowGroup.style.display = currentPaper === '5R' ? 'none' : 'block';
 
@@ -2232,9 +2255,17 @@
             document.getElementById('sizePassH').value = imgObj.sizePassH;
             document.getElementById('sizeAsaW').value = imgObj.sizeAsaW;
             document.getElementById('sizeAsaH').value = imgObj.sizeAsaH;
+            const presetSelect = document.getElementById('layoutPresetSelect');
+            if (presetSelect) {
+                const matchedStandard = Object.entries(PHOTO_SIZE_STANDARDS).find(([, standard]) =>
+                    Math.abs(Number(imgObj.sizePassW) - standard.w) < 0.01 &&
+                    Math.abs(Number(imgObj.sizePassH) - standard.h) < 0.01
+                );
+                presetSelect.value = matchedStandard ? `photo:${matchedStandard[0]}` : 'photo:35x45';
+            }
         }
 
-        function updateCustomSizes() {
+        function updateCustomSizes(kind = 'all') {
             if (!activeImageId) return;
             const imgObj = uploadedImages.find(i => i.id === activeImageId);
             if (!imgObj) return;
@@ -2248,6 +2279,14 @@
             imgObj.sizeAsaW = parseFloat(document.getElementById('sizeAsaW').value) || 3;
             imgObj.sizeAsaH = parseFloat(document.getElementById('sizeAsaH').value) || 1.5;
 
+            if (kind === 'passport' || kind === 'all') {
+                imgObj.passportStandard = 'custom';
+                imgObj.visaStandard = 'custom';
+                imgObj.photoStandard = null;
+            }
+            if (kind === 'id' || kind === 'all') imgObj.idStandard = 'custom';
+            imgObj.selectedLayoutPreset = '';
+
             document.getElementById('size2x2W').value = imgObj.size2x2W;
             document.getElementById('size2x2H').value = imgObj.size2x2H;
             document.getElementById('size1x1W').value = imgObj.size1x1W;
@@ -2256,8 +2295,71 @@
             document.getElementById('sizePassH').value = imgObj.sizePassH;
             document.getElementById('sizeAsaW').value = imgObj.sizeAsaW;
             document.getElementById('sizeAsaH').value = imgObj.sizeAsaH;
+            const presetSelect = document.getElementById('layoutPresetSelect');
+            if (presetSelect) presetSelect.value = '';
 
             renderCanvas(false);
+        }
+
+        // Country/passport/visa presets are deduplicated by physical size.
+        // Each dropdown option appears once even when several standards share dimensions.
+        const PHOTO_SIZE_STANDARDS = {
+            '35x45': { w: 35, h: 45 },
+            '51x51': { w: 51, h: 51 },
+            '50x70': { w: 50, h: 70 },
+            '33x48': { w: 33, h: 48 }
+        };
+
+        function updatePassportColumnsForStandard(dimensions) {
+            if (!dimensions) return;
+            const usableWidth = (paperSizes[currentPaper]?.w || 210) - 6;
+            const photoWidth = Number(dimensions.w) || 35;
+            const fitColumns = Math.max(1, Math.floor((usableWidth + appConfig.gapH) / (photoWidth + appConfig.gapH)));
+            // Keep the normal five-column setting for standard passport photos,
+            // but automatically reduce it when wider country formats need more room.
+            appConfig.colsPassport = Math.min(5, fitColumns);
+            const colInput = document.getElementById('colPassport');
+            if (colInput) colInput.value = appConfig.colsPassport;
+            localStorage.setItem('rushid_config', JSON.stringify(appConfig));
+        }
+
+        function applyPhotoStandard(standard) {
+            if (!standard) return;
+            if (!activeImageId) {
+                showAlert('No Image Selected', 'Upload and select an image before applying a passport or visa photo standard.');
+                document.getElementById('layoutPresetSelect').value = '';
+                return;
+            }
+            const imgObj = uploadedImages.find(i => i.id === activeImageId);
+            const dimensions = PHOTO_SIZE_STANDARDS[standard];
+            if (!imgObj || !dimensions) return;
+            recordUndoState();
+            imgObj.sizePassW = dimensions.w;
+            imgObj.sizePassH = dimensions.h;
+            imgObj.photoStandard = standard;
+            imgObj.passportStandard = null;
+            imgObj.visaStandard = null;
+            imgObj.selectedLayoutPreset = `photo:${standard}`;
+            updatePassportColumnsForStandard(dimensions);
+            loadSizesToInputs();
+            renderCanvas(false);
+        }
+
+        function handleLayoutPresetSelect(select) {
+            const selected = String(select?.value || '');
+            if (!selected) return;
+            const separator = selected.indexOf(':');
+            const category = separator >= 0 ? selected.slice(0, separator) : 'layout';
+            const preset = separator >= 0 ? selected.slice(separator + 1) : selected;
+
+            if (category === 'layout') {
+                applyPreset(preset);
+                // Layout-filling actions are one-time commands, not persistent photo standards.
+                select.value = '';
+                return;
+            }
+            if (category === 'photo') applyPhotoStandard(preset);
+            else select.value = '';
         }
 
         const RUSH_PX_TO_MM = 25.4 / 96;
@@ -2520,6 +2622,7 @@
                         size2x2W: 2, size2x2H: 2,
                         size1x1W: 1, size1x1H: 1,
                         sizePassW: 35, sizePassH: 45,
+                        passportStandard: 'ph', visaStandard: null, idStandard: 'ph',
                         sizeAsaW: 3, sizeAsaH: 1.5,
                         croppedSrc: null, nameTagVariants: {}, nameTagAppliedSize: null, cropMode: 'square', cropRect: null,
                         freeCropRectNormalized: null,
@@ -2610,6 +2713,7 @@
                     imgObj.size2x2W = 2; imgObj.size2x2H = 2;
                     imgObj.size1x1W = 1; imgObj.size1x1H = 1;
                     imgObj.sizePassW = 35; imgObj.sizePassH = 45;
+                    imgObj.passportStandard = 'ph'; imgObj.visaStandard = null; imgObj.idStandard = 'ph';
                     imgObj.sizeAsaW = 3; imgObj.sizeAsaH = 1.5;
                     loadSizesToInputs();
                 }
@@ -2717,26 +2821,20 @@
         }
 
         function setPaperSize(size) {
+            if (!paperSizes[size]) return;
             if (typeof recordUndoState === 'function' && currentPaper !== size) recordUndoState();
             currentPaper = size;
-            
-            document.querySelectorAll('#paperSelector button').forEach(btn => {
-                btn.classList.remove('active');
-                if(btn.dataset.paper === size) btn.classList.add('active');
-            });
+
+            const paperSelect = document.getElementById('paperSizeSelect');
+            if (paperSelect) paperSelect.value = size;
 
             const paper = paperSizes[size];
-            
             document.documentElement.style.setProperty('--paper-width', `${paper.w}mm`);
             document.documentElement.style.setProperty('--paper-height', `${paper.h}mm`);
             document.documentElement.style.setProperty('--paper-size-name', paper.name);
 
             const itemsPerRowGroup = document.getElementById('itemsPerRowGroup');
-            if (size === '5R') {
-                itemsPerRowGroup.style.display = 'none';
-            } else {
-                itemsPerRowGroup.style.display = 'block';
-            }
+            if (itemsPerRowGroup) itemsPerRowGroup.style.display = size === '5R' ? 'none' : '';
 
             fitToViewport();
             if (canvasItems.length > 0) renderCanvas(false);
@@ -3074,7 +3172,18 @@
                     }
                 }
             } else if (currentPaper !== '5R') {
-                createGrid(normalsBySize['passport'], appConfig.colsPassport);
+                const activePassport = normalsBySize['passport'][0];
+                const activePassportImage = activePassport
+                    ? uploadedImages.find(i => i.id === activePassport.imgId)
+                    : null;
+                const passportWidth = Number(activePassportImage?.sizePassW) || 35;
+                const usablePassportWidth = (paperSizes[currentPaper]?.w || 210) - 6;
+                const fittingPassportColumns = Math.max(
+                    1,
+                    Math.floor((usablePassportWidth + gapH) / (passportWidth + gapH))
+                );
+                const passportColumns = Math.min(appConfig.colsPassport, fittingPassportColumns);
+                createGrid(normalsBySize['passport'], passportColumns);
             }
 
             if (currentPaper === '5R') {
