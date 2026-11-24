@@ -1320,7 +1320,7 @@
                             <select id="paperSizeSelect" onchange="setPaperSize(this.value)" aria-label="Paper size">
                                 <option value="A4" selected>A4 · 8.27 × 11.69 in</option>
                                 <option value="Letter">Letter · 8.5 × 11 in</option>
-                                <option value="Legal">Legal · 8.5 × 14 in</option>
+                                <option value="Legal">Legal · 8.5 × 13 in</option>
                                 <option value="5R">5R · 5 × 7 in</option>
                             </select>
                         </div>
@@ -2034,18 +2034,45 @@
         }, true);
 
         document.addEventListener('keydown', event => {
-            if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z' || event.shiftKey) return;
+            const key = event.key.toLowerCase();
+            const modifier = event.ctrlKey || event.metaKey;
             const target = event.target;
-            // Preserve normal text-edit undo while typing in text fields.
-            if (target && target.matches('input:not([type="range"]):not([type="checkbox"]):not([type="color"]), textarea, [contenteditable="true"]')) return;
-            event.preventDefault();
-            undoLastAction();
+            const isTyping = target && target.matches('input:not([type="range"]):not([type="checkbox"]):not([type="color"]), textarea, select, [contenteditable="true"]');
+
+            // Ctrl/Cmd+S exports the current layout instead of opening the browser save dialog.
+            if (modifier && key === 's') {
+                event.preventDefault();
+                exportFile();
+                return;
+            }
+
+            // Keep browser/text-field undo behavior available while typing.
+            if (modifier && key === 'z' && !event.shiftKey) {
+                if (isTyping) return;
+                event.preventDefault();
+                undoLastAction();
+                return;
+            }
+
+            // E toggles the editor for the currently selected image.
+            if (!modifier && !event.altKey && !event.repeat && key === 'e') {
+                const cropModal = document.getElementById('cropModal');
+                if (isTyping) return;
+                if (cropModal?.classList.contains('active')) {
+                    event.preventDefault();
+                    closeCrop();
+                    return;
+                }
+                if (!activeImageId || !uploadedImages.some(img => img.id === activeImageId)) return;
+                event.preventDefault();
+                openCropModal(activeImageId);
+            }
         });
 
         const paperSizes = {
             'A4': { w: 210, h: 297, name: 'A4' },
             'Letter': { w: 215.9, h: 279.4, name: 'letter' },
-            'Legal': { w: 215.9, h: 355.6, name: 'legal' },
+            'Legal': { w: 215.9, h: 330.2, name: 'legal' },
             '5R': { w: 127, h: 178, name: '5x7in' }
         };
 
