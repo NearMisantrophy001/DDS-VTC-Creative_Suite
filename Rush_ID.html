@@ -1263,7 +1263,7 @@
                         </label>
                         <label class="items-per-row-item" for="col1x1">
                             <span>1×1</span>
-                            <input type="number" id="col1x1" min="1" max="8" value="6" onchange="changeCols('1x1', this.value)">
+                            <input type="number" id="col1x1" min="1" max="12" value="12" onchange="changeCols('1x1', this.value)">
                         </label>
                         <label class="items-per-row-item" for="colPassport">
                             <span>Passport</span>
@@ -1319,6 +1319,8 @@
                         <div class="select-wrapper full">
                             <select id="paperSizeSelect" onchange="setPaperSize(this.value)" aria-label="Paper size">
                                 <option value="A4" selected>A4 · 8.27 × 11.69 in</option>
+                                <option value="Letter">Letter · 8.5 × 11 in</option>
+                                <option value="Legal">Legal · 8.5 × 14 in</option>
                                 <option value="5R">5R · 5 × 7 in</option>
                             </select>
                         </div>
@@ -1757,7 +1759,7 @@
 
     <script>
         const defaultConfig = {
-            cols2x2: 4, cols1x1: 6, colsPassport: 5, colsAsa: 2,
+            cols2x2: 4, cols1x1: 12, colsPassport: 5, colsAsa: 2,
             set2x2: 4, set1x1: 12, setPassport: 5, setAsa: 2,
             def2x2: 4, def1x1: 12, defPassport: 5, defAsa: 2,
             gapV: 0, gapH: 0, borderW: 0.1, borderRadius: 0, borderC: '#E5E7EB',
@@ -2004,7 +2006,7 @@
             const paperSelect = document.getElementById('paperSizeSelect');
             if (paperSelect) paperSelect.value = currentPaper;
             const rowGroup = document.getElementById('itemsPerRowGroup');
-            if (rowGroup) rowGroup.style.display = currentPaper === '5R' ? 'none' : 'block';
+            if (rowGroup) rowGroup.style.display = currentPaper === '5R' ? 'none' : '';
 
             renderImageQueue();
             renderCanvas(false);
@@ -2041,7 +2043,9 @@
         });
 
         const paperSizes = {
-            'A4': { w: 210, h: 297, name: 'A4' },  
+            'A4': { w: 210, h: 297, name: 'A4' },
+            'Letter': { w: 215.9, h: 279.4, name: 'letter' },
+            'Legal': { w: 215.9, h: 355.6, name: 'legal' },
             '5R': { w: 127, h: 178, name: '5x7in' }
         };
 
@@ -2217,6 +2221,7 @@
         function changeCols(sizeType, val) {
             let max = 8;
             if (sizeType === '2x2') max = 4;
+            if (sizeType === '1x1') max = 12;
             if (sizeType === 'passport') max = 5;
             if (sizeType === 'asa') max = 2;
 
@@ -2697,13 +2702,13 @@
             canvasItems = [];
             
             appConfig.cols2x2 = 4;
-            appConfig.cols1x1 = 6;
+            appConfig.cols1x1 = 12;
             appConfig.colsPassport = 5;
             appConfig.colsAsa = 2;
             localStorage.setItem('rushid_config', JSON.stringify(appConfig));
 
             document.getElementById('col2x2').value = 4;
-            document.getElementById('col1x1').value = 6;
+            document.getElementById('col1x1').value = 12;
             document.getElementById('colPassport').value = 5;
             document.getElementById('colAsa').value = 2;
 
@@ -3107,17 +3112,22 @@
                 }
             }
 
-            if (currentPaper === '5R') {
-                createGrid(normalsBySize['2x2'], 2);
-            } else {
-                createGrid(normalsBySize['2x2'], appConfig.cols2x2);
-            }
+            createGrid(normalsBySize['2x2'], appConfig.cols2x2);
             
             if (currentPaper === '5R' && normalsBySize['passport'].length > 0) {
                 const passports = normalsBySize['passport'];
-                let pIndex = 0;
+                const firstPassportImage = uploadedImages.find(i => i.id === passports[0].imgId);
+                const isCanadaPassport = Number(firstPassportImage?.sizePassW) === 50
+                    && Number(firstPassportImage?.sizePassH) === 70;
 
-                while (pIndex < passports.length) {
+                // Canadian 50 × 70 mm photos stay portrait: two per row,
+                // giving four photos as two rows without rotating any images.
+                if (isCanadaPassport) {
+                    createGrid(passports, 2);
+                } else {
+                    let pIndex = 0;
+
+                    while (pIndex < passports.length) {
                     const item = passports[pIndex];
                     const imgObj = uploadedImages.find(i => i.id === item.imgId);
                     const pW = imgObj ? imgObj.sizePassW : 35;
@@ -3125,7 +3135,7 @@
                     const availWidth = 127;
 
                     let maxStanding = Math.floor((availWidth + gapH) / (pW + gapH));
-                    if (maxStanding < 1) maxStanding = 1;
+                    maxStanding = Math.max(1, Math.min(maxStanding, appConfig.colsPassport));
 
                     const standingBatch = passports.slice(pIndex, pIndex + maxStanding);
                     pIndex += maxStanding;
@@ -3143,7 +3153,7 @@
 
                     if (pIndex < passports.length) {
                         let maxSleeping = Math.floor((availWidth + gapH) / (pH + gapH));
-                        if (maxSleeping < 1) maxSleeping = 1;
+                        maxSleeping = Math.max(1, Math.min(maxSleeping, appConfig.colsPassport));
 
                         const sleepingBatch = passports.slice(pIndex, pIndex + maxSleeping);
                         pIndex += maxSleeping;
@@ -3170,6 +3180,7 @@
                         });
                         addGroupToPage(gridBottom);
                     }
+                    }
                 }
             } else if (currentPaper !== '5R') {
                 const activePassport = normalsBySize['passport'][0];
@@ -3192,11 +3203,7 @@
                 createGrid(normalsBySize['asa'], appConfig.colsAsa);
             }
             
-            if (currentPaper === '5R') {
-                createGrid(normalsBySize['1x1'], 4);
-            } else {
-                createGrid(normalsBySize['1x1'], appConfig.cols1x1);
-            }
+            createGrid(normalsBySize['1x1'], appConfig.cols1x1);
 
             const packageGroups = {};
             packages.forEach(item => {
