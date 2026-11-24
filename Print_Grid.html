@@ -276,6 +276,11 @@
     .btn svg { width: 12px; height: 12px; }
     .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
     .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+    .undo-action-btn { min-width: 82px; padding: 6px 10px; }
+    .undo-action-btn svg { width: 14px; height: 14px; }
+    .undo-action-btn:disabled { opacity: .38; cursor: not-allowed; }
+    .crop-undo-btn { min-height: 36px; }
+    .crop-undo-btn:disabled { opacity: .38; cursor: not-allowed; }
 
     .preset-btn.active {
         background: var(--primary) !important;
@@ -1338,7 +1343,10 @@
 <!-- ================= RIGHT SIDEBAR ================= -->
 <div class="right-sidebar">
     <div class="header">
-        <div class="logo-title"><h1>Settings</h1></div>
+        <button type="button" class="btn undo-action-btn" id="undoActionBtn" onclick="undoAction()" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-2"/></svg>
+            Undo
+        </button>
         <button class="btn" onclick="triggerPrint()" style="border-radius:6px;padding:6px 12px;font-size:.8rem;" title="Print">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             Print
@@ -1686,16 +1694,14 @@
                     <div class="crop-adjust-head"><label class="crop-setting-label" for="cropHue" style="margin:0">Hue</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropHueValue">0°</span><button type="button" class="crop-mini-reset" aria-label="Reset hue" title="Reset hue" onclick="resetCropSlider('cropHue')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
                     <input class="crop-adjust-slider" type="range" id="cropHue" min="0" max="360" value="0" step="1" oninput="updateCropAdjustments()">
                 </div>
-                <div>
-                    <label class="crop-setting-label" for="cropColorMode">Color Mode</label>
-                    <select id="cropColorMode" class="crop-mode-select" onchange="updateCropAdjustments()">
-                        <option value="color" selected>Colored</option>
-                        <option value="bw">Black and White</option>
-                    </select>
+                <div class="crop-adjust-group">
+                    <div class="crop-adjust-head"><label class="crop-setting-label" for="cropSaturation" style="margin:0">Saturation</label><span style="display:flex;align-items:center;gap:7px"><span class="crop-adjust-value" id="cropSaturationValue">100%</span><button type="button" class="crop-mini-reset" aria-label="Reset saturation" title="Reset saturation" onclick="resetCropSlider('cropSaturation')"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button></span></div>
+                    <input class="crop-adjust-slider" type="range" id="cropSaturation" min="0" max="200" value="100" step="1" oninput="updateCropAdjustments()" aria-label="Saturation">
                 </div>
             </div>
         </div>
         <div class="crop-footer">
+            <button type="button" class="btn crop-undo-btn" id="cropUndoBtn" onclick="undoCropAction()" title="Undo crop adjustment (Ctrl+Z)" disabled>Undo</button>
             <button class="btn" onclick="closeCrop()">Cancel</button>
             <button class="btn crop-reset-btn" onclick="resetCrop()" title="Reset crop" aria-label="Reset crop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg></button>
             <button class="btn btn-primary" onclick="applyCrop()">Apply Crop</button>
@@ -1828,15 +1834,11 @@ function undoLastDeletion() {
     const snap = lastDeletedSnapshot;
     hideDeletionToast();
 
-    uploadedImages = snap.uploadedImages.map(item => ({ ...item }));
-    pages = clonePagesSnapshot(snap.pages);
-    activeImageId = snap.activeImageId;
-    selectedImageIds = new Set(snap.selectedImageIds || []);
-    selectedGroupPageId = snap.selectedGroupPageId || null;
-    activePageIndex = snap.activePageIndex || 0;
-    collapsedGroupIds = new Set(snap.collapsedGroupIds || []);
-
-    reconcileSelectionAndUI();
+    // Keep the toast action and Ctrl+Z in sync: one deletion is one undo step.
+    const top = undoHistory[undoHistory.length - 1];
+    if (top && undoSnapshotsEqual(top, snap)) undoHistory.pop();
+    restoreStateSnapshot(snap);
+    updateUndoButton();
 }
 
 /* =========================================================
@@ -1916,6 +1918,19 @@ let collapsedGroupIds = new Set();
 let currentPaper = 'A4';
 let isDarkMode = true;
 let crop = null;
+
+// Editor-wide history and a separate, temporary history for the crop modal.
+let undoHistory = [];
+let pendingUndoSnapshot = null;
+let undoCaptureTimer = null;
+let undoPointerActive = false;
+let undoRestoring = false;
+let cropUndoHistory = [];
+let pendingCropUndoSnapshot = null;
+let cropUndoCaptureTimer = null;
+let cropUndoPointerActive = false;
+const UNDO_HISTORY_LIMIT = 50;
+const CROP_UNDO_HISTORY_LIMIT = 40;
 
 /* ---- pages (one tiled page each, no scrolling) ---- */
 let pages = [];              // [{ id, imageId, imageIds?, lockSize?: boolean }]
@@ -2852,6 +2867,7 @@ function onCustomTile() {
 function matchImageRatio() {
     const obj = getActiveImage();
     if (!obj) { showAlert('No Image', 'Please upload an image first.'); return; }
+    const undoBeforeRatio = captureStateSnapshot();
     const probe = new Image();
     probe.onload = () => {
         if (!probe.naturalWidth) return;
@@ -2860,6 +2876,7 @@ function matchImageRatio() {
         let h = Math.round(currentW * ratio * 100) / 100;
         h = Math.min(12, Math.max(0.2, h));
         applyTileSizeToSelection(currentW, h);
+        recordUndoSnapshot(undoBeforeRatio);
         document.getElementById('tileH').value = h;
         saveConfig();
         updatePresetActiveState();
@@ -3008,6 +3025,7 @@ function handleFiles(files) {
     const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (!valid.length) { showAlert('Invalid File', 'Please upload an image file (PNG, JPG, WEBP, SVG).'); return; }
 
+    const undoBeforeUpload = captureStateSnapshot();
     hideDeletionToast();
     showLoading(`Loading ${valid.length} image${valid.length > 1 ? 's' : ''}...`);
     let done = 0;
@@ -3019,6 +3037,7 @@ function handleFiles(files) {
         activePageIndex = pages.length - 1;
         syncActiveFromPage();
         reconcileSelectionAndUI();
+        recordUndoSnapshot(undoBeforeUpload);
         hideLoading();
     };
 
@@ -3776,92 +3795,130 @@ function computeGroupTilePlan(page, layout) {
         return { img, wMM, hMM, qty };
     });
 
-    const counts = layerSpecs.map(s => s.qty != null ? s.qty : 0);
-    const autoIndices = layerSpecs.map((s, i) => s.qty == null ? i : -1).filter(i => i >= 0);
+    // Mixed-size groups are laid out in separate, full-width size bands.
+    // This keeps identical photo sizes together in clean rows/columns instead
+    // of letting small tiles fill gaps between larger tiles (masonry packing).
+    const counts = layerSpecs.map(spec => spec.qty != null ? spec.qty : 0);
+    const autoIndices = layerSpecs.map((spec, i) => spec.qty == null ? i : -1).filter(i => i >= 0);
 
-    // Mixed-size groups used to repack the entire collage after every single
-    // auto-quantity increment. That made changing one layer's dimensions
-    // increasingly expensive as the group grew. Place fixed-quantity tiles
-    // once, then add auto tiles incrementally against the existing rectangles.
-    // This preserves the round-robin auto allocation while avoiding hundreds
-    // of full repacks during a single preview render.
-    const minW = Math.min(...layerSpecs.map(spec => spec.wMM));
-    const minH = Math.min(...layerSpecs.map(spec => spec.hMM));
-    const colStep = minW + gapH;
-    const rowStep = minH + gapV;
-    const placedRects = [];
-    let fixedOverflow = false;
-    const makeRect = (spec, slot) => ({
-        img: spec.img,
-        x: slot.x,
-        y: slot.y,
-        w: spec.wMM,
-        h: spec.hMM
+    const sizeGroups = [];
+    layerSpecs.forEach((spec, index) => {
+        let group = sizeGroups.find(item =>
+            Math.abs(item.wMM - spec.wMM) <= 0.001 && Math.abs(item.hMM - spec.hMM) <= 0.001
+        );
+        if (!group) {
+            const maxCols = Math.max(1, Math.floor((availW + gapH + 0.001) / (spec.wMM + gapH)));
+            group = {
+                wMM: spec.wMM,
+                hMM: spec.hMM,
+                maxCols,
+                layerIndexes: [],
+                firstIndex: index
+            };
+            sizeGroups.push(group);
+        }
+        group.layerIndexes.push(index);
     });
 
-    for (let i = 0; i < layerSpecs.length; i++) {
-        const spec = layerSpecs[i];
-        if (spec.qty == null) continue;
-        for (let n = 0; n < counts[i]; n++) {
-            const slot = findCollageSlot(
-                placedRects, spec.wMM, spec.hMM, availW, availH,
-                gapH, gapV, colStep, rowStep
-            );
-            if (!slot) {
-                fixedOverflow = true;
-                break;
-            }
-            placedRects.push(makeRect(spec, slot));
-        }
-        if (fixedOverflow) break;
-    }
+    // Larger photo sizes go first; ties retain their original layer order.
+    sizeGroups.sort((a, b) =>
+        (b.wMM * b.hMM) - (a.wMM * a.hMM) ||
+        b.hMM - a.hMM ||
+        b.wMM - a.wMM ||
+        a.firstIndex - b.firstIndex
+    );
 
-    if (!fixedOverflow && autoIndices.length > 0) {
-        let added = true;
+    // A small breathing gap separates size sections even when tile spacing is
+    // set to zero, making the cutting zones easier to distinguish.
+    const sectionGap = sizeGroups.length > 1 ? Math.max(2, gapV) : 0;
+
+    const getGroupCount = (group, candidateCounts = counts) =>
+        group.layerIndexes.reduce((sum, layerIndex) => sum + candidateCounts[layerIndex], 0);
+
+    const getBandedHeight = (candidateCounts = counts) => {
+        let height = 0;
+        let activeGroups = 0;
+        for (const group of sizeGroups) {
+            const total = getGroupCount(group, candidateCounts);
+            if (total <= 0) continue;
+            const rows = Math.ceil(total / group.maxCols);
+            height += rows * group.hMM + Math.max(0, rows - 1) * gapV;
+            activeGroups++;
+        }
+        return height + Math.max(0, activeGroups - 1) * sectionGap;
+    };
+
+    // Fixed quantities are honored first. Automatic layers then share the
+    // remaining vertical space one copy at a time, preserving the existing
+    // round-robin behavior while respecting the new grouped layout.
+    const fixedOverflow = getBandedHeight(counts) > availH + 0.01;
+    if (!fixedOverflow && autoIndices.length) {
+        let addedInPass = true;
         let guard = 0;
-        while (added && guard < 600) {
-            added = false;
+        while (addedInPass && guard < 500 * autoIndices.length) {
+            addedInPass = false;
             guard++;
-            for (const ai of autoIndices) {
-                const spec = layerSpecs[ai];
-                const slot = findCollageSlot(
-                    placedRects, spec.wMM, spec.hMM, availW, availH,
-                    gapH, gapV, colStep, rowStep
-                );
-                if (slot) {
-                    placedRects.push(makeRect(spec, slot));
-                    counts[ai]++;
-                    added = true;
+            for (const layerIndex of autoIndices) {
+                if (counts[layerIndex] >= 500) continue;
+                counts[layerIndex]++;
+                if (getBandedHeight(counts) <= availH + 0.01) {
+                    addedInPass = true;
+                } else {
+                    counts[layerIndex]--;
                 }
             }
         }
     }
 
-    let maxRight = 0;
-    let maxBottom = 0;
-    for (const rect of placedRects) {
-        maxRight = Math.max(maxRight, rect.x + rect.w);
-        maxBottom = Math.max(maxBottom, rect.y + rect.h);
+    const rects = [];
+    let boundsW = 0;
+    let boundsH = 0;
+    let yCursor = 0;
+    let activeGroupCount = 0;
+
+    for (const group of sizeGroups) {
+        const groupCount = getGroupCount(group);
+        if (groupCount <= 0) continue;
+
+        if (activeGroupCount > 0) yCursor += sectionGap;
+        const rows = Math.ceil(groupCount / group.maxCols);
+        let tileIndex = 0;
+
+        // Images sharing a physical size remain together in the same block.
+        // Their original layer order is retained inside that block.
+        for (const layerIndex of group.layerIndexes) {
+            const spec = layerSpecs[layerIndex];
+            for (let copy = 0; copy < counts[layerIndex]; copy++) {
+                const col = tileIndex % group.maxCols;
+                const row = Math.floor(tileIndex / group.maxCols);
+                const x = col * (group.wMM + gapH);
+                const y = yCursor + row * (group.hMM + gapV);
+                if (x + group.wMM <= availW + 0.01 && y + group.hMM <= availH + 0.01) {
+                    rects.push({ img: spec.img, x, y, w: group.wMM, h: group.hMM });
+                    boundsW = Math.max(boundsW, x + group.wMM);
+                    boundsH = Math.max(boundsH, y + group.hMM);
+                }
+                tileIndex++;
+            }
+        }
+
+        yCursor += rows * group.hMM + Math.max(0, rows - 1) * gapV;
+        activeGroupCount++;
     }
-    const finalPack = {
-        rects: placedRects,
-        visibleItems: placedRects.map(rect => rect.img),
-        boundsW: maxRight,
-        boundsH: maxBottom,
-        overflow: fixedOverflow || placedRects.length < counts.reduce((sum, qty) => sum + qty, 0)
-    };
-    const totalRequested = counts.reduce((a, b) => a + b, 0);
+
+    const totalRequested = counts.reduce((sum, qty) => sum + qty, 0);
+    const visibleItems = rects.map(rect => rect.img);
 
     return {
         pageImages,
         requested: counts,
-        visibleItems: finalPack.visibleItems,
-        rects: finalPack.rects,
-        boundsW: finalPack.boundsW,
-        boundsH: finalPack.boundsH,
+        visibleItems,
+        rects,
+        boundsW,
+        boundsH,
         totalRequested,
-        capacity: finalPack.visibleItems.length,
-        overflow: finalPack.overflow,
+        capacity: visibleItems.length,
+        overflow: fixedOverflow || visibleItems.length < totalRequested,
         isMixedSize: true,
         availW,
         availH,
@@ -4131,16 +4188,434 @@ function duplicateSelectedLayers() {
     reconcileSelectionAndUI();
 }
 
+function cloneImageSnapshot(item) {
+    return {
+        ...item,
+        cropRect: item.cropRect ? { ...item.cropRect } : item.cropRect,
+        freeCropRect: item.freeCropRect ? { ...item.freeCropRect } : item.freeCropRect,
+        styleOverride: item.styleOverride ? { ...item.styleOverride } : item.styleOverride
+    };
+}
+
+function cloneCropSnapshot(value) {
+    if (!value) return null;
+    return {
+        ...value,
+        box: value.box ? { ...value.box } : value.box,
+        freeRect: value.freeRect ? { ...value.freeRect } : value.freeRect,
+        drag: value.drag ? {
+            ...value.drag,
+            origin: value.drag.origin ? { ...value.drag.origin } : value.drag.origin
+        } : null
+    };
+}
+
 function captureStateSnapshot() {
     return {
-        uploadedImages: uploadedImages.map(item => ({ ...item })),
+        appConfig: { ...appConfig },
+        currentPaper,
+        uploadedImages: uploadedImages.map(cloneImageSnapshot),
         pages: clonePagesSnapshot(pages),
         activeImageId,
         selectedImageIds: new Set(selectedImageIds),
         selectedGroupPageId,
         activePageIndex,
-        collapsedGroupIds: new Set(collapsedGroupIds)
+        layerAnchorIndex,
+        collapsedGroupIds: new Set(collapsedGroupIds),
+        safeZoneEnabled: Boolean(document.getElementById('safeZoneToggle')?.checked)
     };
+}
+
+function getUndoSignature(snapshot) {
+    const imageMeta = snapshot.uploadedImages.map(item => {
+        const meta = { ...item };
+        delete meta.src;
+        delete meta.previewSrc;
+        delete meta.croppedSrc;
+        return meta;
+    });
+    return JSON.stringify({
+        appConfig: snapshot.appConfig,
+        currentPaper: snapshot.currentPaper,
+        imageMeta,
+        pages: snapshot.pages,
+        safeZoneEnabled: snapshot.safeZoneEnabled
+    });
+}
+
+function undoSnapshotsEqual(a, b) {
+    if (!a || !b || getUndoSignature(a) !== getUndoSignature(b)) return false;
+    if (a.uploadedImages.length !== b.uploadedImages.length) return false;
+    return a.uploadedImages.every((item, index) => {
+        const other = b.uploadedImages[index];
+        return other && item.src === other.src && item.previewSrc === other.previewSrc && item.croppedSrc === other.croppedSrc;
+    });
+}
+
+function updateUndoButton() {
+    const hasUndo = undoHistory.length > 0 || Boolean(pendingUndoSnapshot);
+    const mainButton = document.getElementById('undoActionBtn');
+    const cropButton = document.getElementById('cropUndoBtn');
+    if (mainButton) {
+        mainButton.disabled = !hasUndo;
+        mainButton.title = hasUndo ? 'Undo (Ctrl+Z)' : 'Nothing to undo';
+        mainButton.setAttribute('aria-label', hasUndo ? 'Undo last change' : 'Nothing to undo');
+    }
+    if (cropButton) {
+        cropButton.disabled = cropUndoHistory.length === 0;
+        cropButton.title = cropUndoHistory.length ? 'Undo crop adjustment (Ctrl+Z)' : 'No crop adjustment to undo';
+    }
+}
+
+function recordUndoSnapshot(snapshot) {
+    if (!snapshot || undoRestoring) return;
+    const latest = undoHistory[undoHistory.length - 1];
+    if (latest && undoSnapshotsEqual(latest, snapshot)) return;
+    undoHistory.push(snapshot);
+    if (undoHistory.length > UNDO_HISTORY_LIMIT) undoHistory.shift();
+    updateUndoButton();
+}
+
+function restorePaperUI() {
+    const paperName = paperSizes[currentPaper] ? currentPaper : 'A4';
+    currentPaper = paperName;
+    appConfig.paper = paperName;
+    const paper = paperSizes[paperName];
+    document.documentElement.style.setProperty('--paper-width', `${paper.w}mm`);
+    document.documentElement.style.setProperty('--paper-height', `${paper.h}mm`);
+
+    let style = document.getElementById('printPageStyle');
+    if (!style) {
+        style = document.createElement('style');
+        style.id = 'printPageStyle';
+        document.head.appendChild(style);
+    }
+    style.textContent = `@page { size: ${paper.css}; margin: 0; }`;
+    const select = document.getElementById('paperSelect');
+    if (select) select.value = paperName;
+}
+
+function restoreStateSnapshot(snapshot) {
+    if (!snapshot) return;
+    undoRestoring = true;
+    try {
+        const snapshotIds = new Set(snapshot.uploadedImages.map(item => item.id));
+        const retainedUrls = new Set(snapshot.uploadedImages.flatMap(item => [item.src, item.previewSrc]).filter(Boolean));
+        const imagesAddedAfterSnapshot = uploadedImages.filter(item => !snapshotIds.has(item.id));
+        const urlsToRelease = new Set();
+        imagesAddedAfterSnapshot.forEach(item => {
+            [item.src, item.previewSrc].forEach(url => {
+                if (typeof url === 'string' && url.startsWith('blob:') && !retainedUrls.has(url)) urlsToRelease.add(url);
+            });
+        });
+        urlsToRelease.forEach(url => URL.revokeObjectURL(url));
+
+        appConfig = { ...DEFAULT_CONFIG, ...(snapshot.appConfig || {}) };
+        currentPaper = snapshot.currentPaper || appConfig.paper || 'A4';
+        uploadedImages = snapshot.uploadedImages.map(cloneImageSnapshot);
+        pages = clonePagesSnapshot(snapshot.pages);
+        activeImageId = snapshot.activeImageId || null;
+        selectedImageIds = new Set(snapshot.selectedImageIds || []);
+        selectedGroupPageId = snapshot.selectedGroupPageId || null;
+        activePageIndex = Number.isInteger(snapshot.activePageIndex) ? snapshot.activePageIndex : 0;
+        layerAnchorIndex = Number.isInteger(snapshot.layerAnchorIndex) ? snapshot.layerAnchorIndex : -1;
+        collapsedGroupIds = new Set(snapshot.collapsedGroupIds || []);
+
+        const safeZoneToggle = document.getElementById('safeZoneToggle');
+        if (safeZoneToggle) safeZoneToggle.checked = Boolean(snapshot.safeZoneEnabled);
+        document.querySelectorAll('.paper-page').forEach(page => page.classList.toggle('safe-zone-active', Boolean(snapshot.safeZoneEnabled)));
+        restorePaperUI();
+
+        const numMargin = document.getElementById('numMargin');
+        const numGapH = document.getElementById('numGapH');
+        const numGapV = document.getElementById('numGapV');
+        const numBorderW = document.getElementById('numBorderW');
+        const numBorderR = document.getElementById('numBorderR');
+        const setBorderC = document.getElementById('setBorderC');
+        const hexBorderC = document.getElementById('hexBorderC');
+        if (numMargin) numMargin.value = (appConfig.margin / 25.4).toFixed(2);
+        if (numGapH) numGapH.value = Math.round(appConfig.gapH * MM_TO_PX);
+        if (numGapV) numGapV.value = Math.round(appConfig.gapV * MM_TO_PX);
+        if (numBorderW) numBorderW.value = Math.round(appConfig.borderW);
+        if (numBorderR) numBorderR.value = Math.round(appConfig.borderR);
+        if (setBorderC) setBorderC.value = normalizeHexColor(appConfig.borderC) || '#E5E7EB';
+        if (hexBorderC) hexBorderC.value = (normalizeHexColor(appConfig.borderC) || '#E5E7EB').toUpperCase();
+
+        saveConfig();
+        rebuildRenderCaches();
+        reconcileSelectionAndUI();
+        syncSpacingBorderControls(activeImageId);
+        syncAlignControls(activeImageId);
+        syncFitControls(activeImageId);
+        applyBorderCssVars();
+        fitToViewport();
+        renderCanvas();
+        renderImageQueue();
+        updatePagerUI();
+    } finally {
+        undoRestoring = false;
+        updateUndoButton();
+    }
+}
+
+function finalizeUndoCapture() {
+    if (undoCaptureTimer) {
+        clearTimeout(undoCaptureTimer);
+        undoCaptureTimer = null;
+    }
+    if (!pendingUndoSnapshot) return;
+    const before = pendingUndoSnapshot;
+    pendingUndoSnapshot = null;
+    undoPointerActive = false;
+    const after = captureStateSnapshot();
+    if (!undoSnapshotsEqual(before, after)) recordUndoSnapshot(before);
+}
+
+function beginUndoCapture(delay = 180) {
+    if (undoRestoring) return;
+    if (!pendingUndoSnapshot) pendingUndoSnapshot = captureStateSnapshot();
+    updateUndoButton();
+    if (undoCaptureTimer) clearTimeout(undoCaptureTimer);
+    if (!undoPointerActive) {
+        undoCaptureTimer = setTimeout(finalizeUndoCapture, delay);
+    }
+}
+
+function undoAction() {
+    finalizeUndoCapture();
+    const snapshot = undoHistory.pop();
+    if (!snapshot) {
+        updateUndoButton();
+        return;
+    }
+    hideDeletionToast();
+    restoreStateSnapshot(snapshot);
+}
+
+function captureCropUndoSnapshot() {
+    return cloneCropSnapshot(crop);
+}
+
+function cropSnapshotsEqual(a, b) {
+    return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function updateCropUndoButton() {
+    const button = document.getElementById('cropUndoBtn');
+    const hasUndo = cropUndoHistory.length > 0 || Boolean(pendingCropUndoSnapshot);
+    if (button) {
+        button.disabled = !hasUndo;
+        button.title = hasUndo ? 'Undo crop adjustment (Ctrl+Z)' : 'No crop adjustment to undo';
+    }
+}
+
+function recordCropUndoSnapshot(snapshot) {
+    if (!snapshot || !crop) return;
+    const latest = cropUndoHistory[cropUndoHistory.length - 1];
+    if (latest && cropSnapshotsEqual(latest, snapshot)) return;
+    cropUndoHistory.push(snapshot);
+    if (cropUndoHistory.length > CROP_UNDO_HISTORY_LIMIT) cropUndoHistory.shift();
+    updateCropUndoButton();
+}
+
+function finalizeCropUndoCapture() {
+    if (cropUndoCaptureTimer) {
+        clearTimeout(cropUndoCaptureTimer);
+        cropUndoCaptureTimer = null;
+    }
+    if (!pendingCropUndoSnapshot) return;
+    const before = pendingCropUndoSnapshot;
+    pendingCropUndoSnapshot = null;
+    cropUndoPointerActive = false;
+    if (!cropSnapshotsEqual(before, captureCropUndoSnapshot())) recordCropUndoSnapshot(before);
+}
+
+function beginCropUndoCapture(delay = 260) {
+    if (!crop) return;
+    if (!pendingCropUndoSnapshot) pendingCropUndoSnapshot = captureCropUndoSnapshot();
+    updateCropUndoButton();
+    if (cropUndoCaptureTimer) clearTimeout(cropUndoCaptureTimer);
+    if (!cropUndoPointerActive) cropUndoCaptureTimer = setTimeout(finalizeCropUndoCapture, delay);
+}
+
+function syncCropModalFromState() {
+    if (!crop) return;
+    const stage = document.getElementById('cropStage');
+    const img = document.getElementById('cropImg');
+    if (stage) {
+        stage.style.width = `${crop.stageW}px`;
+        stage.style.height = `${crop.stageH}px`;
+    }
+    const source = uploadedImages.find(item => item.id === crop.imageId);
+    if (img && source) img.src = source.src;
+
+    document.getElementById('cropAspectSelect').value = crop.aspectMode || 'image';
+    document.getElementById('cropZoomSlider').value = crop.zoom;
+    document.getElementById('cropBrightness').value = crop.brightness;
+    document.getElementById('cropContrast').value = crop.contrast;
+    document.getElementById('cropHue').value = crop.hue;
+    document.getElementById('cropSaturation').value = Number.isFinite(crop.saturation) ? crop.saturation : 100;
+    syncCropAspectUI();
+    layoutCrop();
+    updateCropAdjustments();
+}
+
+function undoCropAction() {
+    finalizeCropUndoCapture();
+    const snapshot = cropUndoHistory.pop();
+    if (!snapshot || !crop) {
+        updateCropUndoButton();
+        return;
+    }
+    crop = cloneCropSnapshot(snapshot);
+    syncCropModalFromState();
+    updateCropUndoButton();
+}
+
+function isTypingInTextField(target) {
+    if (!target || !target.tagName) return false;
+    if (target.isContentEditable) return true;
+    if (target.tagName === 'TEXTAREA') return true;
+    if (target.tagName !== 'INPUT') return false;
+    return ['text', 'search', 'email', 'url', 'tel', 'password'].includes((target.type || 'text').toLowerCase());
+}
+
+function isCropActionButton(target) {
+    const button = target?.closest?.('button');
+    if (!button) return false;
+    if (button.id === 'cropUndoBtn') return false;
+    const text = (button.textContent || '').trim().toLowerCase();
+    return text !== 'cancel' && button.title !== 'Close';
+}
+
+function installUndoHistory() {
+    const inEditorUI = target => Boolean(target?.closest?.('.sidebar, .right-sidebar, #imageQueue, #customModal'));
+    const inCropUI = target => Boolean(target?.closest?.('#cropModal'));
+    const isCropApply = target => {
+        const button = target?.closest?.('button');
+        return Boolean(button && button.textContent.trim().toLowerCase() === 'apply crop');
+    };
+    const shouldSkipGlobal = target => Boolean(target?.closest?.('#undoActionBtn, #cropUndoBtn, #toastUndoBtn, .layer-edit-overlay'));
+
+    document.addEventListener('pointerdown', event => {
+        const target = event.target;
+        if (inCropUI(target)) {
+            if (isCropApply(target)) {
+                beginUndoCapture(180);
+                undoPointerActive = true;
+            } else if (isCropActionButton(target) || target.closest('#cropStage') || target.closest('.crop-settings')) {
+                beginCropUndoCapture(280);
+                cropUndoPointerActive = true;
+            }
+            return;
+        }
+        if (shouldSkipGlobal(target)) return;
+        if (inEditorUI(target)) {
+            beginUndoCapture(220);
+            undoPointerActive = true;
+        }
+    }, true);
+
+    document.addEventListener('pointermove', () => {
+        if (undoPointerActive && pendingUndoSnapshot) beginUndoCapture(220);
+        if (cropUndoPointerActive && pendingCropUndoSnapshot) beginCropUndoCapture(280);
+    }, true);
+
+    document.addEventListener('pointerup', () => {
+        if (undoPointerActive) {
+            undoPointerActive = false;
+            beginUndoCapture(160);
+        }
+        if (cropUndoPointerActive) {
+            cropUndoPointerActive = false;
+            beginCropUndoCapture(260);
+        }
+    }, true);
+    document.addEventListener('pointercancel', () => {
+        if (undoPointerActive) { undoPointerActive = false; finalizeUndoCapture(); }
+        if (cropUndoPointerActive) { cropUndoPointerActive = false; finalizeCropUndoCapture(); }
+    }, true);
+
+    document.addEventListener('input', event => {
+        const target = event.target;
+        if (inCropUI(target)) {
+            beginCropUndoCapture(420);
+            return;
+        }
+        if (target === fileInput || shouldSkipGlobal(target)) return;
+        if (inEditorUI(target)) beginUndoCapture(520);
+    }, true);
+
+    document.addEventListener('change', event => {
+        const target = event.target;
+        if (inCropUI(target)) {
+            beginCropUndoCapture(220);
+            return;
+        }
+        if (target === fileInput || shouldSkipGlobal(target)) return;
+        if (inEditorUI(target)) beginUndoCapture(180);
+    }, true);
+
+    document.addEventListener('click', event => {
+        const target = event.target;
+        if (shouldSkipGlobal(target)) return;
+        if (inCropUI(target)) {
+            if (isCropApply(target)) beginUndoCapture(180);
+            else if (isCropActionButton(target)) beginCropUndoCapture(260);
+            return;
+        }
+        if (inEditorUI(target)) beginUndoCapture(180);
+    }, true);
+
+    document.addEventListener('dragstart', event => {
+        if (event.target?.closest?.('#imageQueue')) {
+            beginUndoCapture(500);
+            undoPointerActive = true;
+        }
+    }, true);
+    document.addEventListener('drop', event => {
+        if (event.target?.closest?.('#imageQueue')) {
+            undoPointerActive = false;
+            beginUndoCapture(180);
+        }
+    }, true);
+    document.addEventListener('dragend', () => {
+        if (undoPointerActive) {
+            undoPointerActive = false;
+            beginUndoCapture(180);
+        }
+    }, true);
+
+    document.addEventListener('wheel', event => {
+        if (inCropUI(event.target)) beginCropUndoCapture(300);
+        else if (inEditorUI(event.target)) beginUndoCapture(300);
+    }, { capture: true, passive: true });
+
+    document.addEventListener('keydown', event => {
+        const mod = event.ctrlKey || event.metaKey;
+        const isUndo = mod && !event.altKey && event.key.toLowerCase() === 'z';
+        const cropModalOpen = document.getElementById('cropModal')?.classList.contains('active');
+        if (isUndo && (cropModalOpen || !isTypingInTextField(event.target))) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            if (cropModalOpen) undoCropAction();
+            else undoAction();
+            return;
+        }
+
+        if (cropModalOpen && (inCropUI(event.target) || ['+', '=', '-', '0'].includes(event.key))) {
+            if (event.key === '+' || event.key === '=' || event.key === '-' || event.key === '0') beginCropUndoCapture(240);
+            else if (inCropUI(event.target)) beginCropUndoCapture(420);
+            return;
+        }
+        if (isTypingInTextField(event.target)) return;
+        const isEditorShortcut = mod && ['d', 'g'].includes(event.key.toLowerCase());
+        const isRoundBorderShortcut = !mod && !event.altKey && event.key.toLowerCase() === 'q';
+        if (inEditorUI(event.target) || ['Delete', 'Backspace'].includes(event.key) || isEditorShortcut || isRoundBorderShortcut) {
+            beginUndoCapture(180);
+        }
+    }, true);
 }
 
 function deleteSelectedLayers() {
@@ -4259,10 +4734,12 @@ function clearAll() {
 }
 
 async function resetAll() {
+    const undoBeforeReset = captureStateSnapshot();
     const ok = await showConfirm('Reset Everything', 'This clears all images and restores default settings. Continue?');
     if (!ok) return;
+    recordUndoSnapshot(undoBeforeReset);
     hideDeletionToast();
-    releaseImageSources(uploadedImages);
+    // Keep the old object URLs alive while the reset remains undoable.
     uploadedImages = [];
     activeImageId = null;
     selectedImageIds.clear();
@@ -4906,7 +5383,7 @@ function openCropModal(imageId) {
             brightness: Number.isFinite(obj.brightness) ? obj.brightness : 100,
             contrast: Number.isFinite(obj.contrast) ? obj.contrast : 100,
             hue: Number.isFinite(obj.hue) ? obj.hue : 0,
-            colorMode: obj.colorMode === 'bw' ? 'bw' : 'color',
+            saturation: Number.isFinite(obj.saturation) ? obj.saturation : (obj.colorMode === 'bw' ? 0 : 100),
             aspectMode: 'image',
             box: { x: 0, y: 0, w: stageW, h: stageH },
             freeRect: obj.freeCropRect ? { ...obj.freeCropRect } : null,
@@ -4918,7 +5395,10 @@ function openCropModal(imageId) {
         document.getElementById('cropBrightness').value = crop.brightness;
         document.getElementById('cropContrast').value = crop.contrast;
         document.getElementById('cropHue').value = crop.hue;
-        document.getElementById('cropColorMode').value = crop.colorMode;
+        document.getElementById('cropSaturation').value = crop.saturation;
+        cropUndoHistory = [];
+        pendingCropUndoSnapshot = null;
+        updateCropUndoButton();
         updateCropAdjustments();
         syncCropAspectUI();
         layoutCrop();
@@ -5039,41 +5519,42 @@ function updateCropAdjustments() {
     const bSlider = document.getElementById('cropBrightness');
     const cSlider = document.getElementById('cropContrast');
     const hSlider = document.getElementById('cropHue');
-    const modeSelect = document.getElementById('cropColorMode');
+    const sSlider = document.getElementById('cropSaturation');
     const img = document.getElementById('cropImg');
 
     const zoom = zoomSlider ? parseFloat(zoomSlider.value) || 1 : 1;
     const brightness = bSlider ? parseInt(bSlider.value, 10) : 100;
     const contrast = cSlider ? parseInt(cSlider.value, 10) : 100;
     const hue = hSlider ? parseInt(hSlider.value, 10) : 0;
-    const colorMode = modeSelect ? modeSelect.value : 'color';
+    const saturation = sSlider ? parseInt(sSlider.value, 10) : 100;
 
     if (crop) {
         crop.zoom = zoom;
         crop.brightness = brightness;
         crop.contrast = contrast;
         crop.hue = hue;
-        crop.colorMode = colorMode;
+        crop.saturation = saturation;
     }
 
     document.getElementById('cropZoomValue').textContent = `${+zoom.toFixed(2)}×`;
     document.getElementById('cropBrightnessValue').textContent = `${brightness}%`;
     document.getElementById('cropContrastValue').textContent = `${contrast}%`;
     document.getElementById('cropHueValue').textContent = `${hue}°`;
+    document.getElementById('cropSaturationValue').textContent = `${saturation}%`;
 
     updateRangeProgress(zoomSlider);
     updateRangeProgress(bSlider);
     updateRangeProgress(cSlider);
     updateRangeProgress(hSlider);
+    updateRangeProgress(sSlider);
 
     if (img) {
-        const bwFilter = colorMode === 'bw' ? ' grayscale(100%)' : '';
-        img.style.filter = `brightness(${brightness}%) contrast(${contrast}%) hue-rotate(${hue}deg)${bwFilter}`;
+        img.style.filter = `brightness(${brightness}%) contrast(${contrast}%) hue-rotate(${hue}deg) saturate(${saturation}%)`;
     }
 }
 
 function resetCropSlider(sliderId) {
-    const defaults = { cropZoomSlider: 1, cropBrightness: 100, cropContrast: 100, cropHue: 0 };
+    const defaults = { cropZoomSlider: 1, cropBrightness: 100, cropContrast: 100, cropHue: 0, cropSaturation: 100 };
     const slider = document.getElementById(sliderId);
     if (!slider || !(sliderId in defaults)) return;
     slider.value = defaults[sliderId];
@@ -5084,13 +5565,13 @@ function resetCropSlider(sliderId) {
 function resetCrop() {
     if (!crop) return;
     crop.zoom = 1; crop.panX = 0; crop.panY = 0;
-    crop.brightness = 100; crop.contrast = 100; crop.hue = 0; crop.colorMode = 'color';
+    crop.brightness = 100; crop.contrast = 100; crop.hue = 0; crop.saturation = 100;
     crop.freeRect = null;
     document.getElementById('cropZoomSlider').value = 1;
     document.getElementById('cropBrightness').value = 100;
     document.getElementById('cropContrast').value = 100;
     document.getElementById('cropHue').value = 0;
-    document.getElementById('cropColorMode').value = 'color';
+    document.getElementById('cropSaturation').value = 100;
     if (crop.aspectMode === 'free') setCropAspect('free');
     else layoutCrop();
     updateCropAdjustments();
@@ -5099,6 +5580,12 @@ function resetCrop() {
 function closeCrop() {
     document.getElementById('cropModal').classList.remove('active');
     crop = null;
+    cropUndoHistory = [];
+    pendingCropUndoSnapshot = null;
+    if (cropUndoCaptureTimer) clearTimeout(cropUndoCaptureTimer);
+    cropUndoCaptureTimer = null;
+    cropUndoPointerActive = false;
+    updateCropUndoButton();
 }
 
 function applyCrop() {
@@ -5106,9 +5593,8 @@ function applyCrop() {
     const obj = uploadedImages.find(i => i.id === crop.imageId);
     if (!obj) { closeCrop(); return; }
 
-    const bwFilter = crop.colorMode === 'bw' ? ' grayscale(100%)' : '';
-    const filterString = `brightness(${crop.brightness}%) contrast(${crop.contrast}%) hue-rotate(${crop.hue}deg)${bwFilter}`;
-    const hasFilterChanges = crop.brightness !== 100 || crop.contrast !== 100 || crop.hue !== 0 || crop.colorMode !== 'color';
+    const filterString = `brightness(${crop.brightness}%) contrast(${crop.contrast}%) hue-rotate(${crop.hue}deg) saturate(${crop.saturation}%)`;
+    const hasFilterChanges = crop.brightness !== 100 || crop.contrast !== 100 || crop.hue !== 0 || crop.saturation !== 100;
 
     const out = document.createElement('canvas');
     const ctx = out.getContext('2d');
@@ -5134,7 +5620,8 @@ function applyCrop() {
         obj.brightness = crop.brightness;
         obj.contrast = crop.contrast;
         obj.hue = crop.hue;
-        obj.colorMode = crop.colorMode;
+        obj.saturation = crop.saturation;
+        delete obj.colorMode;
         const aspectRatio = out.height / out.width;
         const currentTile = getImageTileSize(obj.id);
         const nextW = Math.min(12, Math.max(0.2, currentTile.w));
@@ -5167,7 +5654,8 @@ function applyCrop() {
         obj.brightness = 100;
         obj.contrast = 100;
         obj.hue = 0;
-        obj.colorMode = 'color';
+        obj.saturation = 100;
+        delete obj.colorMode;
     } else {
         const aspect = getTargetAspect();
         const outW = Math.max(1, Math.round(sw));
@@ -5180,7 +5668,8 @@ function applyCrop() {
         obj.brightness = crop.brightness;
         obj.contrast = crop.contrast;
         obj.hue = crop.hue;
-        obj.colorMode = crop.colorMode;
+        obj.saturation = crop.saturation;
+        delete obj.colorMode;
     }
 
     closeCrop();
@@ -5317,6 +5806,8 @@ document.addEventListener('keydown', e => {
 /* =========================================================
    INIT
    ========================================================= */
+installUndoHistory();
+updateUndoButton();
 loadUIPreferences();
 bindUIPreferencePersistence();
 loadConfig();
