@@ -28,13 +28,13 @@ const cardsData = [
         href: "Print_Grid.html"
     },
     {
-        title: "Printing Dimensions",
+        title: "Valid ID",
         subtitle: "Saved Nov 20, 2026",
         description: "Quick reference guide for standard paper, photo, tarpaulin, and sublimation print sizes.",
-        category: "Tools",
-        cover: "Assets/1.jpg",
-        logo: "5",
-        href: "#"
+        category: "Photocopy",
+        cover: "Assets/ValidID_Cover.webp",
+        logo: "V",
+        href: "Valid_ID.html"
     }
 ];
 
