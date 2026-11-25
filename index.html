@@ -436,6 +436,7 @@
     .card-fav.active svg { fill: var(--star); }
     .card-fav:active svg { transform: scale(0.85); }
 
+
     /* ---------- EMPTY STATE ---------- */
     .empty-state {
         display: none; grid-column: 1 / -1; text-align: center; padding: 72px 20px; color: var(--text-muted);
@@ -553,7 +554,8 @@
             <div class="tabs">
                 <div class="tab fav-tab active" data-tab="favorites">Favorites</div>
                 <div class="tab" data-tab="printing">Printing</div>
-                <div class="tab" data-tab="tools">Tools</div>
+                <div class="tab" data-tab="photocopy">Photocopy</div>
+                <div class="tab" data-tab="lamination">Lamination</div>
                 <div class="tab" data-tab="all">All</div>
             </div>
             <div class="filters">
@@ -567,7 +569,7 @@
                     <button class="icon-toggle active" id="gridViewBtn" title="Grid View">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                     </button>
-                    <button class="icon-toggle" id="listViewBtn" title="List View">
+                    <button class="icon-toggle" id="listViewBtn" title="List View" aria-label="List View">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                     </button>
                 </div>
@@ -716,7 +718,7 @@
 
             /* ---------------- TAB FILTERING & SMART SEARCH ---------------- */
             let activeTab = (localStorage.getItem('activeTab') || 'favorites').toLowerCase();
-            if (activeTab === 'essential') activeTab = 'tools';
+            if (activeTab === 'essential' || activeTab === 'tools') activeTab = 'all';
             let previousTab = activeTab;
 
             function updateTabUI(tabId) {
@@ -874,29 +876,26 @@
             const gridViewBtn = document.getElementById('gridViewBtn');
             const listViewBtn = document.getElementById('listViewBtn');
 
-            function setGridView() {
+            function setView(mode) {
                 cardGrid.classList.remove('list-view');
-                gridViewBtn.classList.add('active');
-                listViewBtn.classList.remove('active');
-                localStorage.setItem('viewMode', 'grid');
-            }
-
-            function setListView() {
-                cardGrid.classList.add('list-view');
-                listViewBtn.classList.add('active');
                 gridViewBtn.classList.remove('active');
-                localStorage.setItem('viewMode', 'list');
+                listViewBtn.classList.remove('active');
+
+                if (mode === 'list') {
+                    cardGrid.classList.add('list-view');
+                    listViewBtn.classList.add('active');
+                } else {
+                    mode = 'grid';
+                    gridViewBtn.classList.add('active');
+                }
+                localStorage.setItem('viewMode', mode);
             }
 
             const savedView = localStorage.getItem('viewMode') || 'grid';
-            if (savedView === 'list') {
-                setListView();
-            } else {
-                setGridView();
-            }
+            setView(savedView === 'list' ? 'list' : 'grid');
 
-            gridViewBtn.addEventListener('click', setGridView);
-            listViewBtn.addEventListener('click', setListView);
+            gridViewBtn.addEventListener('click', () => setView('grid'));
+            listViewBtn.addEventListener('click', () => setView('list'));
 
             /* ---------------- INITIAL STATE ---------------- */
             refreshFavButtons();
