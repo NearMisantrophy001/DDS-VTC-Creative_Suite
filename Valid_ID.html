@@ -614,8 +614,9 @@
     /* ============ WORKSPACE ============ */
     .workspace {
         flex: 1; display: flex; justify-content: center; align-items: flex-start;
-        overflow: hidden; padding: 24px 40px 70px; position: relative;
+        overflow: auto; padding: 24px 40px 70px; position: relative;
         transition: background-color .3s;
+        overscroll-behavior: contain;
     }
     .workspace.dragover-canvas {
         background-color: rgba(37,99,235,.06);
@@ -643,9 +644,14 @@
         position: relative;
         overflow: hidden;
         display: none;
+        flex: 0 0 auto;
         box-shadow: 0 10px 30px rgba(0,0,0,.3), 0 0 0 1px rgba(0,0,0,.1);
     }
-    .paper-page.active-page { display: block; }
+    .paper-page.active-page {
+        display: block;
+        outline: 2px solid rgba(37,99,235,.72);
+        outline-offset: 3px;
+    }
     [data-theme="dark"] .paper-page {
         box-shadow: 0 10px 40px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.06);
     }
@@ -906,6 +912,10 @@
     .crop-mini-reset svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
     .crop-mini-reset:hover { color:var(--brand-blue); background:var(--bg-workspace); }
     .crop-settings select { color:var(--text-main); }
+    .crop-rotation-options { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
+    .crop-rotation-options button { min-height:32px; border:1px solid var(--border); border-radius:6px; background:var(--bg-workspace); color:var(--text-muted); font-size:.75rem; font-weight:700; cursor:pointer; transition:background .15s,border-color .15s,color .15s; }
+    .crop-rotation-options button:hover { border-color:var(--primary); color:var(--text-main); }
+    .crop-rotation-options button.active { background:var(--primary); border-color:var(--primary); color:#fff; }
 
     .crop-footer { display:flex; justify-content:flex-end; align-items:center; gap:12px; flex-shrink:0; padding-top:2px; }
     .crop-footer .btn { min-height:40px; padding-left:14px; padding-right:14px; }
@@ -1012,7 +1022,7 @@
         }
         #previewWrapper { width: auto !important; height: auto !important; position: static !important; display: block !important; }
         #captureArea { transform: none !important; position: static !important; display: block !important; }
-        .pages-wrapper { display: block !important; }
+        .pages-wrapper { display: block !important; gap: 0 !important; }
         .paper-page {
             display: block !important;
             width: var(--paper-width) !important;
@@ -1024,39 +1034,13 @@
         }
         .paper-page:last-child { page-break-after: auto !important; break-after: auto !important; }
         .safe-zone-overlay, .paper-label { display: none !important; }
+        .paper-page.active-page { outline: none !important; }
     }
 
     #imageQueue.drop-files-target { outline:2px dashed var(--brand-blue); outline-offset:4px; background:rgba(37,99,235,.06); border-radius:8px; }
     .layer-group-header.drop-files-target, .layer-item.drop-files-target { outline:2px dashed var(--brand-blue); outline-offset:2px; background:rgba(37,99,235,.08); }
 
-    /* Group Size Lock / Unlock styling on group header */
-    .size-lock-btn {
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--text-muted);
-        border-radius: 4px;
-        width: 24px;
-        height: 24px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all .15s ease;
-        flex-shrink: 0;
-    }
-    .size-lock-btn:hover {
-        background: var(--hover-bg);
-        color: var(--text-main);
-    }
-    .size-lock-btn.is-locked {
-        color: var(--brand-blue);
-        border-color: rgba(37,99,235,.4);
-        background: rgba(37,99,235,.12);
-    }
-    .size-lock-btn svg {
-        width: 13px;
-        height: 13px;
-    }
+    /* Layer size badge styling */
 
     .layer-size-badge {
         font-size: .58rem;
@@ -1084,16 +1068,6 @@
     }
     .preset-control-row .select-wrapper select {
         width: 100%;
-    }
-
-    /* When a group's sizes are LOCKED and an individual child layer is selected,
-       disable preset & dimension inputs visually to clarify they are locked to the group. */
-    body.group-child-size-locked #tileLayoutControls .dimension-input-group,
-    body.group-child-size-locked #tileLayoutControls #presetSelect,
-    body.group-child-size-locked #matchRatioControl {
-        opacity: 0.48;
-        pointer-events: none;
-        user-select: none;
     }
 
     /* Lock group-level sheet settings when a single child layer inside a group is selected,
@@ -1129,6 +1103,71 @@
     .printer-option .select-wrapper select { width: 100%; min-width: 0; }
     .margin-value-wrapper { display: flex; align-items: center; gap: 5px; min-height: 34px; }
     .margin-value-wrapper input { width: 100%; min-width: 0; height: 30px; text-align: center; }
+    .printer-option-wide { grid-column: 1 / -1; }
+    .page-padding-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+        width: 100%;
+    }
+    .page-padding-control {
+        display:grid; grid-template-columns:18px minmax(0,1fr); align-items:center;
+        gap:6px; min-width:0; padding:0;
+    }
+    .page-padding-control .padding-icon {
+        width:16px; height:16px; display:block; color:var(--text-muted);
+        justify-self:center; pointer-events:none;
+    }
+    .page-padding-control input {
+        width:100%; min-width:0; height:30px; padding:2px 4px;
+        border:1px solid var(--border); border-radius:4px;
+        background:var(--input-bg); color:var(--text-main);
+        text-align:center; font-size:.76rem; font-weight:600; outline:none;
+    }
+    .page-padding-control input:focus { border-color:var(--brand-blue); }
+    .page-padding-setting { display:flex; flex-direction:column; gap:8px; margin: 2px 0 14px; }
+    #acc-adjust-layout .adjust-layout-fit-row {
+        display:grid; grid-template-columns:minmax(0, 1fr) 150px; align-items:center;
+        column-gap:10px; width:100%; margin:0 0 14px !important;
+    }
+    #acc-adjust-layout .adjust-layout-fit-row .static-label { color:var(--text-main); }
+    #acc-adjust-layout .adjust-layout-fit-row .fit-control-group { width:100%; min-width:0; height:30px; }
+    #acc-adjust-layout .adjust-layout-fit-row .fit-control-group button { height:100%; }
+    .auto-layout-preset-row, .auto-layout-dimension-row {
+        display:grid; grid-template-columns:minmax(0, 1fr) 150px; align-items:center;
+        column-gap:10px; margin-bottom:14px; min-width:0;
+    }
+    .auto-layout-preset-row { margin-top:14px; }
+    .auto-layout-preset-row .setting-label, .auto-layout-dimension-row > .setting-label { color:var(--text-main); }
+    .auto-layout-preset-row .select-wrapper { width:100%; min-width:0; }
+    .auto-layout-preset-row select { width:100%; height:30px; color:var(--text-muted) !important; }
+    #validIdDimensionPreset, #validIdDimensionPreset option { color:var(--text-muted) !important; }
+    .valid-id-auto-layout-toggle[hidden] { display:none !important; }
+    .valid-id-auto-layout-toggle {
+        display:flex; align-items:center; gap:8px; width:100%; min-height:34px;
+        padding:7px 9px; border:1px solid var(--border); border-radius:5px;
+        background:var(--bg-workspace); color:var(--text-main); cursor:pointer;
+        font-size:.75rem; font-weight:600; user-select:none;
+    }
+    .valid-id-auto-layout-toggle:hover { background:var(--hover-bg); }
+    .valid-id-auto-layout-toggle input {
+        width:14px; height:14px; margin:0; accent-color:var(--brand-blue); flex:0 0 auto;
+    }
+    .auto-layout-dimension-fields { display:flex; align-items:center; gap:5px; width:150px; min-width:0; }
+    .auto-layout-dimension-fields label { display:flex; align-items:center; gap:4px; min-width:0; flex:1 1 0; }
+    .auto-layout-dimension-fields label span { color:var(--text-muted); font-size:.68rem; font-weight:700; }
+    .auto-layout-dimension-fields input {
+        width:100%; min-width:0; height:30px; padding:2px 4px; text-align:center;
+        border:1px solid var(--border); border-radius:4px; background:var(--input-bg);
+        color:var(--text-main); font-size:.75rem; font-weight:600; outline:none;
+        -moz-appearance:textfield;
+    }
+    .auto-layout-dimension-fields input::-webkit-outer-spin-button,
+    .auto-layout-dimension-fields input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+    .auto-layout-dimension-fields input:focus { border-color:var(--brand-blue); }
+    .auto-layout-dimension-times { color:var(--text-muted); font-size:.72rem; font-weight:700; }
+    .legacy-valid-id-controls { display:none !important; }
+    .alignment-group button:disabled { opacity:.32; cursor:not-allowed; pointer-events:none; }
 
     /* Consistent two-column alignment for all Adjust Layout controls */
     #acc-adjust .details-content .input-group,
@@ -1312,9 +1351,12 @@
     }
     .valid-id-card-media {
         position:absolute; inset:0; overflow:hidden; background:#fff;
+        border-radius:var(--valid-id-radius, 0px);
+        -webkit-mask-image:-webkit-radial-gradient(white, black);
     }
     .valid-id-card-media img {
         display:block; width:100%; height:100%; object-fit:cover; pointer-events:none;
+        border-radius:var(--valid-id-radius, 0px);
         -webkit-user-drag:none;
     }
     .valid-id-card-border {
@@ -1344,21 +1386,102 @@
     }
 
 
-    .valid-id-size-card { display:flex; flex-direction:column; align-items:stretch; gap:10px; }
-    .valid-id-size-main { display:flex; align-items:center; gap:10px; min-width:0; }
+    .page-layout-toggle-only > summary { display:none !important; }
+    .page-layout-toggle-only .details-content { padding-top:0; padding-bottom:0; }
     .valid-id-auto-toggle { display:flex; align-items:center; gap:8px; padding:9px 8px 2px; border-top:1px solid var(--border); cursor:pointer; user-select:none; }
     .valid-id-auto-toggle input { width:15px; height:15px; accent-color:var(--primary); flex:0 0 auto; }
     .valid-id-auto-toggle span { display:flex; flex-direction:column; gap:2px; min-width:0; }
     .valid-id-auto-toggle strong { color:var(--text-main); font-size:.72rem; }
     .valid-id-auto-toggle small { color:var(--text-muted); font-size:.63rem; }
+    .adjust-layout-divider {
+        margin: 10px 0;
+        border: 0;
+        border-top: 1px solid var(--border);
+    }
+    .layer-link-btn {
+        width:22px; height:22px; flex:0 0 22px; padding:0;
+        display:inline-flex; align-items:center; justify-content:center;
+        border:1px solid var(--border); border-radius:4px;
+        color:var(--text-muted); background:transparent; cursor:pointer;
+        transition:background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .layer-link-btn[hidden] { display:none !important; }
+    .layer-link-btn:hover { color:var(--text-main); background:var(--hover-bg); }
+    .layer-link-btn.is-linked { color:var(--primary); border-color:rgba(37,99,235,.45); background:rgba(37,99,235,.12); }
+    .layer-link-btn svg { width:14px; height:14px; display:block; }
+    .layer-link-indicator { display:inline-flex; align-items:center; justify-content:center; flex:0 0 14px; width:14px; height:18px; color:var(--primary); opacity:.9; }
+    .layer-link-indicator svg { width:13px; height:13px; display:block; }
+    .valid-id-zone-guide, .valid-id-zone-label { display:none !important; }
     .page-layer-heading { display:flex; align-items:center; justify-content:space-between; padding:10px 3px 5px; margin-top:3px; border-bottom:1px solid var(--border); color:var(--text-muted); font-size:.61rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
     .page-layer-heading .page-tag { color:var(--primary); font-size:.59rem; letter-spacing:.03em; }
-    .valid-id-card.is-auto-layout { cursor:default; }
-    .valid-id-card.is-auto-layout:active { cursor:default; }
 
+    .valid-id-zone-guide, .valid-id-zone-label { display:none !important; }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+
+/* =========================================================
+   AUTO LAYOUT GROUP SELECTION + DEFAULT-ON MIGRATION
+   The option is visible only while a complete grouped page is selected.
+   When enabled, groupImages() applies the photocopy layout to the new group.
+   ========================================================= */
+function isValidIdGroupSelectedForAutoLayout() {
+    const selected = selectedImageIds instanceof Set ? selectedImageIds : new Set();
+    const group = (selectedGroupPageId
+        ? pages.find(page => page.id === selectedGroupPageId && Array.isArray(page.imageIds) && page.imageIds.length > 1)
+        : null) || pages.find(page => Array.isArray(page.imageIds) && page.imageIds.length > 1 &&
+            page.imageIds.length === selected.size && page.imageIds.every(id => selected.has(id)));
+    return Boolean(group && selected.size === group.imageIds.length &&
+        group.imageIds.every(id => selected.has(id)));
+}
+
+function syncAutoLayoutToggleVisibility() {
+    const label = document.querySelector('.valid-id-auto-layout-toggle');
+    const checkbox = document.getElementById('autoLayoutToggle');
+    const show = isValidIdGroupSelectedForAutoLayout();
+    if (label) {
+        label.hidden = !show;
+        label.setAttribute('aria-hidden', String(!show));
+    }
+    if (checkbox) checkbox.checked = Boolean(autoLayoutEnabled);
+}
+
+// Keep the existing PrintGrid-compatible Group/Ungroup button behavior and
+// synchronize the Auto Layout option whenever the layer tree is refreshed.
+function updateGroupButton() {
+    const button = document.getElementById('groupLayersBtn');
+    if (button) {
+        const selected = new Set([...selectedImageIds].filter(id =>
+            uploadedImages.some(image => image.id === id)));
+        const selectedImages = [...selected].map(id =>
+            uploadedImages.find(image => image.id === id)).filter(Boolean);
+        const selectedIdCount = getValidIdIdCountFromImages(selectedImages);
+        const selectedGroup = pages.find(page => {
+            const ids = page.imageIds || [];
+            return ids.length > 1 && ids.length === selected.size &&
+                ids.every(id => selected.has(id));
+        });
+        const partialPage = pages.some(page => {
+            const ids = (page.imageIds || [page.imageId]).filter(Boolean);
+            const amount = ids.filter(id => selected.has(id)).length;
+            return amount > 0 && amount < ids.length;
+        });
+        const isUngroup = Boolean(selectedGroup);
+        const overLimit = selected.size > VALID_ID_MAX_LAYERS_PER_PAGE ||
+            selectedIdCount > VALID_ID_MAX_PER_PAGE;
+        button.style.display = uploadedImages.length >= 2 ? 'inline-flex' : 'none';
+        button.textContent = isUngroup ? 'Ungroup' : 'Group';
+        button.title = isUngroup
+            ? 'Separate each layer onto its own page (Ctrl+Shift+G)'
+            : `Select layers from complete pages to group them (max ${VALID_ID_MAX_PER_PAGE} IDs / ${VALID_ID_MAX_LAYERS_PER_PAGE} layers; Front + Back = 1 ID)`;
+        button.disabled = isUngroup ? false :
+            (selected.size < 2 || overLimit || partialPage);
+    }
+    syncAutoLayoutToggleVisibility();
+}
+
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body data-theme="dark">
 
@@ -1404,7 +1527,8 @@
             <div class="layers-heading">
                 <div class="layers-title" title="Select a layer · F/B chooses Front or Back · drag a card to position · Ctrl+A selects all · Ctrl+D duplicates · E edits · Q toggles round border · Delete removes">ID Layers <span id="layerCount">0</span></div>
                 <div class="layers-actions" style="display:flex;align-items:center;gap:10px;">
-                    <button class="text-btn" id="groupLayersBtn" type="button" onclick="toggleGroupSelection()" title="Select two or more layers to group them onto Page 1" disabled>Group</button>
+                    <button class="text-btn" id="groupLayersBtn" type="button" onclick="toggleGroupSelection()" title="Select two or more layers to group them onto one sheet" disabled>Group</button>
+                    <button class="layer-link-btn" id="linkLayersBtn" type="button" onclick="toggleSelectedLayerLinks()" title="Select two or more layers to link" aria-label="Link selected layers" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3.54-3.54a5 5 0 0 0-7.07-7.07l-2.03 2.02"></path><path d="M14 11a5 5 0 0 0-7.07 0l-3.54 3.54a5 5 0 0 0 7.07 7.07l2.03-2.02"></path></svg></button>
                     <button class="text-btn" id="clearAllBtn" type="button" onclick="clearAll()">Clear all</button>
                 </div>
             </div>
@@ -1460,25 +1584,19 @@
             <summary>Printer</summary>
             <div class="details-content">
                 <div class="printer-options-grid">
-                    <div class="printer-option">
+                    <div class="printer-option printer-option-wide">
                         <span class="setting-label">Paper Size</span>
                         <div class="select-wrapper full">
                             <select id="paperSelect" onchange="setPaperSize(this.value)">
-                                <option value="A4">A4</option>
-                                <option value="Letter">Letter</option>
-                                <option value="Legal">Legal</option>
-                                <option value="5R">5R</option>
+                                <option value="A4">A4 · 8.27 × 11.69 in</option>
+                                <option value="Letter">Letter · 8.5 × 11 in</option>
+                                <option value="Legal">Legal · 8.5 × 13 in</option>
+                                <option value="5R">5R · 5 × 7 in</option>
                             </select>
                         </div>
                     </div>
-                    <div class="printer-option">
-                        <span class="setting-label">Page Margin</span>
-                        <div class="setting-value-wrapper margin-value-wrapper">
-                            <input type="number" id="numMargin" step="0.01" min="0" max="1.2" value="0.00" oninput="updateSettings()" aria-label="Page margin">
-                            <span>in</span>
-                        </div>
-                    </div>
                 </div>
+                <input type="hidden" id="numMargin" value="0">
                 <label class="toggle-label printer-check">
                     <input type="checkbox" id="safeZoneToggle" checked onchange="toggleSafeZone()">
                     Show printer safe zone
@@ -1543,6 +1661,7 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="compact-setting-row">
                     <span class="setting-label">Spacing</span>
                     <div class="spacing-control-group" aria-label="Card spacing">
@@ -1622,30 +1741,62 @@
         </details>
 
         <!-- ADJUST LAYOUT -->
-        <details open id="acc-adjust">
-            <summary>Valid ID Card</summary>
+        <details open id="acc-adjust-layout">
+            <summary>Adjust Layout</summary>
             <div class="details-content">
-                <div class="valid-id-size-card">
-                    <div class="valid-id-size-main">
-                        <div class="valid-id-size-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="5" width="19" height="14" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M4.5 16c.8-2 2-3 3.5-3s2.7 1 3.5 3M14 9h5M14 12h5M14 15h3"/></svg></div>
-                        <div class="valid-id-size-copy"><strong>Philippine Valid ID</strong><span>3.375 × 2.125 inches · Fixed card size</span></div>
-                    </div>
-                    <label class="valid-id-auto-toggle" title="Automatically arrange all cards on their assigned Front or Back side">
-                        <input type="checkbox" id="autoLayoutToggle" onchange="setValidIdAutoLayout(this.checked)">
-                        <span><strong>Auto layout</strong><small>Arrange cards automatically</small></span>
-                    </label>
-                </div>
-                <div class="valid-id-help">Auto layout is off by default. Leave it off to freely position each card, or turn it on to arrange cards automatically.</div>
-
-                   <div class="input-group fit-setting-row" style="margin-bottom:12px;">
+                <div class="input-group adjust-layout-fit-row" style="margin-bottom:0;">
                     <div class="static-label">Image</div>
                     <div class="segmented-control fit-control-group">
                         <button id="fitCoverBtn" type="button" class="active" onclick="setFit('cover')" title="Fill the tile (may crop)">Fill</button>
                         <button id="fitContainBtn" type="button" onclick="setFit('contain')" title="Fit inside the tile (no crop)">Fit</button>
                     </div>
                 </div>
-
-                <div id="tileLayoutControls">
+                <div class="auto-layout-preset-row">
+                    <label class="setting-label" for="validIdDimensionPreset">Preset</label>
+                    <div class="select-wrapper full">
+                        <select id="validIdDimensionPreset" aria-label="ID dimension preset" onchange="onValidIdDimensionPresetChange(this.value)">
+                            <option value="phil-id" selected>Phil ID</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="auto-layout-dimension-row">
+                    <span class="setting-label">Dimension (in)</span>
+                    <div class="auto-layout-dimension-fields">
+                        <label><span>W</span><input type="number" id="validIdCardWidth" min="0.39" max="8.66" step="0.01" value="3.375" oninput="markValidIdDimensionCustom()" onchange="updateValidIdDimensions()" aria-label="ID width in inches"></label>
+                        <span class="auto-layout-dimension-times">×</span>
+                        <label><span>H</span><input type="number" id="validIdCardHeight" min="0.39" max="11.81" step="0.01" value="2.125" oninput="markValidIdDimensionCustom()" onchange="updateValidIdDimensions()" aria-label="ID height in inches"></label>
+                    </div>
+                </div>
+                <hr class="divider adjust-layout-divider">
+                <div class="page-padding-setting">
+                    <span class="setting-label">Padding</span>
+                    <div class="page-padding-grid" aria-label="Page padding in pixels">
+                        <label class="page-padding-control" for="numPaddingT" title="Top padding">
+                            <svg class="padding-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M12 19V8m-4 4 4-4 4 4"/></svg>
+                            <input type="number" id="numPaddingT" step="1" min="0" max="227" value="11" oninput="updateSettings()" aria-label="Top padding in pixels">
+                        </label>
+                        <label class="page-padding-control" for="numPaddingB" title="Bottom padding">
+                            <svg class="padding-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16M12 5v11m-4-4 4 4 4-4"/></svg>
+                            <input type="number" id="numPaddingB" step="1" min="0" max="227" value="11" oninput="updateSettings()" aria-label="Bottom padding in pixels">
+                        </label>
+                        <label class="page-padding-control" for="numPaddingL" title="Left padding">
+                            <svg class="padding-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4v16M19 12H8m4-4-4 4 4 4"/></svg>
+                            <input type="number" id="numPaddingL" step="1" min="0" max="227" value="11" oninput="updateSettings()" aria-label="Left padding in pixels">
+                        </label>
+                        <label class="page-padding-control" for="numPaddingR" title="Right padding">
+                            <svg class="padding-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 4v16M5 12h11m-4-4 4 4-4 4"/></svg>
+                            <input type="number" id="numPaddingR" step="1" min="0" max="227" value="11" oninput="updateSettings()" aria-label="Right padding in pixels">
+                        </label>
+                    </div>
+                </div>
+                <hr class="divider adjust-layout-divider">
+                <label class="valid-id-auto-layout-toggle" for="autoLayoutToggle" hidden title="Automatically arrange a group whenever you create it">
+                    <input type="checkbox" id="autoLayoutToggle" onchange="setValidIdAutoLayout(this.checked)">
+                    <span>Auto Layout</span>
+                </label>
+                <div class="legacy-valid-id-controls" hidden>
+                                    <div id="tileLayoutControls">
                     <div class="input-group" style="margin-bottom:12px;">
                         <div class="static-label">Preset</div>
                         <div class="preset-control-row" style="width:150px;">
@@ -1708,19 +1859,17 @@
                 <div id="matchRatioControl" style="margin-top:0;">
                     <button class="text-btn match-ratio-btn" onclick="matchImageRatio()" title="Set the tile height so the tile ratio matches the image">⤢ Match tile ratio to image</button>
                 </div>
-            </div>
-        </details>
-
-        <!-- LAYOUT INFO -->
-        <details open id="acc-info">
-            <summary>Summary</summary>
-            <div class="details-content">
-                <div class="info-card">
-                    <div class="info-main" id="layoutInfo">—</div>
-                    <div class="info-sub" id="layoutSub">—</div>
                 </div>
             </div>
         </details>
+
+
+
+        <!-- Keep layout status targets available to the script without showing a Summary panel. -->
+        <div hidden aria-hidden="true">
+            <div id="layoutInfo">—</div>
+            <div id="layoutSub">—</div>
+        </div>
     </div>
 
     <div class="sidebar-footer">
@@ -1780,6 +1929,15 @@
                 </div>
             </div>
             <div class="crop-settings">
+                <div class="crop-rotation-setting">
+                    <label class="crop-setting-label">Rotation</label>
+                    <div class="crop-rotation-options" role="group" aria-label="Image rotation">
+                        <button type="button" data-crop-rotation="0" onclick="setCropRotation(0)" aria-pressed="true">0°</button>
+                        <button type="button" data-crop-rotation="90" onclick="setCropRotation(90)" aria-pressed="false">90°</button>
+                        <button type="button" data-crop-rotation="180" onclick="setCropRotation(180)" aria-pressed="false">180°</button>
+                        <button type="button" data-crop-rotation="270" onclick="setCropRotation(270)" aria-pressed="false">270°</button>
+                    </div>
+                </div>
                 <div>
                     <label class="crop-setting-label" for="cropAspectSelect">Crop mode</label>
                     <select id="cropAspectSelect" class="crop-mode-select" onchange="setCropAspect(this.value)">
@@ -1970,8 +2128,11 @@ const DEFAULT_CONFIG = {
     tileW: 1.5, tileH: 1.5,
     gapH: 5 * PX_TO_MM, gapV: 5 * PX_TO_MM,
     borderW: 0, borderR: 0, borderStyle: 'solid', borderPosition: 'inside', borderC: '#E5E7EB',
-    margin: 0,
+    margin: 3,
+    paddingTop: 3, paddingBottom: 3, paddingLeft: 3, paddingRight: 3,
+    validIdCardWidthMM: 85.725, validIdCardHeightMM: 53.975, validIdDimensionPreset: 'phil-id',
     fit: 'cover',
+    autoLayoutOnGroup: true,
     alignH: 'center',
     alignV: 'center',
     align: 'center',
@@ -2120,6 +2281,7 @@ function reconcileSelectionAndUI() {
         syncQuantityControl(activeImageId);
         syncSpacingBorderControls(activeImageId);
         syncFitControls(activeImageId);
+        syncAlignControls();
         renderImageQueue();
         renderCanvas();
     } catch (err) {
@@ -2130,12 +2292,10 @@ function reconcileSelectionAndUI() {
 /* =========================================================
    GROUP SIZE LOCK HELPERS
    ========================================================= */
-const lockClosedSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`;
-const lockOpenSvg   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
 
 function isGroupSizeLocked(pg) {
-    if (!pg || (pg.imageIds || []).length <= 1) return true;
-    return pg.lockSize !== false;
+    // Valid ID groups do not lock member dimensions.
+    return false;
 }
 
 function getContextGroupPage() {
@@ -2150,42 +2310,13 @@ function getContextGroupPage() {
     return null;
 }
 
-function toggleGroupSizeLock(pageId) {
-    const pg = pages.find(p => p.id === pageId && (p.imageIds || []).length > 1);
-    if (!pg) return;
-    const currentlyLocked = isGroupSizeLocked(pg);
-    if (currentlyLocked) {
-        pg.lockSize = false;
-    } else {
-        pg.lockSize = true;
-        const ids = (pg.imageIds || []).filter(id => uploadedImages.some(img => img.id === id));
-        const refId = (activeImageId && ids.includes(activeImageId)) ? activeImageId : ids[0];
-        if (refId) {
-            const refSize = getImageTileSize(refId);
-            ids.forEach(id => {
-                const obj = uploadedImages.find(img => img.id === id);
-                if (obj) {
-                    obj.tileW = refSize.w;
-                    obj.tileH = refSize.h;
-                }
-            });
-            syncTileControls(refId);
-        }
-    }
-    syncQuantityControl(activeImageId);
-    renderImageQueue();
-    renderCanvas();
+function toggleGroupSizeLock() {
+    // Removed: group members are always independently editable.
 }
 
 function syncGroupSizeLockUI() {
-    const pg = getContextGroupPage();
-    const inGroup = !!pg;
-    document.body.classList.toggle('in-group-context', inGroup);
-
-    const isChildSelected = inGroup && !selectedGroupPageId && selectedImageIds.size <= 1;
-    const locked = inGroup ? isGroupSizeLocked(pg) : false;
-
-    document.body.classList.toggle('group-child-size-locked', isChildSelected && locked);
+    document.body.classList.toggle('in-group-context', !!getContextGroupPage());
+    document.body.classList.remove('group-child-size-locked');
 }
 
 function applyTileSizeToSelection(w, h) {
@@ -2328,12 +2459,14 @@ function syncSpacingLockState(imageId = activeImageId) {
     const borderPositionSelect = document.getElementById('borderPositionSelect');
     const hexInput = document.getElementById('hexBorderC');
     const colorInput = document.getElementById('setBorderC');
-    if (bwInput) bwInput.disabled = groupSelected;
-    if (brInput) brInput.disabled = groupSelected;
-    if (borderStyleSelect) borderStyleSelect.disabled = groupSelected;
-    if (borderPositionSelect) borderPositionSelect.disabled = groupSelected;
-    if (hexInput) hexInput.disabled = groupSelected;
-    if (colorInput) colorInput.disabled = groupSelected;
+    // Group selection is an object selection, not a lock state. Border controls
+    // remain enabled and update the shared group style for every member.
+    if (bwInput) bwInput.disabled = false;
+    if (brInput) brInput.disabled = false;
+    if (borderStyleSelect) borderStyleSelect.disabled = false;
+    if (borderPositionSelect) borderPositionSelect.disabled = false;
+    if (hexInput) hexInput.disabled = false;
+    if (colorInput) colorInput.disabled = false;
 
     const spacingGroup = gapHInput?.closest('.spacing-control-group');
     if (spacingGroup) spacingGroup.classList.toggle('spacing-locked', locked);
@@ -2422,7 +2555,7 @@ function fitObjectFit(imageId = activeImageId) {
 function getLayerStyle(imageId = activeImageId) {
     const cached = renderStyleByImageId.get(imageId);
     if (cached) return cached;
-    const pageForImage = renderPageByImageId.get(imageId) || pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
+    const pageForImage = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId)) || renderPageByImageId.get(imageId);
     const isGroupedMember = !!(pageForImage && (pageForImage.imageIds || []).length > 1);
     const groupStyle = isGroupedMember ? (pageForImage.styleOverride || {}) : {};
     const imgObj = renderImageById.get(imageId) || uploadedImages.find(i => i.id === imageId);
@@ -2436,13 +2569,25 @@ function getLayerStyle(imageId = activeImageId) {
         gapV: isGroupedMember
             ? (Number.isFinite(groupStyle.gapV) ? groupStyle.gapV : appConfig.gapV)
             : (Number.isFinite(layerOverride.gapV) ? layerOverride.gapV : (Number.isFinite(imgObj.gapV) ? imgObj.gapV : appConfig.gapV)),
-        borderW: Number.isFinite(layerOverride.borderW) ? layerOverride.borderW : (Number.isFinite(imgObj.borderW) ? imgObj.borderW : appConfig.borderW),
-        borderR: Number.isFinite(layerOverride.borderR) ? layerOverride.borderR : (Number.isFinite(imgObj.borderR) ? imgObj.borderR : appConfig.borderR),
-        borderStyle: (layerOverride.borderStyle === 'solid' || layerOverride.borderStyle === 'dotted')
-            ? layerOverride.borderStyle
-            : ((imgObj.borderStyle === 'solid' || imgObj.borderStyle === 'dotted') ? imgObj.borderStyle : appConfig.borderStyle),
-        borderPosition: layerOverride.borderPosition === 'inside' || imgObj.borderPosition === 'inside' ? 'inside' : (layerOverride.borderPosition === 'outside' || imgObj.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside')),
-        borderC: normalizeHexColor(layerOverride.borderC) || normalizeHexColor(imgObj.borderC) || appConfig.borderC
+        // A grouped page behaves as one editable object: spacing and border
+        // values come from the group and are rendered consistently on every child.
+        borderW: isGroupedMember
+            ? (Number.isFinite(groupStyle.borderW) ? groupStyle.borderW : appConfig.borderW)
+            : (Number.isFinite(layerOverride.borderW) ? layerOverride.borderW : (Number.isFinite(imgObj.borderW) ? imgObj.borderW : appConfig.borderW)),
+        borderR: isGroupedMember
+            ? (Number.isFinite(groupStyle.borderR) ? groupStyle.borderR : appConfig.borderR)
+            : (Number.isFinite(layerOverride.borderR) ? layerOverride.borderR : (Number.isFinite(imgObj.borderR) ? imgObj.borderR : appConfig.borderR)),
+        borderStyle: isGroupedMember
+            ? (groupStyle.borderStyle === 'dotted' ? 'dotted' : (groupStyle.borderStyle === 'solid' ? 'solid' : appConfig.borderStyle))
+            : ((layerOverride.borderStyle === 'solid' || layerOverride.borderStyle === 'dotted')
+                ? layerOverride.borderStyle
+                : ((imgObj.borderStyle === 'solid' || imgObj.borderStyle === 'dotted') ? imgObj.borderStyle : appConfig.borderStyle)),
+        borderPosition: isGroupedMember
+            ? (groupStyle.borderPosition === 'inside' ? 'inside' : (groupStyle.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside')))
+            : (layerOverride.borderPosition === 'inside' || imgObj.borderPosition === 'inside' ? 'inside' : (layerOverride.borderPosition === 'outside' || imgObj.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside'))),
+        borderC: isGroupedMember
+            ? (normalizeHexColor(groupStyle.borderC) || appConfig.borderC)
+            : (normalizeHexColor(layerOverride.borderC) || normalizeHexColor(imgObj.borderC) || appConfig.borderC)
     };
     renderStyleByImageId.set(imageId, resolved);
     return resolved;
@@ -2529,7 +2674,16 @@ function saveConfig() {
 function loadConfig() {
     try {
         const raw = localStorage.getItem('printgrid_config');
-        if (raw) appConfig = { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
+        if (raw) {
+            const stored = JSON.parse(raw);
+            appConfig = { ...DEFAULT_CONFIG, ...stored };
+            // Migrate older single-margin settings into four independent edges.
+            const legacyMargin = Number.isFinite(Number(stored.margin)) ? Number(stored.margin) : DEFAULT_CONFIG.margin;
+            ['Top', 'Bottom', 'Left', 'Right'].forEach(side => {
+                const key = `padding${side}`;
+                if (!Object.prototype.hasOwnProperty.call(stored, key)) appConfig[key] = legacyMargin;
+            });
+        }
         appConfig.gapH = DEFAULT_CONFIG.gapH;
         appConfig.gapV = DEFAULT_CONFIG.gapV;
         appConfig.borderW = DEFAULT_CONFIG.borderW;
@@ -2538,7 +2692,12 @@ function loadConfig() {
         appConfig.borderC = DEFAULT_CONFIG.borderC;
     } catch (e) { appConfig = { ...DEFAULT_CONFIG }; }
 
+    syncValidIdDimensionsFromConfig();
     currentPaper = paperSizes[appConfig.paper] ? appConfig.paper : 'A4';
+    autoLayoutEnabled = Boolean(appConfig.autoLayoutOnGroup);
+    const autoLayoutToggle = document.getElementById('autoLayoutToggle');
+    if (autoLayoutToggle) autoLayoutToggle.checked = autoLayoutEnabled;
+    syncValidIdDimensionControls();
 
     document.getElementById('tileW').value = appConfig.tileW;
     document.getElementById('tileH').value = appConfig.tileH;
@@ -2554,7 +2713,23 @@ function loadConfig() {
 
     applyBorderCssVars();
 
-    document.getElementById('numMargin').value = (appConfig.margin / 25.4).toFixed(2);
+    const safeMinMM = document.getElementById('safeZoneToggle')?.checked ? 3 : 0;
+    const paddingValuesMM = {
+        paddingTop: Math.max(safeMinMM, Number(appConfig.paddingTop) || 0),
+        paddingBottom: Math.max(safeMinMM, Number(appConfig.paddingBottom) || 0),
+        paddingLeft: Math.max(safeMinMM, Number(appConfig.paddingLeft) || 0),
+        paddingRight: Math.max(safeMinMM, Number(appConfig.paddingRight) || 0)
+    };
+    Object.entries(paddingValuesMM).forEach(([key, valueMM]) => {
+        appConfig[key] = Number(valueMM.toFixed(3));
+        const inputId = ({ paddingTop:'numPaddingT', paddingBottom:'numPaddingB', paddingLeft:'numPaddingL', paddingRight:'numPaddingR' })[key];
+        const input = document.getElementById(inputId);
+        if (input) input.value = String(Math.round(valueMM * MM_TO_PX));
+    });
+    // Legacy uniform margin remains in mm for older layout helpers.
+    appConfig.margin = Math.max(paddingValuesMM.paddingTop, paddingValuesMM.paddingBottom, paddingValuesMM.paddingLeft, paddingValuesMM.paddingRight);
+    const legacyMarginInput = document.getElementById('numMargin');
+    if (legacyMarginInput) legacyMarginInput.value = (appConfig.margin / 25.4).toFixed(2);
 
     if (appConfig.fit !== 'cover' && appConfig.fit !== 'contain') appConfig.fit = 'cover';
     if (!['left', 'center', 'right'].includes(appConfig.alignH)) appConfig.alignH = 'center';
@@ -2570,7 +2745,7 @@ function loadConfig() {
    UI PREFERENCES (persisted independently from print settings)
    ========================================================= */
 const UI_PREFS_KEY = 'printgrid_ui_preferences';
-const ACCORDION_IDS = ['acc-tile', 'acc-adjust', 'acc-paper', 'acc-spacing', 'acc-info'];
+const ACCORDION_IDS = ['acc-tile', 'acc-adjust-layout', 'acc-paper', 'acc-spacing', 'acc-info'];
 
 function loadUIPreferences() {
     let prefs = {};
@@ -2770,6 +2945,18 @@ function updateSettings() {
 
     const groupPage = getSelectedGroupPage();
     const activeImg = getActiveImage();
+    const previousPadding = {
+        top: Math.max(0, Number(appConfig.paddingTop) || 0),
+        bottom: Math.max(0, Number(appConfig.paddingBottom) || 0),
+        left: Math.max(0, Number(appConfig.paddingLeft) || 0),
+        right: Math.max(0, Number(appConfig.paddingRight) || 0)
+    };
+    const previousGroupGapH = groupPage
+        ? (Number.isFinite(groupPage.styleOverride?.gapH) ? groupPage.styleOverride.gapH : appConfig.gapH)
+        : null;
+    const previousGroupGapV = groupPage
+        ? (Number.isFinite(groupPage.styleOverride?.gapV) ? groupPage.styleOverride.gapV : appConfig.gapV)
+        : null;
     const borderTargets = getSelectedBorderTargetImages();
     const isIndividualGroupLayer = !groupPage && borderTargets.length === 1 && isIndividualGroupLayerSelected(borderTargets[0]?.id);
 
@@ -2783,6 +2970,14 @@ function updateSettings() {
             borderPosition: nextBorderPosition,
             borderC: nextBC
         };
+        const groupSpacingChanged = Math.abs((previousGroupGapH ?? nextGapH) - nextGapH) > 0.0001 ||
+            Math.abs((previousGroupGapV ?? nextGapV) - nextGapV) > 0.0001;
+        if (groupSpacingChanged) {
+            (groupPage.imageIds || []).forEach(id => {
+                const member = uploadedImages.find(image => image.id === id);
+                if (member) member.manualPosition = false;
+            });
+        }
     } else if (borderTargets.length) {
         borderTargets.forEach(targetImg => {
             const current = getLayerStyle(targetImg.id);
@@ -2836,29 +3031,48 @@ function updateSettings() {
         appConfig.borderPosition = nextBorderPosition;
     }
 
-    const rawMarginIn = parseFloat(document.getElementById('numMargin').value);
     const safeZoneEnabled = Boolean(document.getElementById('safeZoneToggle')?.checked);
-    const minMarginMM = safeZoneEnabled ? 3 : 0;
-    const clampedMarginMM = Math.max(minMarginMM, (Number.isFinite(rawMarginIn) ? rawMarginIn : 0) * 25.4);
-    appConfig.margin = clampedMarginMM;
-
-    const marginInputEl = document.getElementById('numMargin');
-    if (marginInputEl && document.activeElement !== marginInputEl) {
-        marginInputEl.value = (clampedMarginMM / 25.4).toFixed(2);
+    const minPaddingPX = safeZoneEnabled ? 3 * MM_TO_PX : 0;
+    const maxPaddingPX = 60 * MM_TO_PX;
+    const paddingInputs = [
+        ['paddingTop', 'numPaddingT'],
+        ['paddingBottom', 'numPaddingB'],
+        ['paddingLeft', 'numPaddingL'],
+        ['paddingRight', 'numPaddingR']
+    ];
+    paddingInputs.forEach(([key, id]) => {
+        const input = document.getElementById(id);
+        const fallbackPX = (Number(appConfig[key]) || 0) * MM_TO_PX;
+        const rawPX = Number.parseFloat(input?.value ?? fallbackPX);
+        const valuePX = Math.min(maxPaddingPX, Math.max(minPaddingPX, Number.isFinite(rawPX) ? rawPX : minPaddingPX));
+        appConfig[key] = Number((valuePX * PX_TO_MM).toFixed(3));
+        if (input && document.activeElement !== input) input.value = String(Math.round(valuePX));
+    });
+    appConfig.margin = Math.max(appConfig.paddingTop, appConfig.paddingBottom, appConfig.paddingLeft, appConfig.paddingRight);
+    const nextPadding = getValidIdPadding();
+    const paddingChanged = ['top', 'bottom', 'left', 'right'].some(side =>
+        Math.abs((previousPadding[side] || 0) - (nextPadding[side] || 0)) > 0.0001
+    );
+    if (groupPage && paddingChanged) {
+        applyValidIdGroupPaddingChange(groupPage, previousPadding, nextPadding);
     }
+    const legacyMarginInput = document.getElementById('numMargin');
+    if (legacyMarginInput) legacyMarginInput.value = (appConfig.margin / 25.4).toFixed(2);
 
     syncSpacingLockState(activeImg?.id);
     applyBorderCssVars();
 
     saveConfig();
-    // A setting can fire many input events per second. Rebuild once after the
-    // short interaction burst rather than regenerating every tile each time.
+    // Reflow cards that have not been manually dragged so Vertical Spacing
+    // controls the actual gap between a Front/Back pair in Free Form as well.
     renderStyleByImageId.clear();
+    ensureValidIdCardPositions();
     scheduleSettingsCanvasRender();
+    if (groupPage) syncAlignControls();
 }
 
 function bindWholeNumberStepControls() {
-    ['numGapH', 'numGapV', 'numBorderW', 'numBorderR'].forEach(id => {
+    ['numGapH', 'numGapV', 'numBorderW', 'numBorderR', 'numPaddingT', 'numPaddingB', 'numPaddingL', 'numPaddingR'].forEach(id => {
         const input = document.getElementById(id);
         if (!input) return;
         const adjust = delta => {
@@ -2869,14 +3083,12 @@ function bindWholeNumberStepControls() {
             input.value = String(next);
             updateSettings();
         };
+        input.title = '↑ / ↓: adjust by 1 · Shift + ↑ / ↓: adjust by 10';
         input.addEventListener('keydown', e => {
-            if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                adjust(1);
-            } else if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                adjust(-1);
-            }
+            if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+            e.preventDefault();
+            const step = e.shiftKey ? 10 : 1;
+            adjust(e.key === 'ArrowUp' ? step : -step);
         });
         input.addEventListener('wheel', e => {
             if (document.activeElement !== input) return;
@@ -3040,15 +3252,34 @@ function setPaperSize(size) {
 }
 
 function toggleSafeZone() {
-    const page = pages.find(pg => (pg.imageIds || []).includes(activeImageId));
-    const isIndividualGroupLayer = !!page && (page.imageIds || []).length > 1 && !selectedGroupPageId;
-    if (isIndividualGroupLayer) {
-        const cb = document.getElementById('safeZoneToggle');
-        if (cb) cb.checked = document.querySelectorAll('.paper-page.safe-zone-active').length > 0;
-        return;
+    const on = Boolean(document.getElementById('safeZoneToggle')?.checked);
+    const selectedGroup = getSelectedGroupPage();
+    const previousPadding = {
+        top: Math.max(0, Number(appConfig.paddingTop) || 0),
+        bottom: Math.max(0, Number(appConfig.paddingBottom) || 0),
+        left: Math.max(0, Number(appConfig.paddingLeft) || 0),
+        right: Math.max(0, Number(appConfig.paddingRight) || 0)
+    };
+    if (on) {
+        const edges = [
+            ['paddingTop', 'numPaddingT'], ['paddingBottom', 'numPaddingB'],
+            ['paddingLeft', 'numPaddingL'], ['paddingRight', 'numPaddingR']
+        ];
+        edges.forEach(([key, id]) => {
+            appConfig[key] = Math.max(3, Number(appConfig[key]) || 0);
+            const input = document.getElementById(id);
+            if (input) input.value = String(Math.round(appConfig[key] * MM_TO_PX));
+        });
+        appConfig.margin = Math.max(appConfig.paddingTop, appConfig.paddingBottom, appConfig.paddingLeft, appConfig.paddingRight);
+        const legacyMargin = document.getElementById('numMargin');
+        if (legacyMargin) legacyMargin.value = (appConfig.margin / 25.4).toFixed(2);
+        saveConfig();
     }
-    const on = document.getElementById('safeZoneToggle').checked;
-    document.querySelectorAll('.paper-page').forEach(p => p.classList.toggle('safe-zone-active', on));
+    if (selectedGroup) {
+        applyValidIdGroupPaddingChange(selectedGroup, previousPadding, getValidIdPadding());
+    }
+    document.querySelectorAll('.paper-page').forEach(page => page.classList.toggle('safe-zone-active', on));
+    ensureValidIdCardPositions();
     renderCanvas();
 }
 
@@ -3056,19 +3287,20 @@ function fitToViewport() {
     const workspace = document.querySelector('.workspace');
     const paper = paperSizes[currentPaper];
     if (!workspace || !paper) return;
-    const availW = workspace.clientWidth - 80;
-    const availH = workspace.clientHeight - 110;
 
+    const availW = Math.max(1, workspace.clientWidth - 80);
+    const availH = Math.max(1, workspace.clientHeight - 110);
     const paperWpx = paper.w * 3.7795;
     const paperHpx = paper.h * 3.7795;
-
     const scale = Math.max(0.05, Math.min(availW / paperWpx, availH / paperHpx, 1));
     document.documentElement.style.setProperty('--preview-scale', scale);
 
-    const pw = document.getElementById('previewWrapper');
-    if (pw) {
-        pw.style.width  = (paperWpx * scale) + 'px';
-        pw.style.height = (paperHpx * scale) + 'px';
+    const wrapper = document.getElementById('previewWrapper');
+    if (wrapper) {
+        // Keep the preview exactly one sheet tall. Use Previous / Next to
+        // navigate; the print stylesheet independently exposes every sheet.
+        wrapper.style.width = `${paperWpx * scale}px`;
+        wrapper.style.height = `${paperHpx * scale}px`;
     }
 }
 
@@ -3138,34 +3370,25 @@ function releaseImageSources(items) {
     });
 }
 
-function handleFiles(files) {
-    const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
-    if (!valid.length) { showAlert('Invalid File', 'Please upload an image file (PNG, JPG, WEBP, SVG).'); return; }
+async function handleFiles(files) {
+    const valid = Array.from(files).filter(file => file.type.startsWith('image/'));
+    if (!valid.length) {
+        showAlert('Invalid File', 'Please upload an image file (PNG, JPG, WEBP, SVG).');
+        return;
+    }
 
     const undoBeforeUpload = captureStateSnapshot();
-    const uploadStartIndex = uploadedImages.length;
     hideDeletionToast();
     showLoading(`Loading ${valid.length} image${valid.length > 1 ? 's' : ''}...`);
-    let done = 0;
-    const total = valid.length;
 
-    const finishOne = () => {
-        done++;
-        if (done < total) return;
-        ensureValidIdCardPositions();
-        activePageIndex = pages.length - 1;
-        syncActiveFromPage();
-        selectedImageIds = new Set(activeImageId ? [activeImageId] : []);
-        reconcileSelectionAndUI();
-        recordUndoSnapshot(undoBeforeUpload);
-        hideLoading();
-    };
-
-    valid.forEach(async file => {
+    // Promise.all keeps the user's file order even when previews finish at
+    // different times. Every uploaded layer gets its own page. Users can
+    // manually group layers later when they want them on the same sheet.
+    const loaded = await Promise.all(valid.map(async (file, index) => {
         const originalSrc = URL.createObjectURL(file);
         try {
             const previewSrc = await makePreviewSrc(file);
-            const obj = {
+            return {
                 id: 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
                 src: originalSrc,
                 previewSrc: previewSrc || originalSrc,
@@ -3184,26 +3407,45 @@ function handleFiles(files) {
                 borderStyle: appConfig.borderStyle,
                 borderPosition: appConfig.borderPosition || 'inside',
                 borderC: appConfig.borderC,
-                side: ((uploadStartIndex + done) % 2 === 0 ? 'front' : 'back'),
+                side: 'front',
                 xMM: null,
                 yMM: null,
                 manualPosition: false
             };
-            if (!uploadedImages.length) {
-                pages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
-                activePageIndex = 0;
-            }
-            uploadedImages.push(obj);
-            if (selectedImageIds.size === 0) selectedImageIds.add(obj.id);
-            pages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => uploadedImages.some(img => img.id === id)));
-            pages.push({ id: newPageId(), imageId: obj.id });
         } catch (err) {
             URL.revokeObjectURL(originalSrc);
             console.error('Image upload failed:', err);
-        } finally {
-            finishOne();
+            return null;
         }
-    });
+    }));
+
+    const newImages = loaded.filter(Boolean);
+    if (!newImages.length) {
+        hideLoading();
+        return;
+    }
+
+    const existingIds = new Set(uploadedImages.map(image => image.id));
+    pages = pages.filter(page => (page.imageIds || [page.imageId]).some(id => existingIds.has(id)));
+    uploadedImages.push(...newImages);
+
+    // PrintGrid-style behavior: every uploaded layer starts on its own page.
+    // Users explicitly group layers when they want a shared photocopy sheet.
+    const addedPages = newImages.map(image => ({ id: newPageId(), imageId: image.id }));
+    pages.push(...addedPages);
+
+    const activePage = addedPages[addedPages.length - 1];
+    activePageIndex = pages.indexOf(activePage);
+    activeImageId = activePage.imageId;
+    selectedImageIds = new Set([activePage.imageId]);
+    selectedGroupPageId = null;
+    activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
+
+    ensureValidIdCardPositions();
+    reconcileSelectionAndUI();
+    recordUndoSnapshot(undoBeforeUpload);
+    hideLoading();
+    scrollActiveValidIdPageIntoView();
 }
 
 const eyeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
@@ -3233,7 +3475,7 @@ function getLayerStackIds() {
     return ids;
 }
 
-function renderImageQueue() {
+function renderPrintGridLayerQueue() {
     const queue = document.getElementById('imageQueue');
     const count = document.getElementById('layerCount');
     if (count) count.textContent = uploadedImages.length;
@@ -3324,7 +3566,7 @@ function renderImageQueue() {
         const edit = document.createElement('button'); edit.className = 'layer-action layer-edit-overlay';
         edit.type = 'button'; edit.title = 'Edit image (E)'; edit.setAttribute('aria-label', 'Edit image');
         edit.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>';
-        edit.onclick = ev => { ev.stopPropagation(); selectImage(obj.id); openCropModal(obj.id); };
+        edit.onclick = ev => { ev.stopPropagation(); activateValidIdLayer(obj.id); openCropModal(obj.id); };
         thumb.appendChild(edit); row.appendChild(thumb);
         const name = document.createElement('span'); name.className = 'layer-name';
         const fullLayerName = obj.name || `Image ${index + 1}`;
@@ -3341,6 +3583,39 @@ function renderImageQueue() {
         }
         name.title = fullLayerName;
         row.appendChild(name);
+
+        // A chain marker indicates this layer is independently linked to other
+        // layers; it does not create a Group or change page membership.
+        if (obj.linkSetId && uploadedImages.filter(item => item.linkSetId === obj.linkSetId).length > 1) {
+            const linkMark = document.createElement('span');
+            linkMark.className = 'layer-link-indicator';
+            linkMark.title = `Linked with ${uploadedImages.filter(item => item.linkSetId === obj.linkSetId).length - 1} other layer(s)`;
+            linkMark.setAttribute('aria-label', linkMark.title);
+            linkMark.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3.54-3.54a5 5 0 0 0-7.07-7.07l-2.03 2.02"></path><path d="M14 11a5 5 0 0 0-7.07 0l-3.54 3.54a5 5 0 0 0 7.07 7.07l2.03-2.02"></path></svg>';
+            row.appendChild(linkMark);
+        }
+
+        // Keep Front/Back as a per-layer tag, just like the Valid ID workflow.
+        const sideToggle = document.createElement('div');
+        sideToggle.className = 'side-toggle';
+        sideToggle.setAttribute('role', 'group');
+        sideToggle.setAttribute('aria-label', 'Choose card side');
+        const frontBtn = document.createElement('button');
+        frontBtn.type = 'button';
+        frontBtn.textContent = 'F';
+        frontBtn.title = 'Place on Front';
+        frontBtn.setAttribute('aria-pressed', String((obj.side || 'front') === 'front'));
+        frontBtn.classList.toggle('active', (obj.side || 'front') === 'front');
+        frontBtn.addEventListener('click', ev => { ev.stopPropagation(); setLayerSide(obj.id, 'front'); });
+        const backBtn = document.createElement('button');
+        backBtn.type = 'button';
+        backBtn.textContent = 'B';
+        backBtn.title = 'Place on Back';
+        backBtn.setAttribute('aria-pressed', String(obj.side === 'back'));
+        backBtn.classList.toggle('active', obj.side === 'back');
+        backBtn.addEventListener('click', ev => { ev.stopPropagation(); setLayerSide(obj.id, 'back'); });
+        sideToggle.append(frontBtn, backBtn);
+        row.appendChild(sideToggle);
 
         if (showSizeBadge) {
             const sz = getImageTileSize(obj.id);
@@ -3374,7 +3649,6 @@ function renderImageQueue() {
             const card = document.createElement('div');
             card.className = 'layer-group' + (groupInfo.ids.every(id => selectedImageIds.has(id)) ? ' multi-selected' : '') + (groupInfo.page.visible === false ? ' is-hidden' : '');
             const isCollapsed = collapsedGroupIds.has(groupInfo.page.id);
-            const locked = isGroupSizeLocked(groupInfo.page);
             const header = document.createElement('div');
             header.className = 'layer-group-header' + (selectedGroupPageId === groupInfo.page.id ? ' group-selected' : '');
             header.setAttribute('role', 'button');
@@ -3427,12 +3701,14 @@ function renderImageQueue() {
                 activeImageId = groupInfo.ids[0] || null;
                 const groupPageIndex = pages.findIndex(pg => pg.id === groupInfo.page.id);
                 if (groupPageIndex >= 0) activePageIndex = groupPageIndex;
+                activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
                 if (activeImageId) { syncTileControls(activeImageId); syncQuantityControl(activeImageId); syncSpacingBorderControls(activeImageId); }
                 renderImageQueue();
                 renderCanvas();
+                syncAutoLayoutToggleVisibility();
             };
             header.onclick = ev => {
-                if (ev.target.closest('.layer-group-chevron, .size-lock-btn, .visibility-action')) return;
+                if (ev.target.closest('.layer-group-chevron, .visibility-action')) return;
                 selectThisGroup();
             };
             header.onkeydown = ev => {
@@ -3456,21 +3732,8 @@ function renderImageQueue() {
             };
             const icon = document.createElement('span'); icon.className = 'layer-group-icon'; icon.textContent = '▦';
             const title = document.createElement('span'); title.className = 'layer-group-title'; title.textContent = groupInfo.label;
-            const countLabel = document.createElement('span'); countLabel.className = 'layer-group-count'; countLabel.textContent = `${groupInfo.ids.length}`;
+            const countLabel = document.createElement('span'); countLabel.className = 'layer-group-count'; const groupIdCount = getValidIdIdCountFromImages(groupInfo.ids); countLabel.textContent = `${groupIdCount} ID${groupIdCount === 1 ? '' : 's'}`; countLabel.title = `${groupInfo.ids.length} layers`;
             const tools = document.createElement('span'); tools.className = 'layer-group-tools';
-
-            const lockBtn = document.createElement('button');
-            lockBtn.type = 'button';
-            lockBtn.className = 'size-lock-btn' + (locked ? ' is-locked' : '');
-            lockBtn.innerHTML = locked ? lockClosedSvg : lockOpenSvg;
-            lockBtn.title = locked
-                ? 'Sizes locked (all layers share one size) — click or press W to unlock individual layer sizes'
-                : 'Sizes unlocked (layers can have individual sizes) — click or press W to lock all layers to one size';
-            lockBtn.setAttribute('aria-label', lockBtn.title);
-            lockBtn.onclick = ev => {
-                ev.stopPropagation();
-                toggleGroupSizeLock(groupInfo.page.id);
-            };
 
             const groupEye = document.createElement('button'); groupEye.type = 'button';
             groupEye.className = 'layer-action visibility-action' + (groupInfo.page.visible === false ? ' is-hidden' : '');
@@ -3480,13 +3743,13 @@ function renderImageQueue() {
             groupEye.innerHTML = groupInfo.page.visible === false ? eyeOffIcon : eyeIcon;
             groupEye.onclick = ev => { ev.stopPropagation(); toggleGroupVisibility(groupInfo.page.id); };
 
-            tools.append(countLabel, lockBtn, groupEye);
+            tools.append(countLabel, groupEye);
             header.append(chevron, icon, title); header.appendChild(tools);
             card.appendChild(header);
             const children = document.createElement('div'); children.className = 'layer-group-children' + (isCollapsed ? ' is-collapsed' : '');
             groupInfo.ids.forEach(id => {
                 const childObj = imageById.get(id);
-                if (childObj) children.appendChild(makeLayerRow(childObj, layerStackIndex.get(childObj.id) ?? -1, !locked));
+                if (childObj) children.appendChild(makeLayerRow(childObj, layerStackIndex.get(childObj.id) ?? -1, false));
             });
             card.appendChild(children);
             queue.appendChild(card);
@@ -4119,10 +4382,9 @@ function syncQuantityControl(imageId = activeImageId) {
             if (el) el.disabled = isIndividualGroupLayer;
         });
 
-    ['alignLeftBtn', 'alignCenterHBtn', 'alignRightBtn', 'alignTopBtn', 'alignCenterBtn', 'alignBottomBtn'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = false;
-    });
+    // Group alignment stays disabled for an individual layer selection and
+    // is enabled only when the group header itself is selected.
+    syncAlignControls();
 
     autoCheckbox.disabled = !isLayerSelected;
     autoCheckbox.checked = !(isLayerSelected && obj?.quantityOverride != null);
@@ -4435,6 +4697,8 @@ function restoreStateSnapshot(snapshot) {
         urlsToRelease.forEach(url => URL.revokeObjectURL(url));
 
         appConfig = { ...DEFAULT_CONFIG, ...(snapshot.appConfig || {}) };
+        syncValidIdDimensionsFromConfig();
+        syncValidIdDimensionControls();
         currentPaper = snapshot.currentPaper || appConfig.paper || 'A4';
         uploadedImages = snapshot.uploadedImages.map(cloneImageSnapshot);
         pages = clonePagesSnapshot(snapshot.pages);
@@ -4458,6 +4722,14 @@ function restoreStateSnapshot(snapshot) {
         const setBorderC = document.getElementById('setBorderC');
         const hexBorderC = document.getElementById('hexBorderC');
         if (numMargin) numMargin.value = (appConfig.margin / 25.4).toFixed(2);
+        const paddingUI = [
+            ['numPaddingT', 'paddingTop'], ['numPaddingB', 'paddingBottom'],
+            ['numPaddingL', 'paddingLeft'], ['numPaddingR', 'paddingRight']
+        ];
+        paddingUI.forEach(([id, key]) => {
+            const input = document.getElementById(id);
+            if (input) input.value = String(Math.round((Number(appConfig[key] ?? DEFAULT_CONFIG[key]) || 0) * MM_TO_PX));
+        });
         if (numGapH) numGapH.value = Math.round(appConfig.gapH * MM_TO_PX);
         if (numGapV) numGapV.value = Math.round(appConfig.gapV * MM_TO_PX);
         if (numBorderW) numBorderW.value = Math.round(appConfig.borderW);
@@ -4571,7 +4843,8 @@ function syncCropModalFromState() {
         stage.style.height = `${crop.stageH}px`;
     }
     const source = uploadedImages.find(item => item.id === crop.imageId);
-    if (img && source) img.src = source.src;
+    if (img && source) img.src = crop.sourceSrc || source.src;
+    syncCropRotationUI();
 
     document.getElementById('cropAspectSelect').value = crop.aspectMode || 'image';
     document.getElementById('cropZoomSlider').value = crop.zoom;
@@ -4747,13 +5020,40 @@ function installUndoHistory() {
     }, true);
 }
 
+/**
+ * Expand a deletion request to include every member of each linked set.
+ * Linked layers remain separate page/layer records, but deleting any member
+ * removes the complete linked relationship (including linked partners on
+ * other pages). The closure also handles merged link sets safely.
+ */
+function expandLinkedLayerIds(ids) {
+    const validIds = new Set(uploadedImages.map(image => image.id));
+    const expanded = new Set([...(ids || [])].filter(id => validIds.has(id)));
+    let changed = true;
+    while (changed) {
+        changed = false;
+        const linkSetIds = new Set([...expanded]
+            .map(id => uploadedImages.find(image => image.id === id)?.linkSetId)
+            .filter(Boolean));
+        if (!linkSetIds.size) break;
+        uploadedImages.forEach(image => {
+            if (image.linkSetId && linkSetIds.has(image.linkSetId) && !expanded.has(image.id)) {
+                expanded.add(image.id);
+                changed = true;
+            }
+        });
+    }
+    return expanded;
+}
+
 function deleteSelectedLayers() {
     const selectedGroup = selectedGroupPageId
         ? pages.find(page => page.id === selectedGroupPageId && (page.imageIds || []).length > 1)
         : null;
-    const idsToDelete = new Set(selectedGroup
+    const requestedIds = selectedGroup
         ? selectedGroup.imageIds
-        : (selectedImageIds.size ? selectedImageIds : (activeImageId ? [activeImageId] : [])));
+        : (selectedImageIds.size ? [...selectedImageIds] : (activeImageId ? [activeImageId] : []));
+    const idsToDelete = expandLinkedLayerIds(requestedIds);
     if (!idsToDelete.size) return;
 
     const deletedItems = uploadedImages.filter(img => idsToDelete.has(img.id));
@@ -4801,24 +5101,32 @@ function deleteSelectedLayers() {
 }
 
 function removeImage(id) {
-    const target = uploadedImages.find(i => i.id === id);
+    const target = uploadedImages.find(image => image.id === id);
     if (!target) return;
 
+    // A linked set acts as one delete unit while remaining separate layers.
+    const idsToDelete = expandLinkedLayerIds([id]);
     const snapshot = captureStateSnapshot();
-    const removedIdx = uploadedImages.findIndex(i => i.id === id);
-    const remainingAfter = uploadedImages.filter(i => i.id !== id);
-    const fallbackNext = remainingAfter[Math.min(removedIdx, remainingAfter.length - 1)] || remainingAfter[0] || null;
+    const deletedItems = uploadedImages.filter(image => idsToDelete.has(image.id));
+    const removedIndexes = uploadedImages
+        .map((image, index) => idsToDelete.has(image.id) ? index : -1)
+        .filter(index => index >= 0);
+    const firstRemovedIndex = removedIndexes.length ? Math.min(...removedIndexes) : 0;
+    const remainingAfter = uploadedImages.filter(image => !idsToDelete.has(image.id));
+    const fallbackNext = remainingAfter[Math.min(firstRemovedIndex, remainingAfter.length - 1)] || remainingAfter[0] || null;
 
     uploadedImages = remainingAfter;
-    pages = pages.flatMap(p => {
-        const ids = (p.imageIds || [p.imageId]).filter(x => x && x !== id);
+    pages = pages.flatMap(page => {
+        const ids = (page.imageIds || [page.imageId]).filter(layerId => layerId && !idsToDelete.has(layerId));
         if (!ids.length) return [];
-        return ids.length === 1 ? [{ id: p.id, imageId: ids[0] }] : [{ ...p, imageId: ids[0], imageIds: ids }];
+        return ids.length === 1
+            ? [{ id: page.id, imageId: ids[0] }]
+            : [{ ...page, imageId: ids[0], imageIds: ids }];
     });
 
-    selectedImageIds.delete(id);
+    selectedImageIds = new Set([...selectedImageIds].filter(layerId => !idsToDelete.has(layerId)));
     if (selectedGroupPageId) {
-        const stillGroup = pages.find(p => p.id === selectedGroupPageId && (p.imageIds || []).length > 1);
+        const stillGroup = pages.find(page => page.id === selectedGroupPageId && (page.imageIds || []).length > 1);
         if (!stillGroup) selectedGroupPageId = null;
     }
 
@@ -4826,21 +5134,21 @@ function removeImage(id) {
         pages = [{ id: newPageId(), imageId: fallbackNext ? fallbackNext.id : null }];
         activePageIndex = 0;
     } else {
-        const nextPageIdx = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(fallbackNext?.id));
-        if (nextPageIdx >= 0) {
-            activePageIndex = nextPageIdx;
-        } else if (activePageIndex >= pages.length) {
-            activePageIndex = pages.length - 1;
-        }
+        const nextPageIndex = pages.findIndex(page => (page.imageIds || [page.imageId]).includes(fallbackNext?.id));
+        if (nextPageIndex >= 0) activePageIndex = nextPageIndex;
+        else if (activePageIndex >= pages.length) activePageIndex = pages.length - 1;
     }
 
     activeImageId = fallbackNext ? fallbackNext.id : null;
-    if (!selectedImageIds.size && fallbackNext) {
-        selectedImageIds = new Set([fallbackNext.id]);
-    }
+    if (fallbackNext && !selectedImageIds.size) selectedImageIds = new Set([fallbackNext.id]);
 
     reconcileSelectionAndUI();
-    showDeletionToast(`Deleted "${target.name || 'layer'}"`, snapshot);
+    showDeletionToast(
+        deletedItems.length > 1
+            ? `Deleted ${deletedItems.length} linked layers`
+            : `Deleted "${target.name || 'layer'}"`,
+        snapshot
+    );
 }
 
 function clearAll() {
@@ -4878,11 +5186,11 @@ async function resetAll() {
     draggedLayerIds = [];
     pages = [{ id: newPageId(), imageId: null }];
     activePageIndex = 0;
-    appConfig = { ...DEFAULT_CONFIG, margin: 0 };
+    appConfig = { ...DEFAULT_CONFIG };
     currentPaper = 'A4';
     saveConfig();
     loadConfig();
-    document.getElementById('numMargin').value = '0.00';
+    document.getElementById('numMargin').value = (appConfig.margin / 25.4).toFixed(2);
     setPaperSize('A4');
     reconcileSelectionAndUI();
 }
@@ -5256,7 +5564,7 @@ function updateLayoutInfo(layout) {
     const n = layout.cols * layout.rows;
     main.innerText = `${layout.cols} × ${layout.rows} = ${n} tiles`;
     const groupNote = groupIds.length > 1
-        ? ` · ${groupIds.length} layers · ${isGroupSizeLocked(currentPage) ? 'locked size' : 'unlocked sizes'}`
+        ? ` · ${groupIds.length} layers`
         : '';
     sub.innerText = `${layout.tileW} × ${layout.tileH} in · ${layout.paper.label} · ${(layout.paper.w / 25.4).toFixed(2)} × ${(layout.paper.h / 25.4).toFixed(2)} in${groupNote}`;
 }
@@ -5476,36 +5784,84 @@ async function exportFile() {
 /* =========================================================
    CROP MODAL
    ========================================================= */
+function normalizeCropRotation(value) {
+    const degrees = ((Math.round(Number(value) || 0) % 360) + 360) % 360;
+    return [0, 90, 180, 270].includes(degrees) ? degrees : 0;
+}
+
+function createRotatedImageSource(image, degrees) {
+    const rotation = normalizeCropRotation(degrees);
+    if (!rotation) return image.currentSrc || image.src;
+
+    const sourceW = image.naturalWidth || image.width;
+    const sourceH = image.naturalHeight || image.height;
+    const swap = rotation === 90 || rotation === 270;
+    const canvas = document.createElement('canvas');
+    canvas.width = swap ? sourceH : sourceW;
+    canvas.height = swap ? sourceW : sourceH;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Image rotation is unavailable in this browser.');
+
+    context.translate(canvas.width / 2, canvas.height / 2);
+    context.rotate(rotation * Math.PI / 180);
+    context.drawImage(image, -sourceW / 2, -sourceH / 2, sourceW, sourceH);
+    return canvas.toDataURL('image/png');
+}
+
+function getCropStageSize(natW, natH) {
+    const aspect = natW / Math.max(1, natH);
+    const maxW = Math.min(620, window.innerWidth * 0.56);
+    const maxH = Math.min(440, window.innerHeight * 0.55);
+    let stageW = maxW;
+    let stageH = stageW / aspect;
+    if (stageH > maxH) { stageH = maxH; stageW = stageH * aspect; }
+    stageW = Math.max(120, Math.round(stageW));
+    stageH = Math.max(120, Math.round(stageH));
+    return { stageW, stageH };
+}
+
+function syncCropRotationUI() {
+    const rotation = normalizeCropRotation(crop?.rotationDeg || 0);
+    document.querySelectorAll('[data-crop-rotation]').forEach(button => {
+        const active = Number(button.dataset.cropRotation) === rotation;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+    });
+}
+
 function openCropModal(imageId) {
     const obj = uploadedImages.find(i => i.id === imageId);
     if (!obj) return;
 
     const stage = document.getElementById('cropStage');
-    const img   = document.getElementById('cropImg');
-
+    const img = document.getElementById('cropImg');
     const probe = new Image();
     probe.onload = () => {
-        const natW = probe.naturalWidth || 800;
-        const natH = probe.naturalHeight || 600;
-        const aspect = natW / natH;
+        const rotation = normalizeCropRotation(obj.editRotationDeg || 0);
+        let sourceSrc;
+        try {
+            sourceSrc = createRotatedImageSource(probe, rotation);
+        } catch (error) {
+            console.error('Could not prepare rotated image:', error);
+            sourceSrc = probe.src;
+        }
+        const swap = rotation === 90 || rotation === 270;
+        const natW = swap ? probe.naturalHeight : probe.naturalWidth;
+        const natH = swap ? probe.naturalWidth : probe.naturalHeight;
+        const { stageW, stageH } = getCropStageSize(natW, natH);
 
-        const maxW = Math.min(620, window.innerWidth * 0.56);
-        const maxH = Math.min(440, window.innerHeight * 0.55);
-        let stageW = maxW;
-        let stageH = stageW / aspect;
-        if (stageH > maxH) { stageH = maxH; stageW = stageH * aspect; }
-        stageW = Math.max(120, Math.round(stageW));
-        stageH = Math.max(120, Math.round(stageH));
-
-        stage.style.width  = stageW + 'px';
+        stage.style.width = stageW + 'px';
         stage.style.height = stageH + 'px';
-        img.src = obj.src;
+        img.src = sourceSrc;
+        img.style.filter = '';
 
         const saved = obj.cropRect;
         crop = {
             imageId,
             natW, natH,
             stageW, stageH,
+            sourceSrc,
+            rotationDeg: rotation,
             zoom: saved ? saved.zoom : 1,
             panX: saved ? saved.panX : 0,
             panY: saved ? saved.panY : 0,
@@ -5528,12 +5884,71 @@ function openCropModal(imageId) {
         cropUndoHistory = [];
         pendingCropUndoSnapshot = null;
         updateCropUndoButton();
+        syncCropRotationUI();
         updateCropAdjustments();
         syncCropAspectUI();
         layoutCrop();
         document.getElementById('cropModal').classList.add('active');
     };
+    probe.onerror = () => showAlert('Edit Unavailable', 'This image could not be opened for editing.');
     probe.src = obj.src;
+}
+
+function setCropRotation(degrees) {
+    if (!crop) return;
+    const rotation = normalizeCropRotation(degrees);
+    if (rotation === normalizeCropRotation(crop.rotationDeg || 0)) return;
+
+    const before = captureCropUndoSnapshot();
+    const imageId = crop.imageId;
+    const requestToken = (Number(crop.rotationRequestToken) || 0) + 1;
+    crop.rotationRequestToken = requestToken;
+    const source = uploadedImages.find(item => item.id === imageId);
+    if (!source) return;
+
+    const probe = new Image();
+    probe.onload = () => {
+        if (!crop || crop.imageId !== imageId || crop.rotationRequestToken !== requestToken) return;
+        try {
+            const sourceSrc = createRotatedImageSource(probe, rotation);
+            const swap = rotation === 90 || rotation === 270;
+            const natW = swap ? probe.naturalHeight : probe.naturalWidth;
+            const natH = swap ? probe.naturalWidth : probe.naturalHeight;
+            const { stageW, stageH } = getCropStageSize(natW, natH);
+
+            crop.rotationDeg = rotation;
+            crop.sourceSrc = sourceSrc;
+            crop.natW = natW;
+            crop.natH = natH;
+            crop.stageW = stageW;
+            crop.stageH = stageH;
+            crop.zoom = 1;
+            crop.panX = 0;
+            crop.panY = 0;
+            crop.aspectMode = 'free';
+            crop.freeRect = null;
+            crop.box = { x: stageW * 0.1, y: stageH * 0.1, w: stageW * 0.8, h: stageH * 0.8 };
+            crop.drag = null;
+
+            const stage = document.getElementById('cropStage');
+            const img = document.getElementById('cropImg');
+            stage.style.width = stageW + 'px';
+            stage.style.height = stageH + 'px';
+            img.src = sourceSrc;
+            document.getElementById('cropAspectSelect').value = 'free';
+            document.getElementById('cropZoomSlider').value = 1;
+            syncCropRotationUI();
+            syncCropAspectUI();
+            layoutCrop();
+            updateCropAdjustments();
+            recordCropUndoSnapshot(before);
+        } catch (error) {
+            console.error('Image rotation failed:', error);
+            showAlert('Rotation Failed', error.message || 'Could not rotate this image.');
+        }
+    };
+    probe.onerror = () => showAlert('Rotation Failed', 'This image could not be rotated.');
+    probe.src = source.src;
 }
 
 function getTargetAspect() {
@@ -5745,6 +6160,7 @@ function applyCrop() {
         ctx.drawImage(document.getElementById('cropImg'), sx, sy, sw, sh, 0, 0, out.width, out.height);
 
         obj.croppedSrc = out.toDataURL('image/png');
+        obj.editRotationDeg = normalizeCropRotation(crop.rotationDeg || 0);
         obj.cropRect = null;
         obj.freeCropRect = { ...crop.box };
         obj.brightness = crop.brightness;
@@ -5778,7 +6194,7 @@ function applyCrop() {
     const sh = (bh / imgH) * crop.natH;
 
     const isDefaultImageCrop = crop.aspectMode === 'image' && crop.zoom === 1 && crop.panX === 0 && crop.panY === 0;
-    if (isDefaultImageCrop && !hasFilterChanges) {
+    if (isDefaultImageCrop && !hasFilterChanges && normalizeCropRotation(crop.rotationDeg || 0) === 0) {
         obj.croppedSrc = null;
         obj.cropRect = null;
         obj.brightness = 100;
@@ -5794,6 +6210,7 @@ function applyCrop() {
         ctx.filter = filterString;
         ctx.drawImage(imgEl, sx, sy, sw, sh, 0, 0, outW, outH);
         obj.croppedSrc = out.toDataURL('image/png');
+        obj.editRotationDeg = normalizeCropRotation(crop.rotationDeg || 0);
         obj.cropRect = { zoom: crop.zoom, panX: crop.panX, panY: crop.panY };
         obj.brightness = crop.brightness;
         obj.contrast = crop.contrast;
@@ -5915,17 +6332,6 @@ document.addEventListener('keydown', e => {
     }
     if (document.getElementById('customModal').classList.contains('active')) return;
 
-    // W toggles the size lock for the currently selected group,
-    // or the group containing the active layer.
-    if (!mod && !e.altKey && !e.shiftKey && key === 'w' && !isTypingInTextField(e.target)) {
-        const groupPage = getContextGroupPage();
-        if (groupPage) {
-            e.preventDefault();
-            toggleGroupSizeLock(groupPage.id);
-        }
-        return;
-    }
-
     if (mod && key === 'a' && uploadedImages.length) {
         e.preventDefault();
         selectedImageIds = new Set(uploadedImages.map(img => img.id));
@@ -5969,22 +6375,191 @@ document.addEventListener('keydown', e => {
    VALID ID WORKSPACE
    One sheet, independent card layers, Front = upper half, Back = lower half.
    ========================================================= */
-const VALID_ID_CARD_W_IN = 3.375;
-const VALID_ID_CARD_H_IN = 2.125;
-const VALID_ID_CARD_W_MM = VALID_ID_CARD_W_IN * 25.4;
-const VALID_ID_CARD_H_MM = VALID_ID_CARD_H_IN * 25.4;
+const PHIL_ID_CARD_W_MM = 85.725;
+const PHIL_ID_CARD_H_MM = 53.975;
+let VALID_ID_CARD_W_MM = PHIL_ID_CARD_W_MM;
+let VALID_ID_CARD_H_MM = PHIL_ID_CARD_H_MM;
+let VALID_ID_CARD_W_IN = VALID_ID_CARD_W_MM / 25.4;
+let VALID_ID_CARD_H_IN = VALID_ID_CARD_H_MM / 25.4;
 let validIdActiveDrag = null;
+
+function syncValidIdDimensionsFromConfig() {
+    const width = Number(appConfig.validIdCardWidthMM);
+    const height = Number(appConfig.validIdCardHeightMM);
+    VALID_ID_CARD_W_MM = Math.min(220, Math.max(10, Number.isFinite(width) ? width : PHIL_ID_CARD_W_MM));
+    VALID_ID_CARD_H_MM = Math.min(300, Math.max(10, Number.isFinite(height) ? height : PHIL_ID_CARD_H_MM));
+    VALID_ID_CARD_W_IN = VALID_ID_CARD_W_MM / 25.4;
+    VALID_ID_CARD_H_IN = VALID_ID_CARD_H_MM / 25.4;
+}
+
+function syncValidIdDimensionControls() {
+    const preset = document.getElementById('validIdDimensionPreset');
+    const width = document.getElementById('validIdCardWidth');
+    const height = document.getElementById('validIdCardHeight');
+    if (preset) preset.value = appConfig.validIdDimensionPreset === 'custom' ? 'custom' : 'phil-id';
+    if (width) width.value = (VALID_ID_CARD_W_MM / 25.4).toFixed(3).replace(/\.?0+$/, '');
+    if (height) height.value = (VALID_ID_CARD_H_MM / 25.4).toFixed(3).replace(/\.?0+$/, '');
+}
+
+function refreshValidIdAfterDimensionChange() {
+    const sheet = typeof getValidIdActiveSheet === 'function' ? getValidIdActiveSheet() : null;
+    if (sheet?.ids) {
+        sheet.ids.forEach(id => {
+            const image = uploadedImages.find(item => item.id === id);
+            if (image) image.manualPosition = false;
+        });
+    }
+    renderStyleByImageId.clear();
+    ensureValidIdCardPositions();
+    renderCanvas();
+    renderImageQueue();
+    updateLayoutInfo();
+}
+
+function markValidIdDimensionCustom() {
+    appConfig.validIdDimensionPreset = 'custom';
+    const preset = document.getElementById('validIdDimensionPreset');
+    if (preset) preset.value = 'custom';
+}
+
+function onValidIdDimensionPresetChange(value) {
+    recordUndoSnapshot(captureStateSnapshot());
+    if (value === 'phil-id') {
+        appConfig.validIdCardWidthMM = PHIL_ID_CARD_W_MM;
+        appConfig.validIdCardHeightMM = PHIL_ID_CARD_H_MM;
+        appConfig.validIdDimensionPreset = 'phil-id';
+    } else {
+        appConfig.validIdDimensionPreset = 'custom';
+    }
+    syncValidIdDimensionsFromConfig();
+    syncValidIdDimensionControls();
+    refreshValidIdAfterDimensionChange();
+    saveConfig();
+    updateUndoButton();
+}
+
+function updateValidIdDimensions() {
+    const widthInput = document.getElementById('validIdCardWidth');
+    const heightInput = document.getElementById('validIdCardHeight');
+    const widthIn = Number.parseFloat(widthInput?.value);
+    const heightIn = Number.parseFloat(heightInput?.value);
+    if (!Number.isFinite(widthIn) || !Number.isFinite(heightIn)) return;
+    // UI dimensions are inches; all print geometry remains stored in millimetres.
+    const widthMM = widthIn * 25.4;
+    const heightMM = heightIn * 25.4;
+    recordUndoSnapshot(captureStateSnapshot());
+    appConfig.validIdCardWidthMM = Math.min(220, Math.max(10, widthMM));
+    appConfig.validIdCardHeightMM = Math.min(300, Math.max(10, heightMM));
+    appConfig.validIdDimensionPreset = 'custom';
+    syncValidIdDimensionsFromConfig();
+    syncValidIdDimensionControls();
+    refreshValidIdAfterDimensionChange();
+    saveConfig();
+    updateUndoButton();
+}
 
 function getValidIdPaper() {
     return paperSizes[currentPaper] || paperSizes.A4;
 }
 function getValidIdZoneStart(side, paper = getValidIdPaper()) {
-    return side === 'back' ? paper.h / 2 : 0;
+    // Front/Back is a layer label only; the page is never divided into zones.
+    return 0;
+}
+function getValidIdPadding() {
+    const safeMinimum = Boolean(document.getElementById('safeZoneToggle')?.checked) ? 3 : 0;
+    const read = (key) => Math.max(safeMinimum, Math.max(0, Number(appConfig[key]) || 0));
+    return {
+        top: read('paddingTop'),
+        bottom: read('paddingBottom'),
+        left: read('paddingLeft'),
+        right: read('paddingRight')
+    };
+}
+
+// Treat a selected group as one Figma-style object. Every member keeps its
+// own offset; page transforms only translate the shared outer bounding box.
+function getValidIdGroupBounds(group) {
+    if (!group || !Array.isArray(group.imageIds)) return null;
+    let members = group.imageIds
+        .map(id => uploadedImages.find(image => image.id === id))
+        .filter(Boolean);
+    if (!members.length) return null;
+
+    const hasPosition = image => image.xMM !== null && image.xMM !== undefined &&
+        image.yMM !== null && image.yMM !== undefined &&
+        Number.isFinite(Number(image.xMM)) && Number.isFinite(Number(image.yMM));
+    if (members.some(image => !hasPosition(image))) {
+        ensureValidIdCardPositions();
+        members = group.imageIds
+            .map(id => uploadedImages.find(image => image.id === id))
+            .filter(image => image && hasPosition(image));
+    }
+    if (!members.length) return null;
+
+    const minX = Math.min(...members.map(image => Number(image.xMM)));
+    const minY = Math.min(...members.map(image => Number(image.yMM)));
+    const maxX = Math.max(...members.map(image => Number(image.xMM) + VALID_ID_CARD_W_MM));
+    const maxY = Math.max(...members.map(image => Number(image.yMM) + VALID_ID_CARD_H_MM));
+    return { members, minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
+}
+
+function getValidIdGroupAlignedOrigin(bounds, paper, padding, alignH, alignV) {
+    if (!bounds) return null;
+    const availableW = Math.max(0, paper.w - padding.left - padding.right);
+    const availableH = Math.max(0, paper.h - padding.top - padding.bottom);
+    let left;
+    let top;
+
+    if (bounds.width > availableW) left = (paper.w - bounds.width) / 2;
+    else if (alignH === 'left') left = padding.left;
+    else if (alignH === 'right') left = paper.w - padding.right - bounds.width;
+    else left = padding.left + (availableW - bounds.width) / 2;
+
+    if (bounds.height > availableH) top = (paper.h - bounds.height) / 2;
+    else if (alignV === 'top') top = padding.top;
+    else if (alignV === 'bottom') top = paper.h - padding.bottom - bounds.height;
+    else top = padding.top + (availableH - bounds.height) / 2;
+
+    return { x: left, y: top };
+}
+
+function translateValidIdGroup(group, dx, dy, markManual = true) {
+    const bounds = getValidIdGroupBounds(group);
+    if (!bounds) return false;
+    const moveX = Number.isFinite(dx) ? dx : 0;
+    const moveY = Number.isFinite(dy) ? dy : 0;
+    if (Math.abs(moveX) < 0.0001 && Math.abs(moveY) < 0.0001) return false;
+
+    bounds.members.forEach(image => {
+        image.xMM = Number(image.xMM) + moveX;
+        image.yMM = Number(image.yMM) + moveY;
+        if (markManual) image.manualPosition = true;
+    });
+    return true;
+}
+
+function applyValidIdGroupPaddingChange(group, previousPadding, nextPadding) {
+    const bounds = getValidIdGroupBounds(group);
+    if (!bounds) return false;
+    const paper = getValidIdPaper();
+    const alignH = ['left', 'center', 'right'].includes(group.canvasAlignH) ? group.canvasAlignH : 'center';
+    const alignV = ['top', 'center', 'bottom'].includes(group.canvasAlignV) ? group.canvasAlignV : 'center';
+    const oldOrigin = getValidIdGroupAlignedOrigin(bounds, paper, previousPadding, alignH, alignV);
+    const newOrigin = getValidIdGroupAlignedOrigin(bounds, paper, nextPadding, alignH, alignV);
+    if (!oldOrigin || !newOrigin) return false;
+
+    // Only the group origin moves. All relative member coordinates stay intact.
+    const moved = translateValidIdGroup(group, newOrigin.x - oldOrigin.x, newOrigin.y - oldOrigin.y, true);
+    // A padding edit is a group-level operation even when the resulting delta
+    // is zero. Keep all members locked to their existing relative offsets.
+    bounds.members.forEach(image => { image.manualPosition = true; });
+    group.validIdLayoutVersion = 3;
+    return moved || true;
 }
 function getValidIdMargin() {
-    const safeOn = Boolean(document.getElementById('safeZoneToggle')?.checked);
-    const safeMargin = safeOn ? 3 : 0;
-    return Math.max(safeMargin, Number(appConfig.margin) || 0);
+    // Compatibility value for older helpers. New page layout uses each edge independently.
+    const padding = getValidIdPadding();
+    return Math.max(padding.top, padding.bottom, padding.left, padding.right);
 }
 function ensureValidIdCardPositions() {
     const paper = getValidIdPaper();
@@ -6015,13 +6590,11 @@ function ensureValidIdCardPositions() {
 }
 function clampValidIdCardPosition(img, x, y) {
     const paper = getValidIdPaper();
-    const margin = getValidIdMargin();
-    const minX = margin;
-    const maxX = Math.max(minX, paper.w - margin - VALID_ID_CARD_W_MM);
-    const zoneStart = getValidIdZoneStart(img.side || 'front', paper);
-    const zoneEnd = zoneStart + paper.h / 2;
-    const minY = Math.max(margin, zoneStart + (img.side === 'back' ? margin : 0));
-    const maxY = Math.max(minY, Math.min(paper.h - margin - VALID_ID_CARD_H_MM, zoneEnd - VALID_ID_CARD_H_MM - (img.side === 'front' ? margin : 0)));
+    const padding = getValidIdPadding();
+    const minX = padding.left;
+    const maxX = Math.max(minX, paper.w - padding.right - VALID_ID_CARD_W_MM);
+    const minY = padding.top;
+    const maxY = Math.max(minY, paper.h - padding.bottom - VALID_ID_CARD_H_MM);
     return {
         x: Math.min(maxX, Math.max(minX, Number(x) || 0)),
         y: Math.min(maxY, Math.max(minY, Number(y) || 0))
@@ -6047,10 +6620,17 @@ function updateLayoutInfo() {
     const sub = document.getElementById('layoutSub');
     const visible = uploadedImages.filter(img => img.visible !== false);
     const front = visible.filter(img => (img.side || 'front') === 'front').length;
-    const back = visible.length - front;
-    if (main) main.textContent = `${visible.length} Valid ID layer${visible.length === 1 ? '' : 's'}`;
-    if (sub) sub.textContent = `${front} Front · ${back} Back · ${getValidIdPaper().label} · ${VALID_ID_CARD_W_IN} × ${VALID_ID_CARD_H_IN} in each`;
+    const back = visible.filter(img => img.side === 'back').length;
+    const idCount = getValidIdIdCountFromImages(visible);
+    if (!visible.length) {
+        if (main) main.textContent = 'No active layout';
+        if (sub) sub.textContent = `${getValidIdPaper().label} · ${VALID_ID_CARD_W_IN} × ${VALID_ID_CARD_H_IN} in per ID side`;
+        return;
+    }
+    if (main) main.textContent = `${idCount} ID${idCount === 1 ? '' : 's'} · ${visible.length} layer${visible.length === 1 ? '' : 's'}`;
+    if (sub) sub.textContent = `${front} Front · ${back} Back · ${getValidIdPaper().label} · ${VALID_ID_CARD_W_IN} × ${VALID_ID_CARD_H_IN} in per layer`;
 }
+
 function setLayerSide(imageId, side) {
     const img = uploadedImages.find(item => item.id === imageId);
     if (!img || !['front', 'back'].includes(side) || (img.side || 'front') === side) return;
@@ -6158,14 +6738,14 @@ function renderImageQueue() {
         const frontBtn = document.createElement('button');
         frontBtn.type = 'button';
         frontBtn.textContent = 'F';
-        frontBtn.title = 'Place on Front (top half)';
+        frontBtn.title = 'Place on Front';
         frontBtn.setAttribute('aria-pressed', String((obj.side || 'front') === 'front'));
         frontBtn.classList.toggle('active', (obj.side || 'front') === 'front');
         frontBtn.addEventListener('click', event => { event.stopPropagation(); setLayerSide(obj.id, 'front'); });
         const backBtn = document.createElement('button');
         backBtn.type = 'button';
         backBtn.textContent = 'B';
-        backBtn.title = 'Place on Back (bottom half)';
+        backBtn.title = 'Place on Back';
         backBtn.setAttribute('aria-pressed', String(obj.side === 'back'));
         backBtn.classList.toggle('active', obj.side === 'back');
         backBtn.addEventListener('click', event => { event.stopPropagation(); setLayerSide(obj.id, 'back'); });
@@ -6273,7 +6853,7 @@ function renderCanvas() {
     page.dataset.pageIndex = '0';
     page.style.width = `${paper.w}mm`;
     page.style.height = `${paper.h}mm`;
-    page.innerHTML = `<div class="paper-label">${paper.label} · Valid ID</div><div class="safe-zone-overlay"></div><div class="valid-id-zone-label front">FRONT · TOP HALF</div><div class="valid-id-zone-label back">BACK · BOTTOM HALF</div><div class="valid-id-zone-guide"></div>`;
+    page.innerHTML = `<div class="paper-label">${paper.label} · Valid ID</div><div class="safe-zone-overlay"></div>`;
     if (document.getElementById('safeZoneToggle')?.checked) page.classList.add('safe-zone-active');
 
     if (!uploadedImages.length) {
@@ -6345,57 +6925,79 @@ function updateGroupButton() {
     const btn = document.getElementById('groupLayersBtn');
     if (btn) btn.style.display = 'none';
 }
-function getCanvasAlignH(imageId = activeImageId) {
-    const img = uploadedImages.find(item => item.id === imageId);
-    return ['left', 'center', 'right'].includes(img?.alignH) ? img.alignH : 'center';
+function getCanvasAlignH() {
+    const group = selectedGroupPageId ? pages.find(page => page.id === selectedGroupPageId && Array.isArray(page.imageIds) && page.imageIds.length > 1) : null;
+    return ['left', 'center', 'right'].includes(group?.canvasAlignH) ? group.canvasAlignH : 'center';
 }
-function getCanvasAlignV(imageId = activeImageId) {
-    const img = uploadedImages.find(item => item.id === imageId);
-    return ['top', 'center', 'bottom'].includes(img?.alignV) ? img.alignV : 'center';
+function getCanvasAlignV() {
+    const group = selectedGroupPageId ? pages.find(page => page.id === selectedGroupPageId && Array.isArray(page.imageIds) && page.imageIds.length > 1) : null;
+    return ['top', 'center', 'bottom'].includes(group?.canvasAlignV) ? group.canvasAlignV : 'center';
 }
-function syncAlignControls(imageId = activeImageId) {
-    const h = getCanvasAlignH(imageId);
-    const v = getCanvasAlignV(imageId);
-    document.getElementById('alignLeftBtn')?.classList.toggle('active', h === 'left');
-    document.getElementById('alignCenterHBtn')?.classList.toggle('active', h === 'center');
-    document.getElementById('alignRightBtn')?.classList.toggle('active', h === 'right');
-    document.getElementById('alignTopBtn')?.classList.toggle('active', v === 'top');
-    document.getElementById('alignCenterBtn')?.classList.toggle('active', v === 'center');
-    document.getElementById('alignBottomBtn')?.classList.toggle('active', v === 'bottom');
+function syncAlignControls() {
+    // Alignment is a group-level transform only. Selecting a child layer must
+    // never reset or move that layer independently within its group.
+    const group = selectedGroupPageId
+        ? pages.find(page => page.id === selectedGroupPageId && Array.isArray(page.imageIds) && page.imageIds.length > 1)
+        : null;
+    const enabled = Boolean(group);
+    const h = ['left', 'center', 'right'].includes(group?.canvasAlignH) ? group.canvasAlignH : 'center';
+    const v = ['top', 'center', 'bottom'].includes(group?.canvasAlignV) ? group.canvasAlignV : 'center';
+    const states = [
+        ['alignLeftBtn', h === 'left'], ['alignCenterHBtn', h === 'center'], ['alignRightBtn', h === 'right'],
+        ['alignTopBtn', v === 'top'], ['alignCenterBtn', v === 'center'], ['alignBottomBtn', v === 'bottom']
+    ];
+    states.forEach(([id, active]) => {
+        const button = document.getElementById(id);
+        if (!button) return;
+        button.classList.toggle('active', enabled && active);
+        button.disabled = !enabled;
+        button.title = enabled ? button.getAttribute('aria-label') : 'Select a group to align all its layers together';
+    });
 }
+function alignSelectedGroup(axis, mode) {
+    const group = getSelectedGroupPage();
+    if (!group) {
+        syncAlignControls();
+        return;
+    }
+
+    const bounds = getValidIdGroupBounds(group);
+    if (!bounds) return;
+    recordUndoSnapshot(captureStateSnapshot());
+
+    const paper = getValidIdPaper();
+    const padding = getValidIdPadding();
+    if (axis === 'x') group.canvasAlignH = mode;
+    else group.canvasAlignV = mode;
+
+    const alignH = ['left', 'center', 'right'].includes(group.canvasAlignH) ? group.canvasAlignH : 'center';
+    const alignV = ['top', 'center', 'bottom'].includes(group.canvasAlignV) ? group.canvasAlignV : 'center';
+    const target = getValidIdGroupAlignedOrigin(bounds, paper, padding, alignH, alignV);
+    if (!target) return;
+
+    // Align only the group's outer bounding box. Each child keeps its exact
+    // offset from every other child, like moving/alignment in Figma.
+    const dx = axis === 'x' ? target.x - bounds.minX : 0;
+    const dy = axis === 'y' ? target.y - bounds.minY : 0;
+    translateValidIdGroup(group, dx, dy, true);
+
+    if (axis === 'x') group.transformXMM = 0;
+    else group.transformYMM = 0;
+    group.validIdLayoutVersion = 3;
+
+    activeValidIdSheetIndex = getValidIdSheetIndexForImage(bounds.members[0].id);
+    syncAlignControls();
+    renderCanvas();
+    updateUndoButton();
+}
+
 function setAlignH(mode) {
     if (!['left', 'center', 'right'].includes(mode)) return;
-    const targets = [...(selectedImageIds.size ? selectedImageIds : (activeImageId ? [activeImageId] : []))]
-        .map(id => uploadedImages.find(img => img.id === id)).filter(Boolean);
-    if (!targets.length) return;
-    recordUndoSnapshot(captureStateSnapshot());
-    const paper = getValidIdPaper();
-    const margin = getValidIdMargin();
-    targets.forEach(img => {
-        img.alignH = mode;
-        img.xMM = mode === 'left' ? margin : (mode === 'right' ? paper.w - margin - VALID_ID_CARD_W_MM : (paper.w - VALID_ID_CARD_W_MM) / 2);
-        img.manualPosition = true;
-    });
-    syncAlignControls(activeImageId);
-    renderCanvas();
+    alignSelectedGroup('x', mode);
 }
 function setAlignV(mode) {
     if (!['top', 'center', 'bottom'].includes(mode)) return;
-    const targets = [...(selectedImageIds.size ? selectedImageIds : (activeImageId ? [activeImageId] : []))]
-        .map(id => uploadedImages.find(img => img.id === id)).filter(Boolean);
-    if (!targets.length) return;
-    recordUndoSnapshot(captureStateSnapshot());
-    const paper = getValidIdPaper();
-    const margin = getValidIdMargin();
-    targets.forEach(img => {
-        const start = getValidIdZoneStart(img.side || 'front', paper);
-        const zoneH = paper.h / 2;
-        img.alignV = mode;
-        img.yMM = mode === 'top' ? start + margin : (mode === 'bottom' ? start + zoneH - margin - VALID_ID_CARD_H_MM : start + (zoneH - VALID_ID_CARD_H_MM) / 2);
-        img.manualPosition = true;
-    });
-    syncAlignControls(activeImageId);
-    renderCanvas();
+    alignSelectedGroup('y', mode);
 }
 async function triggerPrint() {
     flushScheduledEditorRender();
@@ -6479,28 +7081,46 @@ async function exportFile() {
 /* =========================================================
    VALID ID MODES + PAGE-AWARE GROUPING
    Free Form is the default. Auto layout is optional.
-   A single selected layer group occupies Page 1; remaining layers
-   are displayed on Page 2 while editing and print as a second sheet.
+   Each uploaded Front/Back pair shares one page. Single uploads create
+   their own pages; layers can be grouped together onto any page.
    ========================================================= */
-let autoLayoutEnabled = false;
+let autoLayoutEnabled = true;
 let activeValidIdSheetIndex = 0;
 
 function getValidIdGroupPage() {
-    return pages.find(pg => Array.isArray(pg.imageIds) && pg.imageIds.length > 1 &&
-        pg.imageIds.some(id => uploadedImages.some(img => img.id === id))) || null;
+    const groupPages = pages.filter(page => Array.isArray(page.imageIds) && page.imageIds.length > 1 &&
+        page.imageIds.some(id => uploadedImages.some(image => image.id === id)));
+    if (selectedGroupPageId) {
+        const selectedPage = groupPages.find(page => page.id === selectedGroupPageId);
+        if (selectedPage) return selectedPage;
+    }
+    const selected = new Set(selectedImageIds);
+    return groupPages.find(page => page.imageIds.length === selected.size &&
+        page.imageIds.every(id => selected.has(id))) || null;
 }
 
 function getValidIdSheets() {
-    const validIds = new Set(uploadedImages.map(img => img.id));
-    const allIds = getLayerStackIds().filter(id => validIds.has(id));
-    const group = getValidIdGroupPage();
-    if (!group) return [{ id: 'all-layers', ids: allIds, isGroup: false }];
-    const groupedIds = (group.imageIds || []).filter(id => validIds.has(id));
-    const groupedSet = new Set(groupedIds);
-    const otherIds = allIds.filter(id => !groupedSet.has(id));
-    const result = [{ id: group.id, ids: groupedIds, isGroup: true }];
-    if (otherIds.length) result.push({ id: 'other-layers', ids: otherIds, isGroup: false });
-    return result;
+    const validIds = new Set(uploadedImages.map(image => image.id));
+    const assignedIds = new Set();
+    const sheets = [];
+
+    // `pages` is the source of truth: each uploaded layer stays on its own page
+    // until the user manually groups layers onto a shared sheet.
+    pages.forEach(page => {
+        const ids = (page.imageIds || [page.imageId]).filter(id => id && validIds.has(id) && !assignedIds.has(id));
+        if (!ids.length) return;
+        ids.forEach(id => assignedIds.add(id));
+        sheets.push({ id: page.id, ids, isGroup: ids.length > 1, page });
+    });
+
+    // Recover any layer that is not currently attached to a page as its own page.
+    getLayerStackIds().forEach(id => {
+        if (!validIds.has(id) || assignedIds.has(id)) return;
+        assignedIds.add(id);
+        sheets.push({ id: `layer-page-${id}`, ids: [id], isGroup: false, layerId: id });
+    });
+
+    return sheets.length ? sheets : [{ id: 'empty-page', ids: [], isGroup: false }];
 }
 
 function getValidIdSheetIndexForImage(imageId) {
@@ -6530,18 +7150,128 @@ function getValidIdDefaultPosition(img, index, sideLayers) {
 }
 
 function ensureValidIdCardPositions() {
-    const sheets = getValidIdSheets();
-    sheets.forEach(sheet => {
+    const paper = getValidIdPaper();
+    getValidIdSheets().forEach(sheet => {
+        const pageImages = sheet.ids
+            .map(id => uploadedImages.find(image => image.id === id))
+            .filter(Boolean);
+        if (!pageImages.length) return;
+
+        const frontLayers = pageImages.filter(image => (image.side || 'front') === 'front');
+        const backLayers = pageImages.filter(image => image.side === 'back');
+        const isFrontBackPair = frontLayers.length === 1 && backLayers.length === 1;
+
+        if (isFrontBackPair) {
+            const front = frontLayers[0];
+            const back = backLayers[0];
+            const style = getLayerStyle(front.id);
+            const gapV = Math.max(0, Number(style.gapV ?? appConfig.gapV) || 0);
+            const totalHeight = (VALID_ID_CARD_H_MM * 2) + gapV;
+            const top = (paper.h - totalHeight) / 2;
+            const left = (paper.w - VALID_ID_CARD_W_MM) / 2;
+
+            if (front.manualPosition !== true || !Number.isFinite(front.xMM) || !Number.isFinite(front.yMM)) {
+                const pos = clampValidIdCardPosition(front, left, top);
+                front.xMM = pos.x; front.yMM = pos.y; front.manualPosition = false;
+            }
+            if (back.manualPosition !== true || !Number.isFinite(back.xMM) || !Number.isFinite(back.yMM)) {
+                const pos = clampValidIdCardPosition(back, left, top + VALID_ID_CARD_H_MM + gapV);
+                back.xMM = pos.x; back.yMM = pos.y; back.manualPosition = false;
+            }
+            return;
+        }
+
         ['front', 'back'].forEach(side => {
-            const sideLayers = sheet.ids
-                .map(id => uploadedImages.find(img => img.id === id))
-                .filter(img => img && (img.side || 'front') === side);
-            sideLayers.forEach((img, index) => {
-                if (autoLayoutEnabled || !Number.isFinite(img.xMM) || !Number.isFinite(img.yMM)) {
-                    const pos = getValidIdDefaultPosition(img, index, sideLayers);
-                    img.xMM = pos.x;
-                    img.yMM = pos.y;
-                    img.manualPosition = !autoLayoutEnabled;
+            const sideLayers = pageImages.filter(image => (image.side || 'front') === side);
+            sideLayers.forEach((image, index) => {
+                if (image.manualPosition !== true || !Number.isFinite(image.xMM) || !Number.isFinite(image.yMM)) {
+                    const pos = getValidIdDefaultPosition(image, index, sideLayers);
+                    image.xMM = pos.x;
+                    image.yMM = pos.y;
+                    image.manualPosition = false;
+                }
+            });
+        });
+    });
+}
+
+function scrollActiveValidIdPageIntoView() {
+    // Deliberately no-op: Valid ID uses the PrintGrid pager, not a vertical
+    // scrolling stack of sheets.
+    const workspace = document.querySelector('.workspace');
+    if (workspace) workspace.scrollTop = 0;
+}
+
+function getValidIdSheetIndexForImage(imageId) {
+    if (!imageId) return Math.max(0, Math.min(activeValidIdSheetIndex, getValidIdSheets().length - 1));
+    const sheets = getValidIdSheets();
+    const index = sheets.findIndex(sheet => sheet.ids.includes(imageId));
+    return index >= 0 ? index : 0;
+}
+
+function getValidIdDefaultPosition(img, index, sideLayers) {
+    const paper = getValidIdPaper();
+    const style = getLayerStyle(img.id);
+    const gapH = Math.max(0, Number(style.gapH ?? appConfig.gapH) || 0);
+    const gapV = Math.max(0, Number(style.gapV ?? appConfig.gapV) || 0);
+    const cols = Math.min(2, Math.max(1, sideLayers.length));
+    const rows = Math.max(1, Math.ceil(sideLayers.length / cols));
+    const row = Math.floor(index / cols);
+    const col = index % cols;
+    const countInRow = Math.min(cols, sideLayers.length - row * cols);
+    const rowWidth = countInRow * VALID_ID_CARD_W_MM + Math.max(0, countInRow - 1) * gapH;
+    const totalHeight = rows * VALID_ID_CARD_H_MM + Math.max(0, rows - 1) * gapV;
+    const zoneStart = getValidIdZoneStart(img.side || 'front', paper);
+    const zoneHeight = paper.h / 2;
+    return clampValidIdCardPosition(img,
+        (paper.w - rowWidth) / 2 + col * (VALID_ID_CARD_W_MM + gapH),
+        zoneStart + Math.max(0, (zoneHeight - totalHeight) / 2) + row * (VALID_ID_CARD_H_MM + gapV));
+}
+
+function ensureValidIdCardPositions() {
+    const paper = getValidIdPaper();
+    getValidIdSheets().forEach(sheet => {
+        const pageImages = sheet.ids
+            .map(id => uploadedImages.find(image => image.id === id))
+            .filter(Boolean);
+        if (!pageImages.length) return;
+
+        const frontLayers = pageImages.filter(image => (image.side || 'front') === 'front');
+        const backLayers = pageImages.filter(image => image.side === 'back');
+
+        // A normal Valid ID upload is a Front + Back pair. Keep them adjacent
+        // around the centre of the sheet and use the actual Vertical Spacing
+        // value for the gap instead of pinning each card to the middle of a half.
+        if (frontLayers.length === 1 && backLayers.length === 1) {
+            const front = frontLayers[0];
+            const back = backLayers[0];
+            const style = getLayerStyle(front.id);
+            const gapV = Math.max(0, Number(style.gapV ?? appConfig.gapV) || 0);
+            const totalHeight = (VALID_ID_CARD_H_MM * 2) + gapV;
+            const top = (paper.h - totalHeight) / 2;
+            const left = (paper.w - VALID_ID_CARD_W_MM) / 2;
+
+            if (front.manualPosition !== true || !Number.isFinite(front.xMM) || !Number.isFinite(front.yMM)) {
+                const pos = clampValidIdCardPosition(front, left, top);
+                front.xMM = pos.x; front.yMM = pos.y; front.manualPosition = false;
+            }
+            if (back.manualPosition !== true || !Number.isFinite(back.xMM) || !Number.isFinite(back.yMM)) {
+                const pos = clampValidIdCardPosition(back, left, top + VALID_ID_CARD_H_MM + gapV);
+                back.xMM = pos.x; back.yMM = pos.y; back.manualPosition = false;
+            }
+            return;
+        }
+
+        // For pages containing only one side or more than two layers, keep the
+        // existing top-half / bottom-half grid behavior with editable spacing.
+        ['front', 'back'].forEach(side => {
+            const sideLayers = pageImages.filter(image => (image.side || 'front') === side);
+            sideLayers.forEach((image, index) => {
+                if (image.manualPosition !== true || !Number.isFinite(image.xMM) || !Number.isFinite(image.yMM)) {
+                    const pos = getValidIdDefaultPosition(image, index, sideLayers);
+                    image.xMM = pos.x;
+                    image.yMM = pos.y;
+                    image.manualPosition = false;
                 }
             });
         });
@@ -6553,12 +7283,10 @@ function setValidIdAutoLayout(enabled) {
     if (next === autoLayoutEnabled) return;
     recordUndoSnapshot(captureStateSnapshot());
     autoLayoutEnabled = next;
-    if (next) uploadedImages.forEach(img => { img.manualPosition = false; });
+    appConfig.autoLayoutOnGroup = next;
     const toggle = document.getElementById('autoLayoutToggle');
     if (toggle) toggle.checked = next;
-    ensureValidIdCardPositions();
-    renderCanvas();
-    renderImageQueue();
+    saveConfig();
     updateUndoButton();
 }
 
@@ -6581,6 +7309,7 @@ const _restoreValidIdSnapshot = restoreStateSnapshot;
 restoreStateSnapshot = function(snapshot) {
     _restoreValidIdSnapshot(snapshot);
     autoLayoutEnabled = Boolean(snapshot?.validIdAutoLayout);
+    appConfig.autoLayoutOnGroup = autoLayoutEnabled;
     activeValidIdSheetIndex = Number.isInteger(snapshot?.activeValidIdSheetIndex)
         ? snapshot.activeValidIdSheetIndex : 0;
     const toggle = document.getElementById('autoLayoutToggle');
@@ -6619,6 +7348,7 @@ function selectLayer(id, index, ev) {
     if (pageIndex >= 0) activePageIndex = pageIndex;
     activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
     reconcileSelectionAndUI();
+    scrollActiveValidIdPageIntoView();
 }
 
 function activateValidIdLayer(imageId) {
@@ -6640,47 +7370,69 @@ function activateValidIdLayer(imageId) {
     });
     renderImageQueue();
     updatePagerUI();
+    scrollActiveValidIdPageIntoView();
 }
 
 function updateGroupButton() {
     const btn = document.getElementById('groupLayersBtn');
     if (!btn) return;
-    const group = getValidIdGroupPage();
-    const selected = [...selectedImageIds];
-    const selectedIsGroup = Boolean(group && group.imageIds.length === selected.length &&
-        group.imageIds.every(id => selectedImageIds.has(id)));
-    const touchesGroup = Boolean(group && selected.some(id => group.imageIds.includes(id)));
+
+    const selected = new Set([...selectedImageIds].filter(id => uploadedImages.some(image => image.id === id)));
+    const selectedIsGroup = pages.some(page => {
+        const ids = page.imageIds || [];
+        return ids.length > 1 && ids.length === selected.size && ids.every(id => selected.has(id));
+    });
+    const partiallySelectedPage = pages.some(page => {
+        const ids = (page.imageIds || [page.imageId]).filter(Boolean);
+        const selectedCount = ids.filter(id => selected.has(id)).length;
+        return selectedCount > 0 && selectedCount < ids.length;
+    });
+
     btn.style.display = uploadedImages.length >= 2 ? 'inline-flex' : 'none';
     btn.textContent = selectedIsGroup ? 'Ungroup' : 'Group';
     btn.title = selectedIsGroup
-        ? 'Move all grouped layers back onto one page (Ctrl+Shift+G)'
-        : 'Select two or more layers to place them on Page 1; other layers move to Page 2 (Ctrl+G)';
-    btn.disabled = selectedIsGroup ? false : (selected.length < 2 || Boolean(group) || touchesGroup);
+        ? 'Ungroup this page and place each layer on its own page (Ctrl+Shift+G)'
+        : 'Select layers from complete pages to place them together on one page (Ctrl+G)';
+    btn.disabled = selectedIsGroup ? false : (selected.size < 2 || partiallySelectedPage);
 }
 
 function groupImages(ids) {
-    const existingGroup = getValidIdGroupPage();
-    if (existingGroup) return;
     const requested = new Set(ids || []);
     const selectedIds = getLayerStackIds().filter(id => requested.has(id));
     if (selectedIds.length < 2) return;
+
+    // Do not split an existing page in half by accident. Select all of a page's
+    // layers before combining that page with layers from other pages.
+    const partiallySelectedPage = pages.some(page => {
+        const pageIds = (page.imageIds || [page.imageId]).filter(Boolean);
+        const selectedCount = pageIds.filter(id => requested.has(id)).length;
+        return selectedCount > 0 && selectedCount < pageIds.length;
+    });
+    if (partiallySelectedPage) return;
+
     recordUndoSnapshot(captureStateSnapshot());
-    const selectedPages = pages.filter(pg => (pg.imageIds || [pg.imageId]).some(id => selectedIds.includes(id)));
+    const selectedPages = pages.filter(page => (page.imageIds || [page.imageId]).some(id => selectedIds.includes(id)));
     const insertAt = selectedPages.length
-        ? Math.min(...selectedPages.map(pg => pages.indexOf(pg))) : 0;
-    pages = pages.filter(pg => !(pg.imageIds || [pg.imageId]).some(id => selectedIds.includes(id)));
+        ? Math.min(...selectedPages.map(page => pages.indexOf(page))) : pages.length;
+    pages = pages.filter(page => !(page.imageIds || [page.imageId]).some(id => selectedIds.includes(id)));
+
     const group = {
         id: newPageId(), imageId: selectedIds[0], imageIds: selectedIds,
-        lockSize: false, visible: true
+        lockSize: false, visible: true,
+        transformXMM: 0, transformYMM: 0,
+        canvasAlignH: 'center', canvasAlignV: 'center'
     };
-    pages.splice(Math.max(0, insertAt), 0, group);
+    pages.splice(Math.max(0, Math.min(insertAt, pages.length)), 0, group);
     activePageIndex = pages.indexOf(group);
     activeImageId = selectedIds[0];
     selectedImageIds = new Set(selectedIds);
     selectedGroupPageId = group.id;
-    activeValidIdSheetIndex = 0;
-    if (autoLayoutEnabled) ensureValidIdCardPositions();
+    // A newly formed group needs a fresh arrangement; afterward, manual dragging remains free-form.
+    uploadedImages.filter(image => selectedIds.includes(image.id)).forEach(image => { image.manualPosition = false; });
+    ensureValidIdCardPositions();
+    activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
     reconcileSelectionAndUI();
+    scrollActiveValidIdPageIntoView();
 }
 
 function ungroupPage(group) {
@@ -6694,163 +7446,126 @@ function ungroupPage(group) {
     activePageIndex = index;
     activeImageId = ids[0] || null;
     selectedImageIds = new Set(ids);
-    activeValidIdSheetIndex = 0;
+    activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
+    ensureValidIdCardPositions();
     reconcileSelectionAndUI();
+    scrollActiveValidIdPageIntoView();
 }
 
 function toggleGroupSelection() {
-    const group = getValidIdGroupPage();
-    const selected = [...selectedImageIds];
-    if (group && selected.length === group.imageIds.length && group.imageIds.every(id => selectedImageIds.has(id))) {
-        ungroupPage(group);
+    const selected = new Set(selectedImageIds);
+    const selectedGroup = pages.find(page => {
+        const ids = page.imageIds || [];
+        return ids.length > 1 && ids.length === selected.size && ids.every(id => selected.has(id));
+    });
+    if (selectedGroup) {
+        ungroupPage(selectedGroup);
         return;
     }
-    if (group && selected.some(id => group.imageIds.includes(id))) return;
-    groupImages(selected);
+    groupImages([...selected]);
 }
 
 function renderImageQueue() {
-    const queue = document.getElementById('imageQueue');
-    const count = document.getElementById('layerCount');
-    if (!queue) return;
-    if (count) count.textContent = uploadedImages.length;
-    queue.innerHTML = '';
-    queue.ondragover = event => {
-        if (event.dataTransfer && Array.from(event.dataTransfer.types || []).includes('Files')) {
-            event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; queue.classList.add('drop-files-target');
-        }
-    };
-    queue.ondragleave = event => { if (!queue.contains(event.relatedTarget)) queue.classList.remove('drop-files-target'); };
-    queue.ondrop = event => {
-        if (event.dataTransfer?.files?.length) {
-            event.preventDefault(); event.stopPropagation(); queue.classList.remove('drop-files-target');
-            handleFiles(event.dataTransfer.files);
-        }
-    };
-    if (!uploadedImages.length) {
-        queue.innerHTML = '<div class="queue-empty">No ID layers yet</div>';
-        const clearBtn = document.getElementById('clearAllBtn');
-        if (clearBtn) clearBtn.disabled = true;
-        updateGroupButton(); updateLayoutInfo(); updatePagerUI();
-        return;
-    }
-
-    const stackIds = getLayerStackIds();
-    const group = getValidIdGroupPage();
-    const groupIds = new Set(group?.imageIds || []);
-    const sheetOneIds = group ? stackIds.filter(id => groupIds.has(id)) : stackIds;
-    const sheetTwoIds = group ? stackIds.filter(id => !groupIds.has(id)) : [];
-    const indexById = new Map(stackIds.map((id, i) => [id, i]));
-
-    const makeLayerRow = (obj, index) => {
-        const selected = selectedImageIds.has(obj.id);
-        const row = document.createElement('div');
-        row.className = 'layer-item' + (obj.id === activeImageId ? ' active' : '') + (selected ? ' multi-selected' : '');
-        row.title = `${obj.name || `ID image ${index + 1}`} · Drag the card on the canvas to position`;
-        row.addEventListener('click', event => selectLayer(obj.id, index, event));
-        const grip = document.createElement('span'); grip.className = 'layer-grip'; grip.textContent = '⠿'; grip.title = 'Layer'; row.appendChild(grip);
-        const thumb = document.createElement('div'); thumb.className = 'layer-thumb';
-        const preview = document.createElement('img'); preview.src = obj.croppedSrc || obj.previewSrc || obj.src;
-        preview.alt = ''; preview.loading = 'lazy'; preview.decoding = 'async'; thumb.appendChild(preview);
-        const edit = document.createElement('button'); edit.className = 'layer-action layer-edit-overlay'; edit.type = 'button';
-        edit.title = 'Edit image (E)'; edit.setAttribute('aria-label', 'Edit image');
-        edit.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>';
-        edit.addEventListener('click', event => { event.stopPropagation(); activateValidIdLayer(obj.id); openCropModal(obj.id); });
-        thumb.appendChild(edit); row.appendChild(thumb);
-        const name = document.createElement('span'); name.className = 'layer-name';
-        name.textContent = obj.name || `ID image ${index + 1}`; name.title = name.textContent; row.appendChild(name);
-        const sideToggle = document.createElement('div'); sideToggle.className = 'side-toggle';
-        sideToggle.setAttribute('role', 'group'); sideToggle.setAttribute('aria-label', 'Choose card side');
-        const frontBtn = document.createElement('button'); frontBtn.type = 'button'; frontBtn.textContent = 'F'; frontBtn.title = 'Place on Front (top half)';
-        frontBtn.setAttribute('aria-pressed', String((obj.side || 'front') === 'front'));
-        frontBtn.classList.toggle('active', (obj.side || 'front') === 'front');
-        frontBtn.addEventListener('click', event => { event.stopPropagation(); setLayerSide(obj.id, 'front'); });
-        const backBtn = document.createElement('button'); backBtn.type = 'button'; backBtn.textContent = 'B'; backBtn.title = 'Place on Back (bottom half)';
-        backBtn.setAttribute('aria-pressed', String(obj.side === 'back'));
-        backBtn.classList.toggle('active', obj.side === 'back');
-        backBtn.addEventListener('click', event => { event.stopPropagation(); setLayerSide(obj.id, 'back'); });
-        sideToggle.append(frontBtn, backBtn); row.appendChild(sideToggle);
-        const eye = document.createElement('button');
-        eye.className = 'layer-action visibility-action' + (obj.visible === false ? ' is-hidden' : '');
-        eye.type = 'button'; eye.title = obj.visible === false ? 'Show layer' : 'Hide layer'; eye.setAttribute('aria-label', eye.title);
-        eye.innerHTML = obj.visible === false ? eyeOffIcon : eyeIcon;
-        eye.addEventListener('click', event => { event.stopPropagation(); toggleLayerVisibility(obj.id); }); row.appendChild(eye);
-        const remove = document.createElement('button'); remove.className = 'layer-action layer-delete'; remove.type = 'button';
-        remove.title = 'Delete layer'; remove.setAttribute('aria-label', 'Delete layer');
-        remove.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>';
-        remove.addEventListener('click', event => { event.stopPropagation(); removeImage(obj.id); }); row.appendChild(remove);
-        return row;
-    };
-
-    const appendHeading = (title, pageLabel, onClick) => {
-        const heading = document.createElement('div'); heading.className = 'page-layer-heading';
-        const left = document.createElement('span'); left.textContent = title;
-        const right = document.createElement('span'); right.className = 'page-tag'; right.textContent = pageLabel;
-        heading.append(left, right);
-        if (onClick) { heading.style.cursor = 'pointer'; heading.title = 'Select all layers on this page'; heading.addEventListener('click', onClick); }
-        queue.appendChild(heading);
-    };
-
-    if (group) {
-        appendHeading('Grouped layers', 'PAGE 1', () => {
-            selectedGroupPageId = group.id; selectedImageIds = new Set(group.imageIds);
-            activeImageId = group.imageIds[0] || null; activeValidIdSheetIndex = 0;
-            activePageIndex = pages.indexOf(group); renderImageQueue(); renderCanvas();
-        });
-        sheetOneIds.forEach(id => { const obj = uploadedImages.find(img => img.id === id); if (obj) queue.appendChild(makeLayerRow(obj, indexById.get(id))); });
-        if (sheetTwoIds.length) {
-            appendHeading('Other layers', 'PAGE 2', () => {
-                activeValidIdSheetIndex = 1;
-                const first = sheetTwoIds[0]; if (first) { activeImageId = first; selectedImageIds = new Set([first]); }
-                renderImageQueue(); renderCanvas(); updatePagerUI();
-            });
-            sheetTwoIds.forEach(id => { const obj = uploadedImages.find(img => img.id === id); if (obj) queue.appendChild(makeLayerRow(obj, indexById.get(id))); });
-        }
-    } else {
-        stackIds.forEach(id => { const obj = uploadedImages.find(img => img.id === id); if (obj) queue.appendChild(makeLayerRow(obj, indexById.get(id))); });
-    }
-    const clearBtn = document.getElementById('clearAllBtn');
-    if (clearBtn) clearBtn.disabled = false;
-    updateGroupButton(); updateLayoutInfo(); updatePagerUI();
+    // PrintGrid-style stack: standalone layers stay as normal rows and only
+    // manually grouped layers are nested under a Group header.
+    renderPrintGridLayerQueue();
+    updateLayoutInfo();
+    updatePagerUI();
+    syncLayerLinkButton();
 }
 
 function buildValidIdCard(img) {
     const style = getLayerStyle(img.id);
     const card = document.createElement('div');
-    card.className = 'valid-id-card' + (img.id === activeImageId ? ' is-selected' : '') + (autoLayoutEnabled ? ' is-auto-layout' : '');
+    card.className = 'valid-id-card' + (img.id === activeImageId ? ' is-selected' : '');
     card.dataset.imageId = img.id;
     const pos = clampValidIdCardPosition(img, img.xMM, img.yMM);
     img.xMM = pos.x; img.yMM = pos.y;
     card.style.left = `${pos.x}mm`; card.style.top = `${pos.y}mm`;
     card.style.width = `${VALID_ID_CARD_W_MM}mm`; card.style.height = `${VALID_ID_CARD_H_MM}mm`;
     card.style.zIndex = String(img.id === activeImageId ? 8 : 2);
+    const radius = Math.max(0, Number(style.borderR) || 0);
+    card.style.setProperty('--valid-id-radius', `${radius}px`);
     const media = document.createElement('div'); media.className = 'valid-id-card-media';
-    media.style.borderRadius = `${Math.max(0, Number(style.borderR) || 0)}px`;
+    media.style.borderRadius = `${radius}px`;
+    media.style.overflow = 'hidden';
+    if (radius > 0) {
+        media.style.clipPath = `inset(0 round ${radius}px)`;
+        media.style.webkitClipPath = `inset(0 round ${radius}px)`;
+    } else {
+        media.style.clipPath = 'none';
+        media.style.webkitClipPath = 'none';
+    }
     const image = document.createElement('img'); image.src = img.croppedSrc || img.previewSrc || img.src;
     image.alt = img.name || 'Valid ID card'; image.draggable = false; image.dataset.imageId = img.id;
-    image.style.objectFit = fitObjectFit(img.id); media.appendChild(image); card.appendChild(media);
+    image.style.objectFit = fitObjectFit(img.id);
+    image.style.borderRadius = `${radius}px`;
+    media.appendChild(image); card.appendChild(media);
     const borderW = Math.max(0, Number(style.borderW) || 0);
     if (borderW > 0) {
         const border = document.createElement('div'); border.className = 'valid-id-card-border';
         const position = style.borderPosition === 'inside' ? 'inside' : 'outside';
         border.style.inset = position === 'inside' ? '0' : `${-borderW}px`;
         border.style.border = `${borderW}px ${style.borderStyle === 'dotted' ? 'dotted' : 'solid'} ${normalizeHexColor(style.borderC) || '#E5E7EB'}`;
-        border.style.borderRadius = `${Math.max(0, Number(style.borderR) || 0) + (position === 'inside' ? 0 : borderW)}px`;
+        border.style.borderRadius = `${radius + (position === 'inside' ? 0 : borderW)}px`;
         card.appendChild(border);
     }
     const chip = document.createElement('span'); chip.className = 'card-side-chip';
     chip.textContent = img.side === 'back' ? 'BACK' : 'FRONT'; card.appendChild(chip);
     card.addEventListener('pointerdown', event => {
-        if (autoLayoutEnabled || event.button !== 0 || event.target.closest('button')) return;
-        event.preventDefault(); beginUndoCapture(260); activateValidIdLayer(img.id);
-        const paperPage = card.closest('.paper-page'); if (!paperPage) return;
-        const pageRect = paperPage.getBoundingClientRect(); const cardRect = card.getBoundingClientRect();
-        const scale = pageRect.width / getValidIdPaper().w;
+        if (event.button !== 0 || event.target.closest('button')) return;
+        event.preventDefault();
+        beginUndoCapture(260);
+        const paperPage = card.closest('.paper-page');
+        if (!paperPage) return;
+
+        const ownerGroup = pages.find(page => Array.isArray(page.imageIds) && page.imageIds.length > 1 && page.imageIds.includes(img.id));
+        const dragWholeGroup = Boolean(ownerGroup && selectedGroupPageId === ownerGroup.id);
+        if (dragWholeGroup) {
+            // Keep the group selection active when grabbing one of its children.
+            selectedGroupPageId = ownerGroup.id;
+            selectedImageIds = new Set(ownerGroup.imageIds);
+            activeImageId = img.id;
+            activePageIndex = pages.indexOf(ownerGroup);
+            activeValidIdSheetIndex = getValidIdSheetIndexForImage(img.id);
+            renderImageQueue();
+            syncSpacingBorderControls(img.id);
+            syncAlignControls();
+        } else {
+            activateValidIdLayer(img.id);
+        }
+
+        const paperRect = paperPage.getBoundingClientRect();
+        const scale = paperRect.width / getValidIdPaper().w;
+        const linkedMembers = !dragWholeGroup ? getLinkedLayerMembers(img.id) : [];
+        const memberIds = dragWholeGroup
+            ? ownerGroup.imageIds
+            : (linkedMembers.length > 1 ? linkedMembers.map(item => item.id) : [img.id]);
+        const members = memberIds.map(id => {
+            const image = uploadedImages.find(item => item.id === id);
+            if (!image) return null;
+            const memberCard = Array.from(paperPage.querySelectorAll('.valid-id-card'))
+                .find(node => node.dataset.imageId === id) || null;
+            return {
+                image,
+                card: memberCard,
+                startX: Number(image.xMM) || 0,
+                startY: Number(image.yMM) || 0
+            };
+        }).filter(Boolean);
+        if (!members.length) return;
+
         validIdActiveDrag = {
-            id: img.id, card, pointerId: event.pointerId,
-            offsetX: (event.clientX - cardRect.left) / scale,
-            offsetY: (event.clientY - cardRect.top) / scale,
-            startX: event.clientX, startY: event.clientY, moved: false
+            members,
+            groupId: dragWholeGroup ? ownerGroup.id : null,
+            linkSetId: !dragWholeGroup ? (img.linkSetId || null) : null,
+            startTransformXMM: dragWholeGroup ? (Number(ownerGroup.transformXMM) || 0) : 0,
+            startTransformYMM: dragWholeGroup ? (Number(ownerGroup.transformYMM) || 0) : 0,
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            scale,
+            moved: false
         };
         try { paperPage.setPointerCapture(event.pointerId); } catch (_) {}
     });
@@ -6871,8 +7586,7 @@ function renderCanvas() {
         page.className = 'paper-page' + (sheetIndex === activeValidIdSheetIndex ? ' active-page' : '');
         page.dataset.pageIndex = String(sheetIndex);
         page.style.width = `${paper.w}mm`; page.style.height = `${paper.h}mm`;
-        const pageTitle = sheet.isGroup ? 'GROUP · PAGE 1' : (sheets.length > 1 ? 'OTHER LAYERS · PAGE 2' : 'VALID ID');
-        page.innerHTML = `<div class="paper-label">${paper.label} · ${pageTitle}</div><div class="safe-zone-overlay"></div><div class="valid-id-zone-label front">FRONT · TOP HALF</div><div class="valid-id-zone-label back">BACK · BOTTOM HALF</div><div class="valid-id-zone-guide"></div>`;
+        page.innerHTML = `<div class="paper-label">${paper.label}</div><div class="safe-zone-overlay"></div>`;
         if (document.getElementById('safeZoneToggle')?.checked) page.classList.add('safe-zone-active');
         const pageImages = sheet.ids.map(id => uploadedImages.find(img => img.id === id)).filter(Boolean);
         const visibleImages = pageImages.filter(img => img.visible !== false);
@@ -6905,14 +7619,6 @@ function renderCanvas() {
         pagesWrapper.appendChild(page);
     });
 
-    const wrapper = document.getElementById('previewWrapper');
-    if (wrapper) {
-        const widthPx = paper.w * 3.7795; const heightPx = paper.h * 3.7795;
-        const scale = Math.max(0.05, Math.min(
-            (document.querySelector('.workspace')?.clientWidth || widthPx) / (widthPx + 80),
-            (document.querySelector('.workspace')?.clientHeight || heightPx) / (heightPx + 110), 1));
-        wrapper.style.width = `${widthPx * scale}px`; wrapper.style.height = `${heightPx * scale}px`;
-    }
     fitToViewport(); updateLayoutInfo(); updatePagerUI(); updateUndoButton();
 }
 
@@ -6957,19 +7663,18 @@ function goToPage(idx) {
     if (sheet?.isGroup) {
         selectedGroupPageId = sheet.id;
         selectedImageIds = new Set(sheet.ids);
-        activeImageId = sheet.ids[0] || null;
+        activeImageId = sheet.ids.find(id => uploadedImages.some(img => img.id === id && img.visible !== false)) || sheet.ids[0] || null;
     } else {
         selectedGroupPageId = null;
-        if (sheet && (!activeImageId || !sheet.ids.includes(activeImageId))) {
-            const nextId = sheet.ids.find(id => uploadedImages.some(img => img.id === id && img.visible !== false)) || sheet.ids[0];
-            activeImageId = nextId || null;
-            selectedImageIds = nextId ? new Set([nextId]) : new Set();
-        }
+        const nextId = sheet?.ids.find(id => uploadedImages.some(img => img.id === id && img.visible !== false)) || sheet?.ids[0] || null;
+        activeImageId = nextId;
+        selectedImageIds = nextId ? new Set([nextId]) : new Set();
     }
     renderImageQueue(); renderCanvas();
     if (activeImageId) {
         syncSpacingBorderControls(activeImageId); syncFitControls(activeImageId); syncTileControls(activeImageId);
     }
+    scrollActiveValidIdPageIntoView();
 }
 function prevPage() {
     const visible = getVisiblePageIndices();
@@ -6987,87 +7692,944 @@ function setLayerSide(imageId, side) {
     if (!img || !['front', 'back'].includes(side) || (img.side || 'front') === side) return;
     recordUndoSnapshot(captureStateSnapshot());
     img.side = side;
-    const paper = getValidIdPaper(); const zoneStart = getValidIdZoneStart(side, paper);
-    const zoneH = paper.h / 2;
-    img.yMM = zoneStart + (zoneH - VALID_ID_CARD_H_MM) / 2;
-    if (!Number.isFinite(img.xMM)) img.xMM = (paper.w - VALID_ID_CARD_W_MM) / 2;
-    img.manualPosition = !autoLayoutEnabled;
+    img.manualPosition = false;
     activeImageId = imageId; selectedImageIds = new Set([imageId]);
     const idx = pages.findIndex(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
     if (idx >= 0) activePageIndex = idx;
     activeValidIdSheetIndex = getValidIdSheetIndexForImage(imageId);
-    if (autoLayoutEnabled) ensureValidIdCardPositions();
+    ensureValidIdCardPositions();
     renderImageQueue(); renderCanvas();
     syncSpacingBorderControls(imageId); syncFitControls(imageId); updateUndoButton();
 }
 
-// Export every edit sheet, not just the currently visible one.
+// Add physical-resolution metadata to raster downloads so printing software
+// reads the exported image as 300 DPI instead of guessing from screen pixels.
+function makePngChunk(type, data) {
+    const typeBytes = new TextEncoder().encode(type);
+    const chunk = new Uint8Array(12 + data.length);
+    const view = new DataView(chunk.buffer);
+    view.setUint32(0, data.length, false);
+    chunk.set(typeBytes, 4);
+    chunk.set(data, 8);
+    let crc = 0xFFFFFFFF;
+    for (let i = 4; i < 8 + data.length; i++) {
+        crc ^= chunk[i];
+        for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xEDB88320 : 0);
+    }
+    view.setUint32(8 + data.length, (crc ^ 0xFFFFFFFF) >>> 0, false);
+    return chunk;
+}
+async function addPngResolutionMetadata(blob, dpi) {
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const signature = bytes.slice(0, 8);
+    const pixelsPerMeter = Math.round(dpi / 0.0254);
+    const physData = new Uint8Array(9);
+    const physView = new DataView(physData.buffer);
+    physView.setUint32(0, pixelsPerMeter, false);
+    physView.setUint32(4, pixelsPerMeter, false);
+    physData[8] = 1; // pixels per meter
+    const physChunk = makePngChunk('pHYs', physData);
+    const parts = [signature];
+    let offset = 8;
+    while (offset + 12 <= bytes.length) {
+        const view = new DataView(bytes.buffer, bytes.byteOffset + offset, bytes.length - offset);
+        const dataLength = view.getUint32(0, false);
+        const chunkEnd = offset + 12 + dataLength;
+        if (chunkEnd > bytes.length) break;
+        const type = String.fromCharCode(bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7]);
+        if (type !== 'pHYs') parts.push(bytes.slice(offset, chunkEnd));
+        if (type === 'IHDR') parts.push(physChunk);
+        offset = chunkEnd;
+        if (type === 'IEND') break;
+    }
+    return new Blob(parts, { type: 'image/png' });
+}
+async function addJpegResolutionMetadata(blob, dpi) {
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const density = Math.max(1, Math.min(65535, Math.round(dpi)));
+    if (bytes.length < 4 || bytes[0] !== 0xFF || bytes[1] !== 0xD8) return blob;
+    let offset = 2;
+    while (offset + 4 <= bytes.length && bytes[offset] === 0xFF) {
+        const marker = bytes[offset + 1];
+        if (marker === 0xDA || marker === 0xD9) break;
+        const length = (bytes[offset + 2] << 8) | bytes[offset + 3];
+        if (marker === 0xE0 && length >= 16 &&
+            bytes[offset + 4] === 0x4A && bytes[offset + 5] === 0x46 &&
+            bytes[offset + 6] === 0x49 && bytes[offset + 7] === 0x46 && bytes[offset + 8] === 0x00) {
+            bytes[offset + 11] = 1; // density units: dots per inch
+            bytes[offset + 12] = (density >> 8) & 0xFF;
+            bytes[offset + 13] = density & 0xFF;
+            bytes[offset + 14] = (density >> 8) & 0xFF;
+            bytes[offset + 15] = density & 0xFF;
+            return new Blob([bytes], { type: 'image/jpeg' });
+        }
+        if (length < 2) break;
+        offset += 2 + length;
+    }
+    // Add a JFIF APP0 block if the encoder did not create one.
+    const app0 = new Uint8Array([
+        0xFF,0xE0,0x00,0x10,0x4A,0x46,0x49,0x46,0x00,0x01,0x01,0x01,
+        (density >> 8) & 0xFF, density & 0xFF,
+        (density >> 8) & 0xFF, density & 0xFF, 0x00,0x00
+    ]);
+    const output = new Uint8Array(bytes.length + app0.length);
+    output.set(bytes.slice(0, 2), 0);
+    output.set(app0, 2);
+    output.set(bytes.slice(2), 2 + app0.length);
+    return new Blob([output], { type: 'image/jpeg' });
+}
+async function canvasToValidIdExportBlob(canvas, format, dpi) {
+    const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
+    const rawBlob = await new Promise(resolve => canvas.toBlob(resolve, mime, format === 'jpg' ? 0.98 : undefined));
+    if (!rawBlob) throw new Error('Could not encode the exported image. Please try again.');
+    return format === 'jpg'
+        ? addJpegResolutionMetadata(rawBlob, dpi)
+        : addPngResolutionMetadata(rawBlob, dpi);
+}
+
+// Export each Valid ID sheet from an isolated, unscaled page clone.
+// The editor preview uses CSS transforms to fit the workspace; export must not.
 async function exportFile() {
     flushScheduledEditorRender();
     if (!uploadedImages.some(img => img.visible !== false)) {
-        await showAlert('Nothing to Export', 'There are no visible Valid ID layers to export.'); return;
+        await showAlert('Nothing to Export', 'There are no visible Valid ID layers to export.');
+        return;
     }
     if (typeof window.html2canvas !== 'function') {
-        await showAlert('Export Unavailable', 'The export library could not be loaded. You can still use Print and choose Save as PDF.'); return;
+        await showAlert('Export Unavailable', 'The export library could not be loaded. You can still use Print and choose Save as PDF.');
+        return;
     }
+
     const format = document.getElementById('exportFormat')?.value || 'pdf';
-    const paper = getValidIdPaper(); const scale = getExportScale();
-    const pageElements = Array.from(document.querySelectorAll('#pagesWrapper .paper-page'));
-    if (!pageElements.length) { await showAlert('Nothing to Export', 'There are no Valid ID pages to export.'); return; }
-    showLoading(`Exporting ${pageElements.length} Valid ID page${pageElements.length === 1 ? '' : 's'}...`);
-    const previousActive = activeValidIdSheetIndex;
+    const paper = getValidIdPaper();
+    const cssPxPerMm = 96 / 25.4;
+    const cssWidth = paper.w * cssPxPerMm;
+    const cssHeight = paper.h * cssPxPerMm;
+    const exportDpi = 300;
+    const scale = exportDpi / 96;
+    const sheets = getValidIdSheets();
+    const pageElements = Array.from(document.querySelectorAll('#pagesWrapper .paper-page'))
+        .filter(page => {
+            const sheet = sheets[Number(page.dataset.pageIndex)];
+            return sheet && sheet.ids.some(id => uploadedImages.some(img => img.id === id && img.visible !== false));
+        });
+
+    if (!pageElements.length) {
+        await showAlert('Nothing to Export', 'There are no visible Valid ID pages to export.');
+        return;
+    }
+
+    showLoading(`Exporting ${pageElements.length} page${pageElements.length === 1 ? '' : 's'}...`);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const stage = document.createElement('div');
+    stage.id = 'validIdExportStage';
+    Object.assign(stage.style, {
+        position: 'fixed',
+        left: '0',
+        top: '0',
+        width: `${paper.w}mm`,
+        height: `${paper.h}mm`,
+        margin: '0',
+        padding: '0',
+        overflow: 'visible',
+        background: '#ffffff',
+        zIndex: '9998',
+        pointerEvents: 'none',
+        transform: 'none'
+    });
+    stage.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(stage);
+
     const canvases = [];
     try {
-        for (let i = 0; i < pageElements.length; i++) {
-            pageElements.forEach((el, idx) => el.classList.toggle('active-page', idx === i));
-            const page = pageElements[i]; page.style.display = 'block';
-            const canvas = await window.html2canvas(page, {
-                scale, useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
-                width: paper.w * 3.7795, height: paper.h * 3.7795,
-                onclone: doc => {
-                    const clonedPage = doc.querySelector(`#pagesWrapper .paper-page[data-page-index="${i}"]`);
-                    if (clonedPage) {
-                        clonedPage.style.display = 'block'; clonedPage.style.boxShadow = 'none';
-                        clonedPage.querySelectorAll('.safe-zone-overlay, .paper-label, .valid-id-zone-guide, .valid-id-zone-label, .card-side-chip').forEach(el => el.style.display = 'none');
+        for (let index = 0; index < pageElements.length; index++) {
+            const sourcePage = pageElements[index];
+            const clonedPage = sourcePage.cloneNode(true);
+            clonedPage.classList.add('active-page');
+            Object.assign(clonedPage.style, {
+                display: 'block',
+                position: 'relative',
+                left: '0',
+                top: '0',
+                width: `${paper.w}mm`,
+                height: `${paper.h}mm`,
+                minWidth: `${paper.w}mm`,
+                minHeight: `${paper.h}mm`,
+                maxWidth: 'none',
+                maxHeight: 'none',
+                margin: '0',
+                padding: '0',
+                boxSizing: 'border-box',
+                boxShadow: 'none',
+                transform: 'none',
+                overflow: 'hidden',
+                background: '#ffffff'
+            });
+
+            // Remove editor-only elements and selection styling from the clone.
+            clonedPage.querySelectorAll('.safe-zone-overlay, .paper-label, .valid-id-zone-guide, .valid-id-zone-label, .card-side-chip').forEach(el => el.remove());
+            clonedPage.querySelectorAll('.valid-id-card').forEach(card => {
+                card.classList.remove('is-selected');
+                card.style.cursor = 'default';
+            });
+
+            // Use the original/cropped image source and fit mode, never a tiny thumbnail.
+            const clonedImages = Array.from(clonedPage.querySelectorAll('.valid-id-card img[data-image-id]'));
+            clonedImages.forEach(image => {
+                const source = uploadedImages.find(item => item.id === image.dataset.imageId);
+                if (!source) return;
+                image.src = source.croppedSrc || source.previewSrc || source.src;
+                image.style.objectFit = fitObjectFit(source.id);
+                image.style.width = '100%';
+                image.style.height = '100%';
+            });
+
+            stage.replaceChildren(clonedPage);
+            // Wait until all full-size source images are decoded before rasterizing.
+            await Promise.all(clonedImages.map(async image => {
+                if (typeof image.decode === 'function') {
+                    try { await image.decode(); }
+                    catch (error) {
+                        if (!image.complete || !image.naturalWidth) throw new Error('An ID image could not be decoded for export. Please re-upload it and try again.');
                     }
-                    doc.querySelectorAll('.valid-id-card.is-selected').forEach(el => { el.style.outline = 'none'; });
-                    doc.querySelectorAll('.valid-id-card img[data-image-id]').forEach(image => {
-                        const source = uploadedImages.find(item => item.id === image.dataset.imageId);
-                        if (source) image.src = source.croppedSrc || source.src;
-                        image.style.objectFit = source ? fitObjectFit(source.id) : 'cover';
+                } else if (!image.complete || !image.naturalWidth) {
+                    await new Promise((resolve, reject) => {
+                        image.onload = resolve;
+                        image.onerror = () => reject(new Error('An ID image could not be loaded for export. Please re-upload it and try again.'));
                     });
                 }
+            }));
+
+            setLoadingText(`Rendering page ${index + 1} of ${pageElements.length}...`);
+            const canvas = await window.html2canvas(clonedPage, {
+                scale,
+                width: cssWidth,
+                height: cssHeight,
+                x: 0,
+                y: 0,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: Math.max(1024, document.documentElement.clientWidth || 0, Math.ceil(cssWidth)),
+                windowHeight: Math.max(768, document.documentElement.clientHeight || 0, Math.ceil(cssHeight)),
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: '#ffffff',
+                imageTimeout: 15000,
+                logging: false
             });
-            canvases.push(canvas);
+
+            // Normalize the raster to the exact expected 300-DPI pixel dimensions.
+            const exactWidth = Math.round(paper.w / 25.4 * exportDpi);
+            const exactHeight = Math.round(paper.h / 25.4 * exportDpi);
+            if (canvas.width !== exactWidth || canvas.height !== exactHeight) {
+                const exactCanvas = document.createElement('canvas');
+                exactCanvas.width = exactWidth;
+                exactCanvas.height = exactHeight;
+                const context = exactCanvas.getContext('2d');
+                context.imageSmoothingEnabled = true;
+                context.imageSmoothingQuality = 'high';
+                context.fillStyle = '#ffffff';
+                context.fillRect(0, 0, exactWidth, exactHeight);
+                context.drawImage(canvas, 0, 0, exactWidth, exactHeight);
+                canvases.push(exactCanvas);
+            } else {
+                canvases.push(canvas);
+            }
         }
+
         const filename = generateFilename(format);
         if (format === 'pdf') {
             if (!window.jspdf?.jsPDF) throw new Error('PDF export library is not available.');
             const orientation = paper.w > paper.h ? 'landscape' : 'portrait';
-            const pdf = new window.jspdf.jsPDF({ orientation, unit: 'mm', format: [paper.w, paper.h] });
+            const pdf = new window.jspdf.jsPDF({
+                orientation,
+                unit: 'mm',
+                format: [paper.w, paper.h],
+                compress: true,
+                precision: 12
+            });
             canvases.forEach((canvas, index) => {
                 if (index > 0) pdf.addPage([paper.w, paper.h], orientation);
-                pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, paper.w, paper.h);
+                // Full-bleed placement at exact physical page dimensions; no preview scaling/margins.
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, paper.w, paper.h, undefined, 'FAST');
             });
             pdf.save(filename);
         } else {
-            const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
-            canvases.forEach((canvas, index) => {
+            for (let index = 0; index < canvases.length; index++) {
+                const blob = await canvasToValidIdExportBlob(canvases[index], format, exportDpi);
+                const objectUrl = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 const base = filename.replace(`.${format}`, '');
-                link.href = canvas.toDataURL(mime, format === 'jpg' ? 0.95 : undefined);
+                link.href = objectUrl;
                 link.download = canvases.length > 1 ? `${base}_p${index + 1}.${format}` : filename;
+                document.body.appendChild(link);
                 link.click();
-            });
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+            }
         }
     } catch (error) {
         console.error('Valid ID export failed:', error);
-        await showAlert('Export Failed', error.message || 'Could not export the Valid ID sheet.');
+        await showAlert('Export Failed', error?.message || 'Could not export the Valid ID sheet.');
     } finally {
-        pageElements.forEach((el, idx) => el.classList.toggle('active-page', idx === previousActive));
-        pageElements.forEach(el => { el.style.display = ''; });
-        hideLoading(); updatePagerUI();
+        stage.remove();
+        hideLoading();
+        updatePagerUI();
     }
+}
+
+
+/* =========================================================
+   PRINTGRID-STYLE VALID ID PAGES + PAGE ARRANGEMENTS
+   Every layer remains on its own page until the user manually groups it.
+   1 ID (2 layers) is stacked vertically. 2 IDs use Front-top / Back-bottom rows.
+   3–5 IDs flow horizontally in two columns (up to 10 layers).
+   ========================================================= */
+const VALID_ID_MAX_PER_PAGE = 5; // ID pairs per sheet
+const VALID_ID_MAX_LAYERS_PER_PAGE = VALID_ID_MAX_PER_PAGE * 2;
+
+function getValidIdIdCountFromImages(items) {
+    const images = (items || []).map(item => typeof item === 'string'
+        ? uploadedImages.find(image => image.id === item)
+        : item).filter(Boolean);
+    // An ID is one Front layer paired with one Back layer. Count the larger
+    // side so a Front/Back pair is 1 ID, while two Front layers are 2 IDs.
+    if (!images.length) return 0;
+    const frontCount = images.filter(image => (image.side || 'front') === 'front').length;
+    const backCount = images.filter(image => image.side === 'back').length;
+    return Math.max(frontCount, backCount, 1);
+}
+
+function getValidIdActiveSheet() {
+    const sheets = getValidIdSheets();
+    if (selectedGroupPageId) {
+        const selectedPage = sheets.find(sheet => sheet.id === selectedGroupPageId);
+        if (selectedPage) return selectedPage;
+    }
+
+    // The active layer determines the page being edited. A multi-selection
+    // across separate pages is NOT treated as a page and never auto-groups.
+    const byImage = activeImageId
+        ? sheets.find(sheet => sheet.ids.includes(activeImageId))
+        : null;
+    return byImage || sheets[Math.max(0, Math.min(activeValidIdSheetIndex, sheets.length - 1))] || null;
+}
+
+function syncValidIdLayoutPresets() {
+    const sheet = getValidIdActiveSheet();
+    const layerCount = sheet?.ids?.length || 0;
+    const idCount = getValidIdIdCountFromImages(sheet?.ids || []);
+    const activePreset = idCount === 1 ? 'one'
+        : idCount === 2 ? 'two'
+        : idCount >= 3 && idCount <= VALID_ID_MAX_PER_PAGE ? 'threePlus' : '';
+
+    document.querySelectorAll('[data-valid-id-preset]').forEach(button => {
+        const matches = button.dataset.validIdPreset === activePreset;
+        button.classList.toggle('active', matches);
+        button.setAttribute('aria-pressed', String(matches));
+        button.disabled = !matches;
+    });
+
+}
+function applyValidIdLayoutPreset(preset) {
+    const sheet = getValidIdActiveSheet();
+    if (!sheet) return;
+    const idCount = getValidIdIdCountFromImages(sheet.ids);
+    const valid = (preset === 'one' && idCount === 1) ||
+        (preset === 'two' && idCount === 2) ||
+        (preset === 'threePlus' && idCount >= 3 && idCount <= VALID_ID_MAX_PER_PAGE);
+    if (!valid) return;
+
+    recordUndoSnapshot(captureStateSnapshot());
+    sheet.ids.forEach(id => {
+        const image = uploadedImages.find(item => item.id === id);
+        if (image) image.manualPosition = false;
+    });
+    activeValidIdSheetIndex = getValidIdSheets().findIndex(item => item.id === sheet.id);
+    ensureValidIdCardPositions();
+    renderCanvas();
+    updateUndoButton();
+}
+
+/**
+ * One-click photocopy layout for the active sheet.
+ * Mirrors the user's photocopy reference: 1 ID = a widely separated vertical
+ * Front/Back pair; 2 IDs = two Fronts across the top with two Backs below;
+ * 3-5 IDs = Front column left / Back column right. Gaps vary by preset.
+ * The current page is arranged only; this action never groups or moves layers.
+ */
+function applyStandardPhotocopyAutoLayout(options = {}) {
+    const sheet = getValidIdActiveSheet();
+    if (!sheet || !Array.isArray(sheet.ids) || !sheet.ids.length) return;
+
+    const pageImages = sheet.ids
+        .map(id => uploadedImages.find(image => image.id === id))
+        .filter(image => image && image.visible !== false);
+    if (!pageImages.length) {
+        showAlert('Nothing to Arrange', 'This page has no visible ID layers.');
+        return;
+    }
+
+    const idCount = getValidIdIdCountFromImages(pageImages);
+    if (pageImages.length > VALID_ID_MAX_LAYERS_PER_PAGE || idCount > VALID_ID_MAX_PER_PAGE) {
+        showAlert('Maximum 5 IDs per page', 'Auto Layout supports up to five IDs (up to ten layers when each ID has a Front and Back).');
+        return;
+    }
+
+    const paper = getValidIdPaper();
+    const standardMarginMM = 3;
+    // Match the user's photocopy reference instead of using the same tiny gap
+    // for every preset. Values are physical millimetres internally and the UI
+    // displays their pixel equivalents.
+    const preferredGapHMM = idCount >= 3 ? 5 : (idCount === 2 ? 3.5 : 0);
+    const preferredGapVMM = idCount === 1 ? 40 : (idCount === 2 ? 16 : 8);
+    const contentW = paper.w - standardMarginMM * 2;
+    const contentH = paper.h - standardMarginMM * 2;
+    const frontLayers = pageImages.filter(image => (image.side || 'front') === 'front');
+    const backLayers = pageImages.filter(image => image.side === 'back');
+
+    // Three or more IDs require two full-width columns: Front on the left,
+    // Back on the right. Two IDs use two Fronts above two Backs. One ID is
+    // the traditional Front-above-Back pair.
+    const needsTwoColumns = idCount >= 2;
+    const requiredWidth = needsTwoColumns
+        ? VALID_ID_CARD_W_MM * 2 + preferredGapHMM
+        : VALID_ID_CARD_W_MM;
+    if (requiredWidth > contentW + 0.01) {
+        showAlert('Paper Too Small', 'This standard ID photocopy layout needs a wider paper size. Choose A4, Letter, or Legal.');
+        return;
+    }
+
+    const rowCount = pageImages.length === 1 ? 1 : (idCount <= 2 ? 2 : idCount);
+    const availableGapV = rowCount > 1
+        ? Math.max(0, (contentH - rowCount * VALID_ID_CARD_H_MM) / (rowCount - 1))
+        : 0;
+    const standardGapV = rowCount > 1 ? Math.min(preferredGapVMM, availableGapV) : 0;
+    const standardGapH = needsTwoColumns ? preferredGapHMM : 0;
+
+    if (!options.skipUndo) recordUndoSnapshot(captureStateSnapshot());
+
+    // Standard 3 mm printable edge padding. This also updates the visible
+    // padding fields so the user can see which print-safe values Auto Layout used.
+    appConfig.paddingTop = standardMarginMM;
+    appConfig.paddingBottom = standardMarginMM;
+    appConfig.paddingLeft = standardMarginMM;
+    appConfig.paddingRight = standardMarginMM;
+    appConfig.margin = standardMarginMM;
+    const paddingFieldMap = [
+        ['numPaddingT', 'paddingTop'],
+        ['numPaddingB', 'paddingBottom'],
+        ['numPaddingL', 'paddingLeft'],
+        ['numPaddingR', 'paddingRight']
+    ];
+    paddingFieldMap.forEach(([inputId, key]) => {
+        const input = document.getElementById(inputId);
+        if (input) input.value = String(Math.round(appConfig[key] * MM_TO_PX));
+    });
+
+    // Spacing is stored per group or per individual page, keeping other pages
+    // and all border/radius choices untouched.
+    const standardStyle = { gapH: standardGapH, gapV: standardGapV };
+    if (sheet.isGroup && sheet.page) {
+        sheet.page.styleOverride = { ...(sheet.page.styleOverride || {}), ...standardStyle };
+        sheet.page.canvasAlignH = 'center';
+        sheet.page.canvasAlignV = 'center';
+        sheet.page.transformXMM = 0;
+        sheet.page.transformYMM = 0;
+        sheet.page.validIdLayoutVersion = 3;
+        sheet.ids.forEach(id => {
+            const image = uploadedImages.find(item => item.id === id);
+            if (image) image.manualPosition = false;
+        });
+        selectedGroupPageId = sheet.id;
+        selectedImageIds = new Set(sheet.ids);
+    } else {
+        const image = pageImages[0];
+        image.styleOverride = { ...(image.styleOverride || {}), ...standardStyle };
+        image.gapH = standardGapH;
+        image.gapV = standardGapV;
+        image.manualPosition = false;
+        selectedGroupPageId = null;
+        selectedImageIds = new Set([image.id]);
+        activeImageId = image.id;
+    }
+
+    activeValidIdSheetIndex = getValidIdSheets().findIndex(item => item.id === sheet.id);
+    if (activeValidIdSheetIndex < 0) activeValidIdSheetIndex = getValidIdSheetIndexForImage(pageImages[0].id);
+    if (!activeImageId || !sheet.ids.includes(activeImageId)) activeImageId = pageImages[0].id;
+
+    renderStyleByImageId.clear();
+    saveConfig();
+    ensureValidIdCardPositions();
+    renderCanvas();
+    renderImageQueue();
+    syncSpacingBorderControls(activeImageId);
+    syncAlignControls();
+    updateUndoButton();
+}
+function ensureValidIdCardPositions() {
+    const paper = getValidIdPaper();
+    const CURRENT_GROUP_LAYOUT_VERSION = 3;
+
+    getValidIdSheets().forEach(sheet => {
+        const pageImages = sheet.ids
+            .map(id => uploadedImages.find(image => image.id === id))
+            .filter(image => image && image.visible !== false);
+        if (!pageImages.length) return;
+
+        const isGroup = Boolean(sheet.isGroup && sheet.page && Array.isArray(sheet.page.imageIds));
+        if (isGroup && sheet.page.validIdLayoutVersion !== CURRENT_GROUP_LAYOUT_VERSION) {
+            pageImages.forEach(image => { image.manualPosition = false; });
+            sheet.page.transformXMM = 0;
+            sheet.page.transformYMM = 0;
+            sheet.page.validIdLayoutVersion = CURRENT_GROUP_LAYOUT_VERSION;
+        }
+
+        const idCount = getValidIdIdCountFromImages(pageImages);
+        if (!idCount || idCount > VALID_ID_MAX_PER_PAGE || pageImages.length > VALID_ID_MAX_LAYERS_PER_PAGE) return;
+
+        const style = isGroup && sheet.page.styleOverride
+            ? { ...getLayerStyle(pageImages[0].id), ...sheet.page.styleOverride }
+            : getLayerStyle(pageImages[0].id);
+        const gapH = Math.max(0, Number(style.gapH ?? appConfig.gapH) || 0);
+        const gapV = Math.max(0, Number(style.gapV ?? appConfig.gapV) || 0);
+        const shouldPlace = image => image.manualPosition !== true ||
+            !Number.isFinite(image.xMM) || !Number.isFinite(image.yMM);
+        const padding = getValidIdPadding();
+        const contentW = Math.max(1, paper.w - padding.left - padding.right);
+        const contentH = Math.max(1, paper.h - padding.top - padding.bottom);
+        const placements = [];
+
+        const fronts = pageImages.filter(image => (image.side || 'front') === 'front');
+        const backs = pageImages.filter(image => image.side === 'back');
+        const centerY = (height) => padding.top + (contentH - height) / 2;
+        const placeCenteredRow = (images, y) => {
+            if (!images.length) return;
+            const rowWidth = images.length * VALID_ID_CARD_W_MM + Math.max(0, images.length - 1) * gapH;
+            const left = padding.left + (contentW - rowWidth) / 2;
+            images.forEach((image, index) => {
+                placements.push({ image, x: left + index * (VALID_ID_CARD_W_MM + gapH), y });
+            });
+        };
+
+        if (idCount === 1 && fronts.length && backs.length) {
+            // One ID: its Front and Back are stacked vertically in one centered column.
+            const blockHeight = VALID_ID_CARD_H_MM * 2 + gapV;
+            const top = centerY(blockHeight);
+            const left = padding.left + (contentW - VALID_ID_CARD_W_MM) / 2;
+            placements.push({ image: fronts[0], x: left, y: top });
+            placements.push({ image: backs[0], x: left, y: top + VALID_ID_CARD_H_MM + gapV });
+        } else if (idCount === 2) {
+            // Two IDs: Front 1 + Front 2 form the top row; Back 1 + Back 2 the bottom row.
+            // For a page with fewer side-tagged layers, the available sides stay centered.
+            const hasFrontAndBack = fronts.length > 0 && backs.length > 0;
+            if (hasFrontAndBack) {
+                const blockHeight = VALID_ID_CARD_H_MM * 2 + gapV;
+                const top = centerY(blockHeight);
+                placeCenteredRow(fronts, top);
+                placeCenteredRow(backs, top + VALID_ID_CARD_H_MM + gapV);
+            } else {
+                const row = pageImages.slice();
+                const blockHeight = VALID_ID_CARD_H_MM;
+                placeCenteredRow(row, centerY(blockHeight));
+            }
+        } else if (idCount >= 3) {
+            // 3-5 IDs: Fronts stack in the left column; matching Backs stack on the right.
+            const rows = Math.max(fronts.length, backs.length, 1);
+            const blockWidth = VALID_ID_CARD_W_MM * 2 + gapH;
+            const left = padding.left + (contentW - blockWidth) / 2;
+            const right = left + VALID_ID_CARD_W_MM + gapH;
+            const blockHeight = rows * VALID_ID_CARD_H_MM + Math.max(0, rows - 1) * gapV;
+            const top = centerY(blockHeight);
+            fronts.forEach((image, index) => {
+                placements.push({ image, x: left, y: top + index * (VALID_ID_CARD_H_MM + gapV) });
+            });
+            backs.forEach((image, index) => {
+                placements.push({ image, x: right, y: top + index * (VALID_ID_CARD_H_MM + gapV) });
+            });
+        } else {
+            // Single-sided page: center the visible layer(s) without pairing them automatically.
+            const rowWidth = pageImages.length * VALID_ID_CARD_W_MM + Math.max(0, pageImages.length - 1) * gapH;
+            const left = padding.left + (contentW - rowWidth) / 2;
+            const y = centerY(VALID_ID_CARD_H_MM);
+            pageImages.forEach((image, index) => {
+                placements.push({ image, x: left + index * (VALID_ID_CARD_W_MM + gapH), y });
+            });
+        }
+
+        const groupNeedsReflow = isGroup && placements.some(({ image }) => shouldPlace(image));
+        if (groupNeedsReflow) {
+            const minX = Math.min(...placements.map(item => item.x));
+            const minY = Math.min(...placements.map(item => item.y));
+            const maxX = Math.max(...placements.map(item => item.x + VALID_ID_CARD_W_MM));
+            const maxY = Math.max(...placements.map(item => item.y + VALID_ID_CARD_H_MM));
+            const boundsW = maxX - minX;
+            const boundsH = maxY - minY;
+            const alignH = ['left', 'center', 'right'].includes(sheet.page.canvasAlignH) ? sheet.page.canvasAlignH : 'center';
+            const alignV = ['top', 'center', 'bottom'].includes(sheet.page.canvasAlignV) ? sheet.page.canvasAlignV : 'center';
+            const alignedLeft = boundsW > contentW ? (paper.w - boundsW) / 2
+                : alignH === 'left' ? padding.left
+                : alignH === 'right' ? paper.w - padding.right - boundsW
+                : padding.left + (contentW - boundsW) / 2;
+            const alignedTop = boundsH > contentH ? (paper.h - boundsH) / 2
+                : alignV === 'top' ? padding.top
+                : alignV === 'bottom' ? paper.h - padding.bottom - boundsH
+                : padding.top + (contentH - boundsH) / 2;
+            const offsetX = Number(sheet.page.transformXMM) || 0;
+            const offsetY = Number(sheet.page.transformYMM) || 0;
+            const targetLeft = boundsW > contentW ? alignedLeft
+                : Math.min(paper.w - padding.right - boundsW, Math.max(padding.left, alignedLeft + offsetX));
+            const targetTop = boundsH > contentH ? alignedTop
+                : Math.min(paper.h - padding.bottom - boundsH, Math.max(padding.top, alignedTop + offsetY));
+            const dx = targetLeft - minX;
+            const dy = targetTop - minY;
+            placements.forEach(({ image, x, y }) => {
+                image.xMM = x + dx;
+                image.yMM = y + dy;
+                image.manualPosition = false;
+            });
+            return;
+        }
+
+        placements.forEach(({ image, x, y }) => {
+            if (!shouldPlace(image)) return;
+            const position = clampValidIdCardPosition(image, x, y);
+            image.xMM = position.x;
+            image.yMM = position.y;
+            image.manualPosition = false;
+        });
+    });
+}
+
+function setLayerSide(imageId, side) {
+    const image = uploadedImages.find(item => item.id === imageId);
+    if (!image || !['front', 'back'].includes(side) || (image.side || 'front') === side) return;
+    recordUndoSnapshot(captureStateSnapshot());
+    image.side = side;
+
+    const pageIndex = pages.findIndex(page => (page.imageIds || [page.imageId]).includes(imageId));
+    if (pageIndex >= 0) {
+        activePageIndex = pageIndex;
+        (pages[pageIndex].imageIds || [pages[pageIndex].imageId]).filter(Boolean).forEach(id => {
+            const member = uploadedImages.find(item => item.id === id);
+            if (member) member.manualPosition = false;
+        });
+    } else {
+        image.manualPosition = false;
+    }
+
+    activeImageId = imageId;
+    selectedImageIds = new Set([imageId]);
+    selectedGroupPageId = null;
+    activeValidIdSheetIndex = getValidIdSheetIndexForImage(imageId);
+    ensureValidIdCardPositions();
+    renderImageQueue();
+    renderCanvas();
+    syncSpacingBorderControls(imageId);
+    syncFitControls(imageId);
+    updateUndoButton();
+}
+function updateGroupButton() {
+    const button = document.getElementById('groupLayersBtn');
+    if (!button) return;
+    const selected = new Set([...selectedImageIds].filter(id => uploadedImages.some(image => image.id === id)));
+    const selectedImages = [...selected].map(id => uploadedImages.find(image => image.id === id)).filter(Boolean);
+    const selectedIdCount = getValidIdIdCountFromImages(selectedImages);
+    const selectedGroup = pages.find(page => {
+        const ids = page.imageIds || [];
+        return ids.length > 1 && ids.length === selected.size && ids.every(id => selected.has(id));
+    });
+    const partialPage = pages.some(page => {
+        const ids = (page.imageIds || [page.imageId]).filter(Boolean);
+        const amount = ids.filter(id => selected.has(id)).length;
+        return amount > 0 && amount < ids.length;
+    });
+    const isUngroup = Boolean(selectedGroup);
+    const overLimit = selected.size > VALID_ID_MAX_LAYERS_PER_PAGE || selectedIdCount > VALID_ID_MAX_PER_PAGE;
+    button.style.display = uploadedImages.length >= 2 ? 'inline-flex' : 'none';
+    button.textContent = isUngroup ? 'Ungroup' : 'Group';
+    button.title = isUngroup
+        ? 'Separate each layer onto its own page (Ctrl+Shift+G)'
+        : `Select layers from complete pages to group them (max ${VALID_ID_MAX_PER_PAGE} IDs / ${VALID_ID_MAX_LAYERS_PER_PAGE} layers; Front + Back = 1 ID)`;
+    button.disabled = isUngroup ? false : (selected.size < 2 || overLimit || partialPage);
+    syncValidIdLayoutPresets();
+    syncAutoLayoutToggleVisibility();
+}
+function groupImages(ids) {
+    const requested = new Set(ids || []);
+    const selectedIds = getLayerStackIds().filter(id => requested.has(id));
+    if (selectedIds.length < 2) return;
+
+    const selectedImages = selectedIds.map(id => uploadedImages.find(image => image.id === id)).filter(Boolean);
+    const idCount = getValidIdIdCountFromImages(selectedImages);
+    if (selectedIds.length > VALID_ID_MAX_LAYERS_PER_PAGE || idCount > VALID_ID_MAX_PER_PAGE) {
+        showAlert('Maximum 5 IDs per page', `A page supports up to ${VALID_ID_MAX_PER_PAGE} IDs. A Front + Back pair counts as 1 ID, so up to ${VALID_ID_MAX_LAYERS_PER_PAGE} layers can be grouped when they form five pairs.`);
+        return;
+    }
+
+    const partiallySelectedPage = pages.some(page => {
+        const pageIds = (page.imageIds || [page.imageId]).filter(Boolean);
+        const selectedCount = pageIds.filter(id => requested.has(id)).length;
+        return selectedCount > 0 && selectedCount < pageIds.length;
+    });
+    if (partiallySelectedPage) return;
+
+    recordUndoSnapshot(captureStateSnapshot());
+    const selectedPages = pages.filter(page => (page.imageIds || [page.imageId]).some(id => selectedIds.includes(id)));
+    const insertAt = selectedPages.length ? Math.min(...selectedPages.map(page => pages.indexOf(page))) : pages.length;
+    pages = pages.filter(page => !(page.imageIds || [page.imageId]).some(id => selectedIds.includes(id)));
+
+    const group = {
+        id: newPageId(), imageId: selectedIds[0], imageIds: selectedIds,
+        lockSize: false, visible: true, validIdLayoutVersion: 3,
+        transformXMM: 0, transformYMM: 0
+    };
+    pages.splice(Math.max(0, Math.min(insertAt, pages.length)), 0, group);
+    group.imageIds.forEach(id => {
+        const image = uploadedImages.find(item => item.id === id);
+        if (!image) return;
+        if (autoLayoutEnabled) {
+            image.manualPosition = false;
+        } else if (Number.isFinite(image.xMM) && Number.isFinite(image.yMM)) {
+            // With Auto Layout off, grouping behaves like a normal Figma group:
+            // keep each layer's existing position instead of rearranging it.
+            image.manualPosition = true;
+        }
+    });
+
+    activePageIndex = pages.indexOf(group);
+    activeImageId = selectedIds[0];
+    selectedImageIds = new Set(selectedIds);
+    selectedGroupPageId = group.id;
+    activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
+
+    if (autoLayoutEnabled) {
+        applyStandardPhotocopyAutoLayout({ skipUndo: true });
+    } else {
+        ensureValidIdCardPositions();
+        renderCanvas();
+        renderImageQueue();
+        updatePagerUI();
+    }
+    reconcileSelectionAndUI();
+    scrollActiveValidIdPageIntoView();
+}
+function toggleGroupSelection() {
+    const selected = new Set(selectedImageIds);
+    const selectedGroup = pages.find(page => {
+        const ids = page.imageIds || [];
+        return ids.length > 1 && ids.length === selected.size && ids.every(id => selected.has(id));
+    });
+    if (selectedGroup) {
+        ungroupPage(selectedGroup);
+        return;
+    }
+    groupImages([...selected]);
+}
+
+function renderCanvas() {
+    const pagesWrapper = document.getElementById('pagesWrapper');
+    if (!pagesWrapper) return;
+    rebuildRenderCaches();
+    renderStyleByImageId.clear();
+    ensureValidIdCardPositions();
+    const paper = getValidIdPaper();
+    const sheets = getValidIdSheets();
+    activeValidIdSheetIndex = Math.max(0, Math.min(activeValidIdSheetIndex, sheets.length - 1));
+    pagesWrapper.innerHTML = '';
+
+    sheets.forEach((sheet, sheetIndex) => {
+        const page = document.createElement('div');
+        page.className = 'paper-page' + (sheetIndex === activeValidIdSheetIndex ? ' active-page' : '');
+        page.dataset.pageIndex = String(sheetIndex);
+        page.style.width = `${paper.w}mm`;
+        page.style.height = `${paper.h}mm`;
+        page.innerHTML = `<div class="paper-label">${paper.label}</div><div class="safe-zone-overlay"></div>`;
+        if (document.getElementById('safeZoneToggle')?.checked) page.classList.add('safe-zone-active');
+
+        const pageImages = sheet.ids.map(id => uploadedImages.find(image => image.id === id)).filter(Boolean);
+        const visibleImages = pageImages.filter(image => image.visible !== false);
+        if (!visibleImages.length && !uploadedImages.length) {
+            const empty = document.createElement('div');
+            empty.className = 'valid-id-empty';
+            empty.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M7 9h10M7 12h10M7 15h6"/></svg><span>Upload an ID image</span><button class="btn btn-primary" type="button" style="pointer-events:auto;padding:9px 16px" onclick="document.getElementById(\'fileInput\').click()">Upload Image</button>';
+            page.appendChild(empty);
+        } else {
+            visibleImages.forEach(image => page.appendChild(buildValidIdCard(image)));
+        }
+
+        page.addEventListener('pointermove', event => {
+            if (!validIdActiveDrag || validIdActiveDrag.pointerId !== event.pointerId) return;
+            const drag = validIdActiveDrag;
+            const dxPx = event.clientX - drag.startX;
+            const dyPx = event.clientY - drag.startY;
+            if (Math.abs(dxPx) + Math.abs(dyPx) > 2) drag.moved = true;
+
+            const rawDX = dxPx / drag.scale;
+            const rawDY = dyPx / drag.scale;
+            const padding = getValidIdPadding();
+            const minX = Math.min(...drag.members.map(member => member.startX));
+            const minY = Math.min(...drag.members.map(member => member.startY));
+            const maxX = Math.max(...drag.members.map(member => member.startX + VALID_ID_CARD_W_MM));
+            const maxY = Math.max(...drag.members.map(member => member.startY + VALID_ID_CARD_H_MM));
+            const minDX = padding.left - minX;
+            const maxDX = paper.w - padding.right - maxX;
+            const minDY = padding.top - minY;
+            const maxDY = paper.h - padding.bottom - maxY;
+            const deltaX = maxDX < minDX ? rawDX : Math.min(maxDX, Math.max(minDX, rawDX));
+            const deltaY = maxDY < minDY ? rawDY : Math.min(maxDY, Math.max(minDY, rawDY));
+
+            drag.members.forEach(member => {
+                const x = member.startX + deltaX;
+                const y = member.startY + deltaY;
+                member.image.xMM = x;
+                member.image.yMM = y;
+                member.image.manualPosition = true;
+                if (member.card) {
+                    member.card.style.left = `${x}mm`;
+                    member.card.style.top = `${y}mm`;
+                }
+            });
+            if (drag.groupId) {
+                const groupPage = pages.find(item => item.id === drag.groupId);
+                if (groupPage) {
+                    groupPage.transformXMM = drag.startTransformXMM + deltaX;
+                    groupPage.transformYMM = drag.startTransformYMM + deltaY;
+                }
+            }
+        });
+        const finishDrag = event => {
+            if (!validIdActiveDrag || (event && validIdActiveDrag.pointerId !== event.pointerId)) return;
+            const moved = validIdActiveDrag.moved;
+            const movedLinkedSet = Boolean(validIdActiveDrag.linkSetId);
+            validIdActiveDrag = null;
+            if (moved) {
+                renderImageQueue();
+                if (movedLinkedSet) renderCanvas();
+                syncAlignControls();
+                beginUndoCapture(180);
+            }
+        };
+        page.addEventListener('pointerup', finishDrag);
+        page.addEventListener('pointercancel', finishDrag);
+        pagesWrapper.appendChild(page);
+    });
+
+    fitToViewport();
+    updateLayoutInfo();
+    updatePagerUI();
+    syncValidIdLayoutPresets();
+    syncSpacingBorderControls(activeImageId);
+    syncAlignControls();
+    updateUndoButton();
+}
+
+function setAlignV(mode) {
+    if (!['top', 'center', 'bottom'].includes(mode)) return;
+    alignSelectedGroup('y', mode);
+}
+
+
+// Migrate the prior default-off build once. After the first launch, the user's
+// checkbox choice is respected and saved normally.
+const _loadConfigWithAutoLayoutDefault = loadConfig;
+loadConfig = function() {
+    _loadConfigWithAutoLayoutDefault();
+    try {
+        const migrationKey = 'valid_id_auto_layout_default_checked_v2';
+        if (localStorage.getItem(migrationKey) !== '1') {
+            autoLayoutEnabled = true;
+            appConfig.autoLayoutOnGroup = true;
+            localStorage.setItem(migrationKey, '1');
+            saveConfig();
+        }
+    } catch (_) {
+        autoLayoutEnabled = true;
+        appConfig.autoLayoutOnGroup = true;
+    }
+    const checkbox = document.getElementById('autoLayoutToggle');
+    if (checkbox) checkbox.checked = Boolean(autoLayoutEnabled);
+    syncAutoLayoutToggleVisibility();
+};
+
+/* =========================================================
+   INDEPENDENT LAYER LINKS
+   Link sets keep layers as separate editable items and separate from Group.
+   Dragging any linked item translates the complete linked set by one delta.
+   ========================================================= */
+function getLinkedLayerMembers(imageId) {
+    const image = uploadedImages.find(item => item.id === imageId);
+    if (!image) return [];
+    if (!image.linkSetId) return [image];
+    return uploadedImages.filter(item => item.linkSetId === image.linkSetId);
+}
+
+function makeLayerLinkSetId() {
+    return 'lnk_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function syncLayerLinkButton() {
+    const button = document.getElementById('linkLayersBtn');
+    if (!button) return;
+    const selected = [...selectedImageIds]
+        .map(id => uploadedImages.find(image => image.id === id))
+        .filter(Boolean);
+    const linkedIds = new Set(selected.map(image => image.linkSetId).filter(Boolean));
+    const selectionAlreadyLinked = selected.length > 0 &&
+        selected.every(image => image.linkSetId && image.linkSetId === selected[0].linkSetId);
+    const canUnlinkSingle = selected.length === 1 && selected[0].linkSetId &&
+        getLinkedLayerMembers(selected[0].id).length > 1;
+    const show = selected.length >= 2 || Boolean(canUnlinkSingle);
+    button.hidden = !show;
+    button.disabled = !show;
+    button.classList.toggle('is-linked', selectionAlreadyLinked || Boolean(canUnlinkSingle));
+    const unlinkMode = selectionAlreadyLinked || Boolean(canUnlinkSingle);
+    button.title = unlinkMode
+        ? 'Unlink selected layer(s)'
+        : 'Link selected layers without grouping them';
+    button.setAttribute('aria-label', button.title);
+    button.setAttribute('aria-pressed', String(selectionAlreadyLinked || Boolean(canUnlinkSingle)));
+}
+
+function normalizeLayerLinkSet(linkSetId) {
+    if (!linkSetId) return;
+    const members = uploadedImages.filter(image => image.linkSetId === linkSetId);
+    if (members.length < 2) members.forEach(image => { image.linkSetId = null; });
+}
+
+function toggleSelectedLayerLinks() {
+    const selected = [...selectedImageIds]
+        .map(id => uploadedImages.find(image => image.id === id))
+        .filter(Boolean);
+    if (!selected.length) return;
+
+    const allShareOneLink = selected.every(image => image.linkSetId &&
+        image.linkSetId === selected[0].linkSetId);
+    const singleIsLinked = selected.length === 1 && selected[0].linkSetId &&
+        getLinkedLayerMembers(selected[0].id).length > 1;
+    if (selected.length < 2 && !singleIsLinked) return;
+
+    recordUndoSnapshot(captureStateSnapshot());
+    if (allShareOneLink || singleIsLinked) {
+        // Unlink only the selected members. Any unselected members remain
+        // linked to one another; singleton sets are cleaned up automatically.
+        const oldSetIds = new Set(selected.map(image => image.linkSetId).filter(Boolean));
+        selected.forEach(image => { image.linkSetId = null; });
+        oldSetIds.forEach(normalizeLayerLinkSet);
+    } else {
+        // Merge any existing link sets touched by the current selection so a
+        // linked partner is never silently detached from its previous peers.
+        const oldSetIds = new Set(selected.map(image => image.linkSetId).filter(Boolean));
+        const expanded = uploadedImages.filter(image =>
+            selected.some(item => item.id === image.id) || oldSetIds.has(image.linkSetId)
+        );
+        const newSetId = makeLayerLinkSetId();
+        expanded.forEach(image => { image.linkSetId = newSetId; });
+    }
+
+    renderImageQueue();
+    updateUndoButton();
 }
 
 /* =========================================================
@@ -7083,14 +8645,12 @@ setPaperSize(currentPaper);
 reconcileSelectionAndUI();
 
 window.addEventListener('load', () => {
-    setLoadingText('Ready!');
+    // Keep the shared Rush-style startup label visible until the overlay fades.
+    // Other operations may still replace it through showLoading().
     hideLoading();
 });
 setTimeout(() => {
-    if (!loadingOverlay.classList.contains('hidden')) {
-        setLoadingText('Ready!');
-        hideLoading();
-    }
+    if (!loadingOverlay.classList.contains('hidden')) hideLoading();
 }, 4000);
 </script>
 </body>

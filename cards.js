@@ -20,7 +20,7 @@ const cardsData = [
     },
     {
         title: "Print Grid",
-        subtitle: "Created Nov 19, 2026",
+        subtitle: "Created Nov 20, 2026",
         description: "Combine multiple images into organized tile layouts for stickers and other prints.",
         category: "Printing",
         cover: "Assets/PrintGrid_Cover.webp",
@@ -29,8 +29,8 @@ const cardsData = [
     },
     {
         title: "Valid ID",
-        subtitle: "Saved Nov 20, 2026",
-        description: "Quick reference guide for standard paper, photo, tarpaulin, and sublimation print sizes.",
+        subtitle: "Created Nov 25, 2026",
+        description: "Create a photocopy-style valid ID layout with its front and back arranged on a single page, ready for printing.",
         category: "Photocopy",
         cover: "Assets/ValidID_Cover.webp",
         logo: "V",
