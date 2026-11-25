@@ -3346,8 +3346,8 @@ function renderImageQueue() {
             lockBtn.className = 'size-lock-btn' + (locked ? ' is-locked' : '');
             lockBtn.innerHTML = locked ? lockClosedSvg : lockOpenSvg;
             lockBtn.title = locked
-                ? 'Sizes locked (all layers share one size) — click to unlock individual layer sizes'
-                : 'Sizes unlocked (layers can have individual sizes) — click to lock all layers to one size';
+                ? 'Sizes locked (all layers share one size) — click or press W to unlock individual layer sizes'
+                : 'Sizes unlocked (layers can have individual sizes) — click or press W to lock all layers to one size';
             lockBtn.setAttribute('aria-label', lockBtn.title);
             lockBtn.onclick = ev => {
                 ev.stopPropagation();
@@ -5795,6 +5795,17 @@ document.addEventListener('keydown', e => {
         return;
     }
     if (document.getElementById('customModal').classList.contains('active')) return;
+
+    // W toggles the size lock for the currently selected group,
+    // or the group containing the active layer.
+    if (!mod && !e.altKey && !e.shiftKey && key === 'w' && !isTypingInTextField(e.target)) {
+        const groupPage = getContextGroupPage();
+        if (groupPage) {
+            e.preventDefault();
+            toggleGroupSizeLock(groupPage.id);
+        }
+        return;
+    }
 
     if (mod && key === 'a' && uploadedImages.length) {
         e.preventDefault();
