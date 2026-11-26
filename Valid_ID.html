@@ -489,6 +489,8 @@
         min-width: 0;
         width: 100%;
     }
+    .spacing-control-group.radius-hidden { grid-template-columns: minmax(0, 1fr); }
+    #borderRadiusControl[hidden] { display: none !important; }
     .icon-number-control {
         display: grid;
         grid-template-columns: 15px minmax(0, 1fr);
@@ -1433,7 +1435,7 @@
                 <div class="drop-sub">or <strong>click to browse</strong></div>
             </div>
             <div class="layers-heading">
-                <div class="layers-title" title="Select a layer · F/B chooses Front or Back · drag a card to position · Ctrl+A selects all · Ctrl+D duplicates · E edits · Q toggles round border · Delete removes">ID Layers <span id="layerCount">0</span></div>
+                <div class="layers-title" title="Select a layer · F/B chooses Front or Back · drag a card to position · Ctrl+A selects all · Ctrl+D duplicates · E edits · Q toggles group round border · Delete removes">ID Layers <span id="layerCount">0</span></div>
                 <div class="layers-actions" style="display:flex;align-items:center;gap:10px;">
                     <button class="text-btn" id="groupLayersBtn" type="button" onclick="toggleGroupSelection()" title="Group selected layers or combine groups onto one page" disabled>Group</button>
                     <button class="text-btn" id="clearAllBtn" type="button" onclick="clearAll()">Clear all</button>
@@ -1605,12 +1607,12 @@
                                 <span>px</span>
                             </div>
                         </div>
-                        <div class="icon-number-control" title="Border radius (Q toggles 999 / 0)">
+                        <div class="icon-number-control" id="borderRadiusControl" title="Group border radius (Q toggles 999 / 0)" hidden>
                             <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M4 18V10a6 6 0 0 1 6-6h8"/>
                             </svg>
                             <div class="setting-value-wrapper">
-                                <input type="number" id="numBorderR" step="1" min="0" max="999" value="0" oninput="updateSettings()" aria-label="Border radius">
+                                <input type="number" id="numBorderR" step="1" min="0" max="999" value="0" oninput="updateGroupBorderRadius(this.value)" aria-label="Group border radius" disabled>
                                 <span>px</span>
                             </div>
                         </div>
@@ -2319,7 +2321,10 @@ function getEffectiveStyle(imageId = activeImageId) {
     }
     const pageForImage = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
     const isGroupedMember = !!(pageForImage && (pageForImage.imageIds || []).length > 1);
-    const groupStyle = isGroupedMember ? (pageForImage.styleOverride || {}) : {};
+    const layerGroupForImage = isGroupedMember ? getLayerGroupForImage(pageForImage, imageId) : null;
+    const groupStyle = isGroupedMember
+        ? { ...(pageForImage.styleOverride || {}), ...(layerGroupForImage?.styleOverride || {}) }
+        : {};
     const imgObj = uploadedImages.find(i => i.id === imageId);
     if (imgObj) {
         return {
@@ -2340,15 +2345,16 @@ function getEffectiveStyle(imageId = activeImageId) {
             ...(imgObj.styleOverride || {}),
             ...(isGroupedMember ? {
                 gapH: Number.isFinite(groupStyle.gapH) ? groupStyle.gapH : appConfig.gapH,
-                gapV: Number.isFinite(groupStyle.gapV) ? groupStyle.gapV : appConfig.gapV
-            } : {})
+                gapV: Number.isFinite(groupStyle.gapV) ? groupStyle.gapV : appConfig.gapV,
+                borderR: Number.isFinite(groupStyle.borderR) ? groupStyle.borderR : appConfig.borderR
+            } : { borderR: 0 })
         };
     }
     return {
         gapH: appConfig.gapH,
         gapV: appConfig.gapV,
         borderW: appConfig.borderW,
-        borderR: appConfig.borderR,
+        borderR: 0,
         borderStyle: appConfig.borderStyle,
         borderPosition: appConfig.borderPosition || 'inside',
         borderC: appConfig.borderC
@@ -2357,7 +2363,8 @@ function getEffectiveStyle(imageId = activeImageId) {
 
 function syncSpacingLockState(imageId = activeImageId) {
     const locked = isIndividualGroupLayerSelected(imageId);
-    const groupSelected = !!getSelectedGroupPage();
+    const groupRadiusAvailable = Boolean(getSelectedLayerGroupContext() || getSelectedGroupPage());
+    const groupSelected = groupRadiusAvailable;
     document.body.classList.toggle('group-selected', groupSelected);
     const gapHInput = document.getElementById('numGapH');
     const gapVInput = document.getElementById('numGapV');
@@ -2373,7 +2380,14 @@ function syncSpacingLockState(imageId = activeImageId) {
     // Group selection is an object selection, not a lock state. Border controls
     // remain enabled and update the shared group style for every member.
     if (bwInput) bwInput.disabled = false;
-    if (brInput) brInput.disabled = false;
+    const radiusControl = document.getElementById('borderRadiusControl');
+    if (radiusControl) radiusControl.hidden = !groupRadiusAvailable;
+    if (brInput) {
+        brInput.disabled = !groupRadiusAvailable;
+        brInput.title = groupRadiusAvailable ? 'Change border radius for this group' : 'Select a group to change border radius';
+    }
+    const borderSpacingGroup = brInput?.closest('.spacing-control-group');
+    if (borderSpacingGroup) borderSpacingGroup.classList.toggle('radius-hidden', !groupRadiusAvailable);
     if (borderStyleSelect) borderStyleSelect.disabled = false;
     if (borderPositionSelect) borderPositionSelect.disabled = false;
     if (hexInput) hexInput.disabled = false;
@@ -2398,7 +2412,8 @@ function syncSpacingBorderControls(imageId = activeImageId) {
     if (gapHInput) gapHInput.value = String(Math.round((style.gapH || 0) * MM_TO_PX));
     if (gapVInput) gapVInput.value = String(Math.round((style.gapV || 0) * MM_TO_PX));
     if (bwInput) bwInput.value = String(Math.round(style.borderW || 0));
-    if (brInput) brInput.value = String(Math.round(style.borderR || 0));
+    const groupRadiusAvailable = Boolean(getSelectedLayerGroupContext() || getSelectedGroupPage());
+    if (brInput) brInput.value = String(Math.round(groupRadiusAvailable ? (style.borderR || 0) : 0));
     if (colorPicker) colorPicker.value = borderColor;
     if (hexInput && document.activeElement !== hexInput) hexInput.value = borderColor;
 
@@ -2490,7 +2505,7 @@ function getLayerStyle(imageId = activeImageId) {
             : (Number.isFinite(layerOverride.borderW) ? layerOverride.borderW : (Number.isFinite(imgObj.borderW) ? imgObj.borderW : appConfig.borderW)),
         borderR: isGroupedMember
             ? (Number.isFinite(groupStyle.borderR) ? groupStyle.borderR : appConfig.borderR)
-            : (Number.isFinite(layerOverride.borderR) ? layerOverride.borderR : (Number.isFinite(imgObj.borderR) ? imgObj.borderR : appConfig.borderR)),
+            : 0,
         borderStyle: isGroupedMember
             ? (groupStyle.borderStyle === 'dotted' ? 'dotted' : (groupStyle.borderStyle === 'solid' ? 'solid' : appConfig.borderStyle))
             : ((layerOverride.borderStyle === 'solid' || layerOverride.borderStyle === 'dotted')
@@ -2851,13 +2866,54 @@ function applyBorderCssVars(overrideStyle = null) {
 
 function toggleRoundBorderShortcut() {
     const brInput = document.getElementById('numBorderR');
-    if (!brInput || brInput.disabled) return;
+    const groupRadiusAvailable = Boolean(getSelectedLayerGroupContext() || getSelectedGroupPage());
+    if (!brInput || brInput.disabled || !groupRadiusAvailable) return;
 
     const currentRadius = Math.round(parseFloat(brInput.value) || 0);
     const nextRadius = currentRadius === 999 ? 0 : 999;
 
     brInput.value = String(nextRadius);
     updateSettings();
+}
+
+/**
+ * Dedicated group-radius handler. Keep this separate from the general spacing
+ * handler so changing the radius always writes to the selected Group/Page,
+ * invalidates the style cache, and immediately rebuilds the preview.
+ */
+function updateGroupBorderRadius(value) {
+    const radius = Math.max(0, Math.min(999, Math.round(Number.parseFloat(value) || 0)));
+    const selectedGroup = getSelectedLayerGroupContext();
+    const selectedPage = selectedGroup ? null : getSelectedGroupPage();
+    if (!selectedGroup && !selectedPage) return;
+
+    const targetPage = selectedGroup?.page || selectedPage;
+    const targetGroups = selectedGroup ? [selectedGroup.group] : getPageGroups(targetPage);
+    if (!targetGroups.length) return;
+
+    targetGroups.forEach(group => {
+        group.styleOverride = { ...(group.styleOverride || {}), borderR: radius };
+        group.imageIds.forEach(id => {
+            const image = uploadedImages.find(item => item.id === id);
+            if (!image) return;
+            // Mirror the value on members as a compatibility fallback for older
+            // saved layouts; grouped rendering still takes the Group override.
+            image.borderR = radius;
+            image.styleOverride = { ...(image.styleOverride || {}), borderR: radius };
+        });
+    });
+    if (selectedPage) {
+        targetPage.styleOverride = { ...(targetPage.styleOverride || {}), borderR: radius };
+    }
+
+    const input = document.getElementById('numBorderR');
+    if (input) input.value = String(radius);
+    renderStyleByImageId.clear();
+    saveConfig();
+    renderCanvas();
+    renderImageQueue();
+    syncSpacingBorderControls(activeImageId);
+    updateUndoButton();
 }
 
 function getSelectedLayerGroupContext() {
@@ -2925,14 +2981,16 @@ function updateSettings() {
     const nextGapH   = gapHPx * PX_TO_MM;
     const nextGapV   = gapVPx * PX_TO_MM;
     const nextBW     = Math.max(0, Math.round(parseFloat(document.getElementById('numBorderW').value) || 0));
-    const nextBR     = Math.max(0, Math.min(999, Math.round(parseFloat(document.getElementById('numBorderR').value) || 0)));
+    const selectedGroupContext = getSelectedLayerGroupContext();
+    const groupPage = selectedGroupContext ? null : getSelectedGroupPage();
+    const groupRadiusAvailable = Boolean(selectedGroupContext || groupPage);
+    const nextBR     = groupRadiusAvailable
+        ? Math.max(0, Math.min(999, Math.round(parseFloat(document.getElementById('numBorderR').value) || 0)))
+        : 0;
     const rawColor   = document.getElementById('setBorderC').value;
     const nextBC     = normalizeHexColor(rawColor) || rawColor || '#E5E7EB';
     const nextStyle  = document.getElementById('borderStyleSelect')?.value === 'dotted' ? 'dotted' : 'solid';
     const nextBorderPosition = document.getElementById('borderPositionSelect')?.value === 'inside' ? 'inside' : 'outside';
-
-    const selectedGroupContext = getSelectedLayerGroupContext();
-    const groupPage = selectedGroupContext ? null : getSelectedGroupPage();
     const activeImg = getActiveImage();
     const previousPadding = {
         top: Math.max(0, Number(appConfig.paddingTop) || 0),
@@ -3008,7 +3066,6 @@ function updateSettings() {
                 gapH: appliedGapH,
                 gapV: appliedGapV,
                 borderW: nextBW,
-                borderR: nextBR,
                 borderStyle: nextStyle,
                 borderPosition: nextBorderPosition,
                 borderC: nextBC
@@ -3016,7 +3073,7 @@ function updateSettings() {
             targetImg.gapH = appliedGapH;
             targetImg.gapV = appliedGapV;
             targetImg.borderW = nextBW;
-            targetImg.borderR = nextBR;
+            targetImg.borderR = 0;
             targetImg.borderStyle = nextStyle;
             targetImg.borderPosition = nextBorderPosition;
             targetImg.borderC = nextBC;
@@ -3029,7 +3086,6 @@ function updateSettings() {
             gapH: appliedGapH,
             gapV: appliedGapV,
             borderW: nextBW,
-            borderR: nextBR,
             borderStyle: nextStyle,
             borderPosition: nextBorderPosition,
             borderC: nextBC
@@ -3037,7 +3093,7 @@ function updateSettings() {
         activeImg.gapH = appliedGapH;
         activeImg.gapV = appliedGapV;
         activeImg.borderW = nextBW;
-        activeImg.borderR = nextBR;
+        activeImg.borderR = 0;
         activeImg.borderStyle = nextStyle;
         activeImg.borderPosition = nextBorderPosition;
         activeImg.borderC = nextBC;
@@ -3045,7 +3101,7 @@ function updateSettings() {
         appConfig.gapH        = nextGapH;
         appConfig.gapV        = nextGapV;
         appConfig.borderW     = nextBW;
-        appConfig.borderR     = nextBR;
+        appConfig.borderR     = 0;
         appConfig.borderC     = nextBC;
         appConfig.borderStyle = nextStyle;
         appConfig.borderPosition = nextBorderPosition;
@@ -7464,15 +7520,12 @@ function buildValidIdCard(img) {
     const radius = Math.max(0, Number(style.borderR) || 0);
     card.style.setProperty('--valid-id-radius', `${radius}px`);
     const media = document.createElement('div'); media.className = 'valid-id-card-media';
-    media.style.borderRadius = `${radius}px`;
-    media.style.overflow = 'hidden';
-    if (radius > 0) {
-        media.style.clipPath = `inset(0 round ${radius}px)`;
-        media.style.webkitClipPath = `inset(0 round ${radius}px)`;
-    } else {
-        media.style.clipPath = 'none';
-        media.style.webkitClipPath = 'none';
-    }
+    media.style.setProperty('border-radius', `${radius}px`, 'important');
+    media.style.setProperty('overflow', 'hidden');
+    // Border-radius + overflow clipping is more reliable than clip-path here,
+    // especially when cards are rebuilt repeatedly while the numeric input changes.
+    media.style.clipPath = 'none';
+    media.style.webkitClipPath = 'none';
     const image = document.createElement('img'); image.src = img.croppedSrc || img.previewSrc || img.src;
     image.alt = img.name || 'Valid ID card'; image.draggable = false; image.dataset.imageId = img.id;
     image.style.objectFit = fitObjectFit(img.id);
@@ -7484,7 +7537,7 @@ function buildValidIdCard(img) {
         const position = style.borderPosition === 'inside' ? 'inside' : 'outside';
         border.style.inset = position === 'inside' ? '0' : `${-borderW}px`;
         border.style.border = `${borderW}px ${style.borderStyle === 'dotted' ? 'dotted' : 'solid'} ${normalizeHexColor(style.borderC) || '#E5E7EB'}`;
-        border.style.borderRadius = `${radius + (position === 'inside' ? 0 : borderW)}px`;
+        border.style.setProperty('border-radius', `${radius + (position === 'inside' ? 0 : borderW)}px`, 'important');
         card.appendChild(border);
     }
     const chip = document.createElement('span'); chip.className = 'card-side-chip';
@@ -9449,7 +9502,7 @@ function buildValidIdCard(img) {
     image.draggable = false;
     image.dataset.imageId = img.id;
     image.style.objectFit = fitObjectFit(img.id);
-    image.style.borderRadius = `${radius}px`;
+    image.style.setProperty('border-radius', `${radius}px`, 'important');
     media.appendChild(image);
     card.appendChild(media);
     const borderW = Math.max(0, Number(style.borderW) || 0);

@@ -578,6 +578,8 @@
     
     .mug-frame.is-selected { z-index:50; }
     .mug-frame.is-selected::after { content:''; position:absolute; inset:0; z-index:20; border:2px solid #111827; pointer-events:none; }
+    /* Selection is an editor-only overlay; never include it in exported artwork. */
+    html.export-clean .mug-frame::after { content:none !important; display:none !important; }
 
     .mug-frame img {
         width: 100%; height: 100%;
@@ -2211,9 +2213,9 @@
         fitToViewport();
     }
 
-    function buildFrame(layer) {
+    function buildFrame(layer, includeSelection = true) {
         const el = document.createElement('div');
-        el.className = 'mug-frame' + (selectedIds.has(layer.id) ? ' is-selected' : '');
+        el.className = 'mug-frame' + (includeSelection && selectedIds.has(layer.id) ? ' is-selected' : '');
         el.style.width = layer.wIn + 'in';
         el.style.height = layer.hIn + 'in';
         el.style.borderRadius = settings.borderR + 'px';
@@ -2284,6 +2286,15 @@
         hideLoading();
     }
 
+    // Strip editor-only selection styling from html2canvas's cloned document.
+    function cleanExportClone(clonedDoc) {
+        if (!clonedDoc) return;
+        clonedDoc.documentElement.classList.add('export-clean');
+        clonedDoc.querySelectorAll('.mug-frame.is-selected').forEach(el => {
+            el.classList.remove('is-selected');
+        });
+    }
+
     function generateFilename(ext) {
         const now = new Date();
         const p = n => String(n).padStart(2, '0');
@@ -2352,7 +2363,8 @@
 
                     pageLayers.forEach(layer => {
                         if (layer.visible) {
-                            stack.appendChild(buildFrame(layer));
+                            // PDF artwork is built without editor selection state.
+                            stack.appendChild(buildFrame(layer, false));
                         }
                     });
                     pageEl.appendChild(stack);
@@ -2365,7 +2377,7 @@
                         useCORS: true,
                         backgroundColor: '#ffffff',
                         onclone: (clonedDoc) => {
-                            clonedDoc.querySelectorAll('.mug-frame.is-selected').forEach(el => el.classList.remove('is-selected'));
+                            cleanExportClone(clonedDoc);
                         }
                     });
 
@@ -2391,7 +2403,7 @@
                     useCORS: true,
                     backgroundColor: '#ffffff',
                     onclone: (clonedDoc) => {
-                        clonedDoc.querySelectorAll('.mug-frame.is-selected').forEach(el => el.classList.remove('is-selected'));
+                        cleanExportClone(clonedDoc);
                         clonedDoc.querySelectorAll('.safe-zone-overlay, .paper-label, .empty-state').forEach(el => {
                             el.style.display = 'none';
                         });
