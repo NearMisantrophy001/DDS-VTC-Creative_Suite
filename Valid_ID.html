@@ -1331,10 +1331,10 @@
     .valid-id-zone-label.back { top:calc(50% + 3mm); }
     .valid-id-card {
         position:absolute; width:85.725mm; height:53.975mm; box-sizing:border-box;
-        background:#fff; user-select:none; touch-action:none; cursor:grab;
+        background:#fff; user-select:none; touch-action:manipulation; cursor:default;
         z-index:2; overflow:visible;
     }
-    .valid-id-card:active { cursor:grabbing; }
+    .valid-id-card:active { cursor:default; }
     .valid-id-card.is-selected { z-index:8; }
     .valid-id-card.is-selected::after {
         content:""; position:absolute; inset:-1px; border:1px solid rgba(37,99,235,.85);
@@ -4037,6 +4037,17 @@ function startLayerDrag(ev, id) {
     ev.dataTransfer.setData('text/plain', draggedLayerIds.join(','));
     requestAnimationFrame(() => ev.currentTarget.classList.add('is-dragging'));
 }
+function startLayerGroupDrag(ev, pageId, groupId) {
+    if (ev.target?.closest?.('button')) { ev.preventDefault(); return; }
+    const page = pages.find(item => item.id === pageId);
+    const group = page ? getPageGroups(page).find(item => item.id === groupId) : null;
+    if (!group) { ev.preventDefault(); return; }
+    draggedGroupPageId = null;
+    draggedLayerIds = group.imageIds.slice();
+    ev.dataTransfer.effectAllowed = 'move';
+    ev.dataTransfer.setData('text/plain', draggedLayerIds.join(','));
+    requestAnimationFrame(() => ev.currentTarget.classList.add('is-dragging'));
+}
 function clearLayerDragStyles() {
     draggedLayerIds = []; draggedGroupPageId = null;
     document.querySelectorAll('.is-dragging,.drop-target').forEach(el => el.classList.remove('is-dragging','drop-target'));
@@ -4144,46 +4155,145 @@ function moveDraggedLayersIntoGroup(targetPageId) {
     reconcileSelectionAndUI();
 }
 function moveDraggedLayersOut() {
-    const ids = [...draggedLayerIds].filter(id => uploadedImages.some(img => img.id === id));
-    if (!ids.length) return;
+    const requested = [...new Set(draggedLayerIds)].filter(id => uploadedImages.some(image => image.id === id));
+    if (!requested.length) return;
 
-    let movedAny = false;
-    ids.forEach(id => {
-        const sourceIndex = pages.findIndex(pg => (pg.imageIds || []).includes(id));
-        if (sourceIndex < 0) return;
-
-        detachImageFromPage(id);
-
-        const alreadyHasStandalonePage = pages.some(pg =>
-            !(pg.imageIds || []).length && pg.imageId === id
-        );
-        if (!alreadyHasStandalonePage) {
-            pages.push({ id: newPageId(), imageId: id });
+    // If every layer in a two-layer group is selected, keep its Front/Back
+    // relationship together on the new page. A single dragged child becomes
+    // its own standalone page, leaving the other child on the original page.
+    const operations = [];
+    const processedGroups = new Set();
+    requested.forEach(id => {
+        const sourcePage = pages.find(page => getPageLayerIds(page).includes(id));
+        if (!sourcePage) {
+            operations.push({ kind: 'layer', id, sourcePage: null, sourcePageId: null, sourcePageIndex: pages.length });
+            return;
         }
-        movedAny = true;
+        const group = getLayerGroupForImage(sourcePage, id);
+        const isWholeGroupSelected = Boolean(group && group.imageIds.length > 1 &&
+            group.imageIds.every(groupId => requested.includes(groupId)));
+        if (isWholeGroupSelected) {
+            if (processedGroups.has(group.id)) return;
+            processedGroups.add(group.id);
+            operations.push({
+                kind: 'group',
+                group: { ...group, imageIds: group.imageIds.slice() },
+                sourcePage,
+                sourcePageId: sourcePage.id,
+                sourcePageIndex: pages.indexOf(sourcePage)
+            });
+        } else {
+            operations.push({ kind: 'layer', id, sourcePage, sourcePageId: sourcePage.id, sourcePageIndex: pages.indexOf(sourcePage) });
+        }
+    });
+    if (!operations.length) { clearLayerDragStyles(); return; }
+
+    recordUndoSnapshot(captureStateSnapshot());
+    const insertionOffsets = new Map();
+    const createdPages = [];
+
+    operations.forEach(operation => {
+        const sourcePage = operation.sourcePageId
+            ? pages.find(page => page.id === operation.sourcePageId)
+            : null;
+        const liveSourceIndex = sourcePage ? pages.indexOf(sourcePage) : -1;
+        const originalIndex = liveSourceIndex >= 0
+            ? liveSourceIndex
+            : Math.max(0, Math.min(pages.length, Number(operation.sourcePageIndex) || 0));
+        let newPage;
+        let insertionBase = originalIndex;
+        let styleOverride = sourcePage?.styleOverride && typeof sourcePage.styleOverride === 'object'
+            ? { ...sourcePage.styleOverride } : undefined;
+
+        if (operation.kind === 'group') {
+            if (!sourcePage) return;
+            const remainingGroups = getPageGroups(sourcePage)
+                .filter(group => group.id !== operation.group.id)
+                .map(group => ({ ...group, imageIds: group.imageIds.slice() }));
+            if (remainingGroups.length) {
+                rebuildPageFromGroups(sourcePage, remainingGroups);
+                sourcePage.validIdFlowLayoutSignature = null;
+                sourcePage.transformXMM = 0;
+                sourcePage.transformYMM = 0;
+                insertionBase = pages.indexOf(sourcePage) + 1;
+            } else {
+                const sourceIndex = pages.indexOf(sourcePage);
+                if (sourceIndex >= 0) pages.splice(sourceIndex, 1);
+                insertionBase = Math.max(0, sourceIndex);
+            }
+            newPage = buildPageFromGroups([operation.group], {
+                styleOverride,
+                canvasAlignH: 'center',
+                canvasAlignV: 'center'
+            });
+            newPage.validIdFlowLayoutSignature = null;
+            operation.group.imageIds.forEach(id => {
+                const image = uploadedImages.find(item => item.id === id);
+                if (image) image.manualPosition = false;
+            });
+        } else {
+            const id = operation.id;
+            if (sourcePage) {
+                const sourceIndex = pages.indexOf(sourcePage);
+                detachImageFromPage(id);
+                const stillExists = pages.includes(sourcePage);
+                insertionBase = stillExists ? pages.indexOf(sourcePage) + 1 : Math.max(0, sourceIndex);
+                if (stillExists) {
+                    sourcePage.validIdFlowLayoutSignature = null;
+                    sourcePage.transformXMM = 0;
+                    sourcePage.transformYMM = 0;
+                    getPageLayerIds(sourcePage).forEach(layerId => {
+                        const image = uploadedImages.find(item => item.id === layerId);
+                        if (image) image.manualPosition = false;
+                    });
+                }
+            }
+            const singleGroup = {
+                id: makeLayerGroupId(),
+                name: 'Layer',
+                imageIds: [id],
+                visible: true
+            };
+            newPage = buildPageFromGroups([singleGroup], {
+                styleOverride,
+                canvasAlignH: 'center',
+                canvasAlignV: 'center'
+            });
+            newPage.validIdFlowLayoutSignature = null;
+            const image = uploadedImages.find(item => item.id === id);
+            if (image) image.manualPosition = false;
+        }
+
+        const sourceKey = operation.sourcePageId || '__root__';
+        const offset = insertionOffsets.get(sourceKey) || 0;
+        const insertAt = Math.max(0, Math.min(pages.length, insertionBase + offset));
+        pages.splice(insertAt, 0, newPage);
+        insertionOffsets.set(sourceKey, offset + 1);
+        createdPages.push(newPage);
     });
 
-    if (!movedAny) {
+    if (!createdPages.length) {
         clearLayerDragStyles();
         return;
     }
-
-    const firstMovedIndex = pages.findIndex(pg => !(pg.imageIds || []).length && ids.includes(pg.imageId));
-    if (firstMovedIndex >= 0) activePageIndex = firstMovedIndex;
-    activeImageId = ids.find(id => pages.some(pg => pg.imageId === id || (pg.imageIds || []).includes(id))) || activeImageId;
+    const firstPage = createdPages[0];
+    const firstIds = getPageLayerIds(firstPage);
     selectedGroupPageId = null;
-    selectedImageIds = new Set(ids);
+    selectedLayerGroupId = firstPage.groups?.[0]?.id || null;
+    selectedImageIds = new Set(firstIds);
+    activeImageId = firstIds[0] || null;
+    activePageIndex = pages.indexOf(firstPage);
+    activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
+    createdPages.forEach(page => { page.validIdFlowLayoutSignature = null; });
+
+    ensureValidIdCardPositions();
     clearLayerDragStyles();
     reconcileSelectionAndUI();
+    syncSpacingBorderControls(activeImageId);
+    syncAlignControls();
+    updateUndoButton();
 }
 
-/* =========================================================
-   ALIGNED COLLAGE PACKING FOR MIXED-SIZE GROUPS
-   ========================================================= */
-/**
- * Places mixed-size tiles onto a clean grid-snapped collage layout using
- * row-aligned skyline packing so tiles align neatly with neighboring rows/columns.
- */
 function findCollageSlot(placedRects, w, h, availW, availH, gapH, gapV, colStep, rowStep) {
     if (w > availW + 0.01 || h > availH + 0.01) return null;
 
@@ -8827,7 +8937,7 @@ function makeValidIdLayerRow(obj, index, stackIndex) {
     const row = document.createElement('div');
     const selected = selectedImageIds.has(obj.id);
     row.className = 'layer-item' + (obj.id === activeImageId ? ' active' : '') + (selected ? ' multi-selected' : '');
-    row.title = `${obj.name || `Layer ${index + 1}`} · drag the card on the page to position`;
+    row.title = `${obj.name || `Layer ${index + 1}`} · drag within Layers to reorder or drop outside a page to make a new page`;
     row.draggable = true;
     row.addEventListener('dragstart', event => startLayerDrag(event, obj.id));
     row.addEventListener('dragend', clearLayerDragStyles);
@@ -8967,13 +9077,18 @@ function makeValidIdGroupBlock(page, group, groupIndex, pageHasMultipleGroups, s
     header.setAttribute('aria-selected', String(groupSelected));
     header.tabIndex = 0;
     header.title = pageHasMultipleGroups
-        ? 'Select this group. Ctrl-click to combine groups onto one page.'
+        ? 'Select this group. Drag its header into the empty Layers area to move it to a separate page.'
         : 'Select Page ' + (pages.indexOf(page) + 1);
-    if (!pageHasMultipleGroups) {
-        header.draggable = true;
+    // A single-group page header keeps its page-reorder behavior. When a page
+    // contains several groups, each group header can be dragged out to create
+    // its own page (without separating its Front/Back pair).
+    header.draggable = true;
+    if (pageHasMultipleGroups) {
+        header.addEventListener('dragstart', event => startLayerGroupDrag(event, page.id, group.id));
+    } else {
         header.addEventListener('dragstart', event => startGroupDrag(event, page.id));
-        header.addEventListener('dragend', clearLayerDragStyles);
     }
+    header.addEventListener('dragend', clearLayerDragStyles);
     header.addEventListener('click', event => {
         if (event.target.closest('.layer-group-chevron, .visibility-action')) return;
         selectLayerGroup(page, group, event);
@@ -9045,10 +9160,22 @@ function renderPrintGridLayerQueue() {
             event.preventDefault();
             event.dataTransfer.dropEffect = 'copy';
             queue.classList.add('drop-files-target');
+            return;
         }
+        if (!draggedLayerIds.length && !draggedGroupPageId) return;
+
+        // Only the empty/root area of the Layers panel is a "new page" target.
+        // Rows, group headers, and anything inside a page remain reorder targets.
+        if (event.target.closest('.layer-item, .layer-group-header, .layer-group, .layer-action')) {
+            queue.classList.remove('drop-root-target');
+            return;
+        }
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        queue.classList.add('drop-root-target');
     };
     queue.ondragleave = event => {
-        if (!queue.contains(event.relatedTarget)) queue.classList.remove('drop-files-target');
+        if (!queue.contains(event.relatedTarget)) queue.classList.remove('drop-files-target', 'drop-root-target');
     };
     queue.ondrop = event => {
         if (event.dataTransfer?.files?.length) {
@@ -9056,7 +9183,15 @@ function renderPrintGridLayerQueue() {
             event.stopPropagation();
             queue.classList.remove('drop-files-target');
             handleFiles(event.dataTransfer.files);
+            return;
         }
+        if (!draggedLayerIds.length && !draggedGroupPageId) return;
+        if (event.target.closest('.layer-item, .layer-group-header, .layer-group, .layer-action')) return;
+        event.preventDefault();
+        event.stopPropagation();
+        queue.classList.remove('drop-root-target');
+        if (draggedLayerIds.length) moveDraggedLayersOut();
+        else clearLayerDragStyles(); // A whole-page drag is a reorder, not a new page.
     };
     if (!uploadedImages.length) {
         queue.innerHTML = '<div class="queue-empty">No layers yet</div>';
@@ -9692,79 +9827,11 @@ function buildValidIdCard(img) {
     chip.textContent = img.side === 'back' ? 'BACK' : 'FRONT';
     card.appendChild(chip);
 
+    // The canvas is an auto-layout preview, not a free-form editor.
+    // Select a layer by clicking it; page separation is done from the Layers panel.
     card.addEventListener('pointerdown', event => {
         if (event.button !== 0 || event.target.closest('button')) return;
-        event.preventDefault();
-        beginUndoCapture(260);
-        const paperPage = card.closest('.paper-page');
-        if (!paperPage) return;
-
-        const ownerPage = pages.find(page => getPageLayerIds(page).includes(img.id));
-        const ownerGroup = getLayerGroupForImage(ownerPage, img.id);
-        const dragWholePage = Boolean(ownerPage && selectedGroupPageId === ownerPage.id);
-        const dragWholeSubgroup = Boolean(ownerGroup && selectedLayerGroupId === ownerGroup.id);
-        if (dragWholePage) {
-            selectedImageIds = new Set(getPageLayerIds(ownerPage));
-            activeImageId = img.id;
-            activePageIndex = pages.indexOf(ownerPage);
-            activeValidIdSheetIndex = getValidIdSheetIndexForImage(img.id);
-            renderImageQueue();
-            syncSpacingBorderControls(img.id);
-            syncAlignControls();
-        } else if (dragWholeSubgroup) {
-            selectedImageIds = new Set(ownerGroup.imageIds);
-            activeImageId = img.id;
-            renderImageQueue();
-            syncSpacingBorderControls(img.id);
-            syncAlignControls();
-        } else {
-            activateValidIdLayer(img.id);
-        }
-
-        const paperRect = paperPage.getBoundingClientRect();
-        const scale = paperRect.width / getValidIdPaper().w;
-        const memberIds = dragWholePage ? getPageLayerIds(ownerPage)
-            : dragWholeSubgroup ? ownerGroup.imageIds : [img.id];
-        const memberForId = id => {
-            const memberImage = uploadedImages.find(item => item.id === id);
-            if (!memberImage) return null;
-            const memberCard = Array.from(paperPage.querySelectorAll('.valid-id-card'))
-                .find(node => node.dataset.imageId === id) || null;
-            return {
-                image: memberImage,
-                card: memberCard,
-                startX: Number(memberImage.xMM) || 0,
-                startY: Number(memberImage.yMM) || 0
-            };
-        };
-        const members = memberIds.map(memberForId).filter(Boolean);
-        // Keep the clicked ID's complete Front/Back group ready to detach even
-        // when the page itself was selected at pointer-down.
-        const detachIds = ownerGroup?.imageIds?.length ? ownerGroup.imageIds : [img.id];
-        const detachMembers = detachIds.map(memberForId).filter(Boolean);
-        if (!members.length) return;
-        validIdActiveDrag = {
-            members,
-            detachMembers,
-            groupId: dragWholePage ? ownerPage.id : null,
-            sourcePageId: ownerPage?.id || null,
-            sourceGroupId: ownerGroup?.id || null,
-            draggedImageId: img.id,
-            dragWholePage,
-            dragWholeSubgroup,
-            startTransformXMM: dragWholePage ? (Number(ownerPage.transformXMM) || 0) : 0,
-            startTransformYMM: dragWholePage ? (Number(ownerPage.transformYMM) || 0) : 0,
-            pointerId: event.pointerId,
-            startX: event.clientX,
-            startY: event.clientY,
-            scale,
-            moved: false,
-            outsidePaper: false
-        };
-        // Let the dragged card remain visible beyond the paper edge. Releasing
-        // it outside the sheet can move its ID group to a new sheet.
-        paperPage.style.overflow = 'visible';
-        try { paperPage.setPointerCapture(event.pointerId); } catch (_) {}
+        selectLayer(img.id, getLayerStackIds().indexOf(img.id), event);
     });
     return card;
 }
