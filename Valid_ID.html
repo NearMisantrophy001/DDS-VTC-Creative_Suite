@@ -1081,15 +1081,6 @@
         user-select: none;
     }
 
-    /* Disable border controls visually when a group header is selected while keeping them visible. */
-    body.group-selected #acc-spacing .compact-setting-row:has(#numBorderW),
-    body.group-selected #acc-spacing .compact-setting-row:has(#borderStyleSelect),
-    body.group-selected #acc-spacing .compact-setting-row:has(#hexBorderC) {
-        display: grid !important;
-        opacity: 0.45;
-        pointer-events: none;
-        user-select: none;
-    }
 
     /* Compact two-column printer controls */
     .printer-options-grid {
@@ -1157,6 +1148,15 @@
     .auto-layout-dimension-fields input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
     .auto-layout-dimension-fields input:focus { border-color:var(--brand-blue); }
     .auto-layout-dimension-times { color:var(--text-muted); font-size:.72rem; font-weight:700; }
+    .auto-layout-flow-row {
+        display:grid; grid-template-columns:minmax(0, 1fr) 150px; align-items:center;
+        column-gap:10px; margin:0 0 14px; min-width:0;
+    }
+    .auto-layout-flow-row > .setting-label { color:var(--text-main); }
+    .flow-control-group { width:100%; min-width:0; height:30px; }
+    .flow-control-group button { height:100%; padding:0; }
+    .flow-control-group button svg { width:16px; height:16px; display:block; }
+    .flow-control-group button:disabled { opacity:.28; cursor:not-allowed; }
     .legacy-valid-id-controls { display:none !important; }
     .alignment-group button:disabled { opacity:.32; cursor:not-allowed; pointer-events:none; }
 
@@ -1389,6 +1389,14 @@
     .page-layer-heading .page-tag { color:var(--primary); font-size:.59rem; letter-spacing:.03em; }
 
     .valid-id-zone-guide, .valid-id-zone-label { display:none !important; }
+/* Multi-ID page spacing must remain editable when a child layer is selected. */
+body.group-child-layer-selected #acc-spacing .compact-setting-row:has(#numGapH),
+body.group-child-layer-selected #acc-spacing .compact-setting-row:has(#numGapV) {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    user-select: auto !important;
+}
+
 </style>
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1607,12 +1615,12 @@
                                 <span>px</span>
                             </div>
                         </div>
-                        <div class="icon-number-control" id="borderRadiusControl" title="Group border radius (Q toggles 999 / 0)" hidden>
+                        <div class="icon-number-control" id="borderRadiusControl" title="Border radius (Q toggles 999 / 0)">
                             <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M4 18V10a6 6 0 0 1 6-6h8"/>
                             </svg>
                             <div class="setting-value-wrapper">
-                                <input type="number" id="numBorderR" step="1" min="0" max="999" value="0" oninput="updateGroupBorderRadius(this.value)" aria-label="Group border radius" disabled>
+                                <input type="number" id="numBorderR" step="1" min="0" max="999" value="0" oninput="updateGroupBorderRadius(this.value)" aria-label="Border radius">
                                 <span>px</span>
                             </div>
                         </div>
@@ -1674,6 +1682,17 @@
                         <label><span>W</span><input type="number" id="validIdCardWidth" min="0.39" max="8.66" step="0.01" value="3.375" oninput="markValidIdDimensionCustom()" onchange="updateValidIdDimensions()" aria-label="ID width in inches"></label>
                         <span class="auto-layout-dimension-times">×</span>
                         <label><span>H</span><input type="number" id="validIdCardHeight" min="0.39" max="11.81" step="0.01" value="2.125" oninput="markValidIdDimensionCustom()" onchange="updateValidIdDimensions()" aria-label="ID height in inches"></label>
+                    </div>
+                </div>
+                <div class="auto-layout-flow-row">
+                    <span class="setting-label">Flow</span>
+                    <div class="segmented-control flow-control-group" role="group" aria-label="ID layout flow">
+                        <button id="validIdFlowHorizontalBtn" type="button" onclick="setValidIdFlow('horizontal')" title="Horizontal flow: both fronts across the top, backs across the bottom" aria-label="Horizontal flow" aria-pressed="false">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="6" rx="1"/><rect x="14" y="4" width="7" height="6" rx="1"/><rect x="3" y="14" width="7" height="6" rx="1"/><rect x="14" y="14" width="7" height="6" rx="1"/></svg>
+                        </button>
+                        <button id="validIdFlowVerticalBtn" type="button" onclick="setValidIdFlow('vertical')" title="Vertical flow: each front is beside its matching back" aria-label="Vertical flow" aria-pressed="false">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M12 3v18" stroke-dasharray="2 2"/></svg>
+                        </button>
                     </div>
                 </div>
                 <hr class="divider adjust-layout-divider">
@@ -1927,6 +1946,22 @@ function hideLoading() {
     hideTimer = setTimeout(() => { loadingOverlay.classList.add('hidden'); hideTimer = null; }, 320);
 }
 paintProgress(0); startCreep();
+
+// The editor must never remain covered by the startup overlay. This timer is
+// registered before the rest of the application initializes, so a later
+// startup exception or a delayed CDN script cannot leave the page stuck.
+let validIdStartupComplete = false;
+const validIdStartupFailSafe = window.setTimeout(() => {
+    if (validIdStartupComplete) return;
+    stopCreep();
+    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+}, 4500);
+window.addEventListener('load', () => {
+    if (!validIdStartupComplete) {
+        stopCreep();
+        if (loadingOverlay) loadingOverlay.classList.add('hidden');
+    }
+}, { once: true });
 
 /* =========================================================
    MODALS (alert / confirm) & TOAST UNDO
@@ -2295,11 +2330,13 @@ function createStyleOverride(base = {}) {
 }
 
 function getSelectedGroupPage() {
-    if (selectedGroupPageId) {
-        const byId = pages.find(pg => pg.id === selectedGroupPageId && (pg.imageIds || []).length > 1);
-        if (byId) return byId;
-    }
-    return null;
+    if (!selectedGroupPageId) return null;
+    // Resolve through the normalized page model. A nested-group page may have
+    // its flattened imageIds rebuilt from page.groups, so raw imageIds alone
+    // are not a reliable way to determine whether the page contains layers.
+    const byId = pages.find(page => page.id === selectedGroupPageId);
+    if (!byId) return null;
+    return getPageLayerIds(byId).length > 1 ? byId : null;
 }
 
 function isIndividualGroupLayerSelected(imageId = activeImageId) {
@@ -2346,8 +2383,16 @@ function getEffectiveStyle(imageId = activeImageId) {
             ...(isGroupedMember ? {
                 gapH: Number.isFinite(groupStyle.gapH) ? groupStyle.gapH : appConfig.gapH,
                 gapV: Number.isFinite(groupStyle.gapV) ? groupStyle.gapV : appConfig.gapV,
-                borderR: Number.isFinite(groupStyle.borderR) ? groupStyle.borderR : appConfig.borderR
-            } : { borderR: 0 })
+                borderR: Number.isFinite(imgObj.styleOverride?.borderR)
+                    ? imgObj.styleOverride.borderR
+                    : (Number.isFinite(groupStyle.borderR)
+                        ? groupStyle.borderR
+                        : (Number.isFinite(imgObj.borderR) ? imgObj.borderR : appConfig.borderR))
+            } : {
+                borderR: Number.isFinite(imgObj.styleOverride?.borderR)
+                    ? imgObj.styleOverride.borderR
+                    : (Number.isFinite(imgObj.borderR) ? imgObj.borderR : appConfig.borderR)
+            })
         };
     }
     return {
@@ -2362,10 +2407,10 @@ function getEffectiveStyle(imageId = activeImageId) {
 }
 
 function syncSpacingLockState(imageId = activeImageId) {
-    const locked = isIndividualGroupLayerSelected(imageId);
-    const groupRadiusAvailable = Boolean(getSelectedLayerGroupContext() || getSelectedGroupPage());
-    const groupSelected = groupRadiusAvailable;
-    document.body.classList.toggle('group-selected', groupSelected);
+    const multiIdFlowPage = getValidIdMultiIdPageForImage(imageId);
+    const locked = isIndividualGroupLayerSelected(imageId) && !multiIdFlowPage;
+    const hasRadiusTarget = Boolean(getSelectedLayerGroupContext() || getSelectedGroupPage() || getActiveImage());
+    document.body.classList.toggle('group-selected', Boolean(getSelectedLayerGroupContext() || getSelectedGroupPage()));
     const gapHInput = document.getElementById('numGapH');
     const gapVInput = document.getElementById('numGapV');
     if (gapHInput) gapHInput.disabled = locked;
@@ -2377,17 +2422,15 @@ function syncSpacingLockState(imageId = activeImageId) {
     const borderPositionSelect = document.getElementById('borderPositionSelect');
     const hexInput = document.getElementById('hexBorderC');
     const colorInput = document.getElementById('setBorderC');
-    // Group selection is an object selection, not a lock state. Border controls
-    // remain enabled and update the shared group style for every member.
     if (bwInput) bwInput.disabled = false;
     const radiusControl = document.getElementById('borderRadiusControl');
-    if (radiusControl) radiusControl.hidden = !groupRadiusAvailable;
+    if (radiusControl) radiusControl.hidden = false;
     if (brInput) {
-        brInput.disabled = !groupRadiusAvailable;
-        brInput.title = groupRadiusAvailable ? 'Change border radius for this group' : 'Select a group to change border radius';
+        brInput.disabled = !hasRadiusTarget;
+        brInput.title = 'Change border radius for the selected ID layer, group, or page';
     }
     const borderSpacingGroup = brInput?.closest('.spacing-control-group');
-    if (borderSpacingGroup) borderSpacingGroup.classList.toggle('radius-hidden', !groupRadiusAvailable);
+    if (borderSpacingGroup) borderSpacingGroup.classList.remove('radius-hidden');
     if (borderStyleSelect) borderStyleSelect.disabled = false;
     if (borderPositionSelect) borderPositionSelect.disabled = false;
     if (hexInput) hexInput.disabled = false;
@@ -2412,8 +2455,7 @@ function syncSpacingBorderControls(imageId = activeImageId) {
     if (gapHInput) gapHInput.value = String(Math.round((style.gapH || 0) * MM_TO_PX));
     if (gapVInput) gapVInput.value = String(Math.round((style.gapV || 0) * MM_TO_PX));
     if (bwInput) bwInput.value = String(Math.round(style.borderW || 0));
-    const groupRadiusAvailable = Boolean(getSelectedLayerGroupContext() || getSelectedGroupPage());
-    if (brInput) brInput.value = String(Math.round(groupRadiusAvailable ? (style.borderR || 0) : 0));
+    if (brInput) brInput.value = String(Math.round(style.borderR || 0));
     if (colorPicker) colorPicker.value = borderColor;
     if (hexInput && document.activeElement !== hexInput) hexInput.value = borderColor;
 
@@ -2498,25 +2540,31 @@ function getLayerStyle(imageId = activeImageId) {
         gapV: isGroupedMember
             ? (Number.isFinite(groupStyle.gapV) ? groupStyle.gapV : appConfig.gapV)
             : (Number.isFinite(layerOverride.gapV) ? layerOverride.gapV : (Number.isFinite(imgObj.gapV) ? imgObj.gapV : appConfig.gapV)),
-        // A grouped page behaves as one editable object: spacing and border
-        // values come from the group and are rendered consistently on every child.
-        borderW: isGroupedMember
-            ? (Number.isFinite(groupStyle.borderW) ? groupStyle.borderW : appConfig.borderW)
-            : (Number.isFinite(layerOverride.borderW) ? layerOverride.borderW : (Number.isFinite(imgObj.borderW) ? imgObj.borderW : appConfig.borderW)),
-        borderR: isGroupedMember
-            ? (Number.isFinite(groupStyle.borderR) ? groupStyle.borderR : appConfig.borderR)
-            : 0,
-        borderStyle: isGroupedMember
-            ? (groupStyle.borderStyle === 'dotted' ? 'dotted' : (groupStyle.borderStyle === 'solid' ? 'solid' : appConfig.borderStyle))
-            : ((layerOverride.borderStyle === 'solid' || layerOverride.borderStyle === 'dotted')
-                ? layerOverride.borderStyle
+        // A grouped page supplies the default border style, but an explicit
+        // per-layer override must win when one child ID is selected. This keeps
+        // border width, color, stroke, position, and radius independently editable.
+        borderW: Number.isFinite(layerOverride.borderW)
+            ? layerOverride.borderW
+            : (isGroupedMember && Number.isFinite(groupStyle.borderW)
+                ? groupStyle.borderW
+                : (Number.isFinite(imgObj.borderW) ? imgObj.borderW : appConfig.borderW)),
+        borderR: Number.isFinite(layerOverride.borderR)
+            ? layerOverride.borderR
+            : (isGroupedMember && Number.isFinite(groupStyle.borderR)
+                ? groupStyle.borderR
+                : (Number.isFinite(imgObj.borderR) ? imgObj.borderR : appConfig.borderR)),
+        borderStyle: (layerOverride.borderStyle === 'solid' || layerOverride.borderStyle === 'dotted')
+            ? layerOverride.borderStyle
+            : (isGroupedMember
+                ? (groupStyle.borderStyle === 'dotted' ? 'dotted' : (groupStyle.borderStyle === 'solid' ? 'solid' : appConfig.borderStyle))
                 : ((imgObj.borderStyle === 'solid' || imgObj.borderStyle === 'dotted') ? imgObj.borderStyle : appConfig.borderStyle)),
-        borderPosition: isGroupedMember
-            ? (groupStyle.borderPosition === 'inside' ? 'inside' : (groupStyle.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside')))
-            : (layerOverride.borderPosition === 'inside' || imgObj.borderPosition === 'inside' ? 'inside' : (layerOverride.borderPosition === 'outside' || imgObj.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside'))),
-        borderC: isGroupedMember
-            ? (normalizeHexColor(groupStyle.borderC) || appConfig.borderC)
-            : (normalizeHexColor(layerOverride.borderC) || normalizeHexColor(imgObj.borderC) || appConfig.borderC)
+        borderPosition: (layerOverride.borderPosition === 'inside' || layerOverride.borderPosition === 'outside')
+            ? layerOverride.borderPosition
+            : (isGroupedMember
+                ? (groupStyle.borderPosition === 'inside' ? 'inside' : (groupStyle.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside')))
+                : (imgObj.borderPosition === 'inside' ? 'inside' : (imgObj.borderPosition === 'outside' ? 'outside' : (appConfig.borderPosition || 'inside')))),
+        borderC: normalizeHexColor(layerOverride.borderC) ||
+            (isGroupedMember ? (normalizeHexColor(groupStyle.borderC) || appConfig.borderC) : (normalizeHexColor(imgObj.borderC) || appConfig.borderC))
     };
     renderStyleByImageId.set(imageId, resolved);
     return resolved;
@@ -2866,8 +2914,7 @@ function applyBorderCssVars(overrideStyle = null) {
 
 function toggleRoundBorderShortcut() {
     const brInput = document.getElementById('numBorderR');
-    const groupRadiusAvailable = Boolean(getSelectedLayerGroupContext() || getSelectedGroupPage());
-    if (!brInput || brInput.disabled || !groupRadiusAvailable) return;
+    if (!brInput || brInput.disabled) return;
 
     const currentRadius = Math.round(parseFloat(brInput.value) || 0);
     const nextRadius = currentRadius === 999 ? 0 : 999;
@@ -2877,33 +2924,34 @@ function toggleRoundBorderShortcut() {
 }
 
 /**
- * Dedicated group-radius handler. Keep this separate from the general spacing
- * handler so changing the radius always writes to the selected Group/Page,
- * invalidates the style cache, and immediately rebuilds the preview.
+ * Dedicated border-radius handler. It writes to the selected layer, group, or
+ * page, invalidates the style cache, and immediately rebuilds the preview.
  */
 function updateGroupBorderRadius(value) {
     const radius = Math.max(0, Math.min(999, Math.round(Number.parseFloat(value) || 0)));
     const selectedGroup = getSelectedLayerGroupContext();
     const selectedPage = selectedGroup ? null : getSelectedGroupPage();
-    if (!selectedGroup && !selectedPage) return;
 
-    const targetPage = selectedGroup?.page || selectedPage;
-    const targetGroups = selectedGroup ? [selectedGroup.group] : getPageGroups(targetPage);
-    if (!targetGroups.length) return;
-
-    targetGroups.forEach(group => {
-        group.styleOverride = { ...(group.styleOverride || {}), borderR: radius };
-        group.imageIds.forEach(id => {
-            const image = uploadedImages.find(item => item.id === id);
-            if (!image) return;
-            // Mirror the value on members as a compatibility fallback for older
-            // saved layouts; grouped rendering still takes the Group override.
+    if (selectedGroup || selectedPage) {
+        const targetPage = selectedGroup?.page || selectedPage;
+        const targetGroups = selectedGroup ? [selectedGroup.group] : getPageGroups(targetPage);
+        targetGroups.forEach(group => {
+            group.styleOverride = { ...(group.styleOverride || {}), borderR: radius };
+            group.imageIds.forEach(id => {
+                const image = uploadedImages.find(item => item.id === id);
+                if (!image) return;
+                image.borderR = radius;
+                image.styleOverride = { ...(image.styleOverride || {}), borderR: radius };
+            });
+        });
+        if (selectedPage) targetPage.styleOverride = { ...(targetPage.styleOverride || {}), borderR: radius };
+    } else {
+        const selectedImages = getSelectedBorderTargetImages();
+        const targets = selectedImages.length ? selectedImages : (getActiveImage() ? [getActiveImage()] : []);
+        targets.forEach(image => {
             image.borderR = radius;
             image.styleOverride = { ...(image.styleOverride || {}), borderR: radius };
         });
-    });
-    if (selectedPage) {
-        targetPage.styleOverride = { ...(targetPage.styleOverride || {}), borderR: radius };
     }
 
     const input = document.getElementById('numBorderR');
@@ -2917,16 +2965,39 @@ function updateGroupBorderRadius(value) {
 }
 
 function getSelectedLayerGroupContext() {
+    // Prefer the explicit group selection recorded by the layer-panel header.
     if (selectedLayerGroupId) {
         const found = findLayerGroup(selectedLayerGroupId);
-        if (found) return found;
+        if (found && found.group.imageIds.length === 2) return found;
     }
-    // A page containing one group is also that group's editable context.
+
+    // A page containing exactly one two-layer group is also that group's
+    // editable context (this is the compact/single-group page presentation).
     if (selectedGroupPageId) {
-        const page = pages.find(item => item.id === selectedGroupPageId);
-        if (page) {
+        const pageIndex = pages.findIndex(item => item.id === selectedGroupPageId);
+        if (pageIndex >= 0) {
+            const page = pages[pageIndex];
             const groups = getPageGroups(page);
-            if (groups.length === 1) return { page, group: groups[0], pageIndex: pages.indexOf(page) };
+            if (groups.length === 1 && groups[0].imageIds.length === 2) {
+                return { page, group: groups[0], pageIndex };
+            }
+        }
+    }
+
+    // Fallback for migrated pages or selection states where the page/group
+    // ids were cleared while both members remain selected. Only an exact
+    // two-layer match qualifies; selecting a single member never exposes the
+    // group-only radius control.
+    const selectedIds = new Set(selectedImageIds || []);
+    if (selectedIds.size === 2) {
+        for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+            const page = pages[pageIndex];
+            for (const group of getPageGroups(page)) {
+                if (group.imageIds.length === 2 &&
+                    group.imageIds.every(id => selectedIds.has(id))) {
+                    return { page, group, pageIndex };
+                }
+            }
         }
     }
     return null;
@@ -2983,15 +3054,13 @@ function updateSettings() {
     const nextBW     = Math.max(0, Math.round(parseFloat(document.getElementById('numBorderW').value) || 0));
     const selectedGroupContext = getSelectedLayerGroupContext();
     const groupPage = selectedGroupContext ? null : getSelectedGroupPage();
-    const groupRadiusAvailable = Boolean(selectedGroupContext || groupPage);
-    const nextBR     = groupRadiusAvailable
-        ? Math.max(0, Math.min(999, Math.round(parseFloat(document.getElementById('numBorderR').value) || 0)))
-        : 0;
+    const nextBR     = Math.max(0, Math.min(999, Math.round(parseFloat(document.getElementById('numBorderR').value) || 0)));
     const rawColor   = document.getElementById('setBorderC').value;
     const nextBC     = normalizeHexColor(rawColor) || rawColor || '#E5E7EB';
     const nextStyle  = document.getElementById('borderStyleSelect')?.value === 'dotted' ? 'dotted' : 'solid';
     const nextBorderPosition = document.getElementById('borderPositionSelect')?.value === 'inside' ? 'inside' : 'outside';
     const activeImg = getActiveImage();
+    const flowSpacingPage = getValidIdMultiIdPageForImage(activeImg?.id || activeImageId);
     const previousPadding = {
         top: Math.max(0, Number(appConfig.paddingTop) || 0),
         bottom: Math.max(0, Number(appConfig.paddingBottom) || 0),
@@ -3024,6 +3093,23 @@ function updateSettings() {
             borderPosition: nextBorderPosition,
             borderC: nextBC
         };
+        group.imageIds.forEach(id => {
+            const image = uploadedImages.find(item => item.id === id);
+            if (!image) return;
+            image.borderW = nextBW;
+            image.borderR = nextBR;
+            image.borderStyle = nextStyle;
+            image.borderPosition = nextBorderPosition;
+            image.borderC = nextBC;
+            image.styleOverride = {
+                ...(image.styleOverride || {}),
+                borderW: nextBW,
+                borderR: nextBR,
+                borderStyle: nextStyle,
+                borderPosition: nextBorderPosition,
+                borderC: nextBC
+            };
+        });
         const groupSpacingChanged = Math.abs((previousGroupGapH ?? nextGapH) - nextGapH) > 0.0001 ||
             Math.abs((previousGroupGapV ?? nextGapV) - nextGapV) > 0.0001;
         if (groupSpacingChanged) applyGroupSpacingToPositions(page, group, nextGapV);
@@ -3052,6 +3138,40 @@ function updateSettings() {
                 borderPosition: nextBorderPosition,
                 borderC: nextBC
             };
+            group.imageIds.forEach(id => {
+                const image = uploadedImages.find(item => item.id === id);
+                if (!image) return;
+                image.borderW = nextBW;
+                image.borderR = nextBR;
+                image.borderStyle = nextStyle;
+                image.borderPosition = nextBorderPosition;
+                image.borderC = nextBC;
+                image.styleOverride = {
+                    ...(image.styleOverride || {}),
+                    borderW: nextBW,
+                    borderR: nextBR,
+                    borderStyle: nextStyle,
+                    borderPosition: nextBorderPosition,
+                    borderC: nextBC
+                };
+            });
+        });
+        getPageLayerIds(groupPage).forEach(id => {
+            const image = uploadedImages.find(item => item.id === id);
+            if (!image) return;
+            image.borderW = nextBW;
+            image.borderR = nextBR;
+            image.borderStyle = nextStyle;
+            image.borderPosition = nextBorderPosition;
+            image.borderC = nextBC;
+            image.styleOverride = {
+                ...(image.styleOverride || {}),
+                borderW: nextBW,
+                borderR: nextBR,
+                borderStyle: nextStyle,
+                borderPosition: nextBorderPosition,
+                borderC: nextBC
+            };
         });
         const groupSpacingChanged = Math.abs((previousGroupGapH ?? nextGapH) - nextGapH) > 0.0001 ||
             Math.abs((previousGroupGapV ?? nextGapV) - nextGapV) > 0.0001;
@@ -3066,6 +3186,7 @@ function updateSettings() {
                 gapH: appliedGapH,
                 gapV: appliedGapV,
                 borderW: nextBW,
+                borderR: nextBR,
                 borderStyle: nextStyle,
                 borderPosition: nextBorderPosition,
                 borderC: nextBC
@@ -3073,7 +3194,7 @@ function updateSettings() {
             targetImg.gapH = appliedGapH;
             targetImg.gapV = appliedGapV;
             targetImg.borderW = nextBW;
-            targetImg.borderR = 0;
+            targetImg.borderR = nextBR;
             targetImg.borderStyle = nextStyle;
             targetImg.borderPosition = nextBorderPosition;
             targetImg.borderC = nextBC;
@@ -3086,6 +3207,7 @@ function updateSettings() {
             gapH: appliedGapH,
             gapV: appliedGapV,
             borderW: nextBW,
+            borderR: nextBR,
             borderStyle: nextStyle,
             borderPosition: nextBorderPosition,
             borderC: nextBC
@@ -3093,7 +3215,7 @@ function updateSettings() {
         activeImg.gapH = appliedGapH;
         activeImg.gapV = appliedGapV;
         activeImg.borderW = nextBW;
-        activeImg.borderR = 0;
+        activeImg.borderR = nextBR;
         activeImg.borderStyle = nextStyle;
         activeImg.borderPosition = nextBorderPosition;
         activeImg.borderC = nextBC;
@@ -3101,10 +3223,25 @@ function updateSettings() {
         appConfig.gapH        = nextGapH;
         appConfig.gapV        = nextGapV;
         appConfig.borderW     = nextBW;
-        appConfig.borderR     = 0;
+        appConfig.borderR     = nextBR;
         appConfig.borderC     = nextBC;
         appConfig.borderStyle = nextStyle;
         appConfig.borderPosition = nextBorderPosition;
+    }
+
+    if (flowSpacingPage) {
+        flowSpacingPage.styleOverride = {
+            ...(flowSpacingPage.styleOverride || {}),
+            gapH: nextGapH,
+            gapV: nextGapV
+        };
+        getPageGroups(flowSpacingPage).forEach(group => {
+            group.styleOverride = {
+                ...(group.styleOverride || {}),
+                gapH: nextGapH,
+                gapV: nextGapV
+            };
+        });
     }
 
     const safeZoneEnabled = Boolean(document.getElementById('safeZoneToggle')?.checked);
@@ -4436,7 +4573,8 @@ function syncQuantityControl(imageId = activeImageId) {
     const page = pages.find(pg => (pg.imageIds || [pg.imageId]).includes(imageId));
     const obj = uploadedImages.find(img => img.id === imageId);
     const isLayerSelected = !!page && !!obj && !selectedGroupPageId;
-    const isIndividualGroupLayer = !!page && (page.imageIds || []).length > 1 && !selectedGroupPageId;
+    const isMultiIdFlowPage = Boolean(getValidIdMultiIdPageForImage(imageId));
+    const isIndividualGroupLayer = !!page && (page.imageIds || []).length > 1 && !selectedGroupPageId && !isMultiIdFlowPage;
     const section = document.getElementById('quantitySection');
     const setting = document.getElementById('quantitySetting');
     if (section) section.style.display = isLayerSelected ? '' : 'none';
@@ -4451,11 +4589,15 @@ function syncQuantityControl(imageId = activeImageId) {
     if (tileWInp)  tileWInp.disabled  = groupSizeLocked;
     if (tileHInp)  tileHInp.disabled  = groupSizeLocked;
 
-    ['paperSelect', 'numMargin', 'safeZoneToggle', 'numGapH', 'numGapV']
+    ['paperSelect', 'numMargin', 'safeZoneToggle']
         .forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = isIndividualGroupLayer;
         });
+    ['numGapH', 'numGapV'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = isIndividualGroupLayer && !isMultiIdFlowPage;
+    });
 
     // Group alignment stays disabled for an individual layer selection and
     // is enabled only when the group header itself is selected.
@@ -8010,7 +8152,7 @@ async function exportFile() {
    PRINTGRID-STYLE VALID ID PAGES + PAGE ARRANGEMENTS
    Every layer remains on its own page until the user manually groups it.
    1 ID (2 layers) is stacked vertically. 2 IDs use Front-top / Back-bottom rows.
-   3–5 IDs flow horizontally in two columns (up to 10 layers).
+   3–5 IDs flow vertically in two columns (up to 10 layers).
    ========================================================= */
 const VALID_ID_MAX_PER_PAGE = 5; // ID pairs per sheet
 const VALID_ID_MAX_LAYERS_PER_PAGE = VALID_ID_MAX_PER_PAGE * 2;
@@ -8025,6 +8167,14 @@ function getValidIdIdCountFromImages(items) {
     const frontCount = images.filter(image => (image.side || 'front') === 'front').length;
     const backCount = images.filter(image => image.side === 'back').length;
     return Math.max(frontCount, backCount, 1);
+}
+
+function getValidIdMultiIdPageForImage(imageId = activeImageId) {
+    if (!imageId) return null;
+    const sheet = getValidIdSheets().find(item => item.page && item.ids.includes(imageId));
+    if (!sheet) return null;
+    const idCount = getValidIdIdCountFromImages(sheet.ids || []);
+    return idCount >= 2 && idCount <= VALID_ID_MAX_PER_PAGE ? sheet.page : null;
 }
 
 function getValidIdActiveSheet() {
@@ -8367,6 +8517,9 @@ function renderCanvas() {
 
             const rawDX = dxPx / drag.scale;
             const rawDY = dyPx / drag.scale;
+            const pageRect = page.getBoundingClientRect();
+            drag.outsidePaper = event.clientX < pageRect.left || event.clientX > pageRect.right ||
+                event.clientY < pageRect.top || event.clientY > pageRect.bottom;
             const padding = getValidIdPadding();
             const minX = Math.min(...drag.members.map(member => member.startX));
             const minY = Math.min(...drag.members.map(member => member.startY));
@@ -8376,8 +8529,14 @@ function renderCanvas() {
             const maxDX = paper.w - padding.right - maxX;
             const minDY = padding.top - minY;
             const maxDY = paper.h - padding.bottom - maxY;
-            const deltaX = maxDX < minDX ? rawDX : Math.min(maxDX, Math.max(minDX, rawDX));
-            const deltaY = maxDY < minDY ? rawDY : Math.min(maxDY, Math.max(minDY, rawDY));
+            // Whole-page moves stay on the sheet. Individual layers/groups can
+            // cross its edge so a pointer release outside can split them off.
+            const deltaX = drag.dragWholePage
+                ? (maxDX < minDX ? rawDX : Math.min(maxDX, Math.max(minDX, rawDX)))
+                : rawDX;
+            const deltaY = drag.dragWholePage
+                ? (maxDY < minDY ? rawDY : Math.min(maxDY, Math.max(minDY, rawDY)))
+                : rawDY;
 
             drag.members.forEach(member => {
                 const x = member.startX + deltaX;
@@ -8400,8 +8559,21 @@ function renderCanvas() {
         });
         const finishDrag = event => {
             if (!validIdActiveDrag || (event && validIdActiveDrag.pointerId !== event.pointerId)) return;
-            const moved = validIdActiveDrag.moved;
+            const drag = validIdActiveDrag;
+            const moved = drag.moved;
+            const pageRect = page.getBoundingClientRect();
+            const releasedOutside = Boolean(event && event.type === 'pointerup' && (
+                event.clientX < pageRect.left || event.clientX > pageRect.right ||
+                event.clientY < pageRect.top || event.clientY > pageRect.bottom
+            ));
             validIdActiveDrag = null;
+            page.style.overflow = 'hidden';
+
+            if (moved && !drag.dragWholePage && (drag.outsidePaper || releasedOutside) &&
+                detachValidIdGroupToSeparatePage(drag)) {
+                beginUndoCapture(180);
+                return;
+            }
             if (moved) {
                 renderImageQueue();
                 syncAlignControls();
@@ -9553,7 +9725,7 @@ function buildValidIdCard(img) {
         const scale = paperRect.width / getValidIdPaper().w;
         const memberIds = dragWholePage ? getPageLayerIds(ownerPage)
             : dragWholeSubgroup ? ownerGroup.imageIds : [img.id];
-        const members = memberIds.map(id => {
+        const memberForId = id => {
             const memberImage = uploadedImages.find(item => item.id === id);
             if (!memberImage) return null;
             const memberCard = Array.from(paperPage.querySelectorAll('.valid-id-card'))
@@ -9564,19 +9736,34 @@ function buildValidIdCard(img) {
                 startX: Number(memberImage.xMM) || 0,
                 startY: Number(memberImage.yMM) || 0
             };
-        }).filter(Boolean);
+        };
+        const members = memberIds.map(memberForId).filter(Boolean);
+        // Keep the clicked ID's complete Front/Back group ready to detach even
+        // when the page itself was selected at pointer-down.
+        const detachIds = ownerGroup?.imageIds?.length ? ownerGroup.imageIds : [img.id];
+        const detachMembers = detachIds.map(memberForId).filter(Boolean);
         if (!members.length) return;
         validIdActiveDrag = {
             members,
+            detachMembers,
             groupId: dragWholePage ? ownerPage.id : null,
+            sourcePageId: ownerPage?.id || null,
+            sourceGroupId: ownerGroup?.id || null,
+            draggedImageId: img.id,
+            dragWholePage,
+            dragWholeSubgroup,
             startTransformXMM: dragWholePage ? (Number(ownerPage.transformXMM) || 0) : 0,
             startTransformYMM: dragWholePage ? (Number(ownerPage.transformYMM) || 0) : 0,
             pointerId: event.pointerId,
             startX: event.clientX,
             startY: event.clientY,
             scale,
-            moved: false
+            moved: false,
+            outsidePaper: false
         };
+        // Let the dragged card remain visible beyond the paper edge. Releasing
+        // it outside the sheet can move its ID group to a new sheet.
+        paperPage.style.overflow = 'visible';
         try { paperPage.setPointerCapture(event.pointerId); } catch (_) {}
     });
     return card;
@@ -9621,6 +9808,17 @@ function renderCanvas() {
             if (Math.abs(dxPx) + Math.abs(dyPx) > 2) drag.moved = true;
             const rawDX = dxPx / drag.scale;
             const rawDY = dyPx / drag.scale;
+            const pageRect = page.getBoundingClientRect();
+            drag.outsidePaper = event.clientX < pageRect.left || event.clientX > pageRect.right ||
+                event.clientY < pageRect.top || event.clientY > pageRect.bottom;
+            // Moving a selected page is still supported inside the sheet. Once
+            // the pointer crosses the paper edge, switch to the clicked ID pair
+            // so it can be pulled out as its own page.
+            if (drag.dragWholePage && drag.outsidePaper && drag.detachMembers?.length) {
+                drag.dragWholePage = false;
+                drag.members = drag.detachMembers;
+                drag.groupId = null;
+            }
             const padding = getValidIdPadding();
             const minX = Math.min(...drag.members.map(member => member.startX));
             const minY = Math.min(...drag.members.map(member => member.startY));
@@ -9630,8 +9828,14 @@ function renderCanvas() {
             const maxDX = paper.w - padding.right - maxX;
             const minDY = padding.top - minY;
             const maxDY = paper.h - padding.bottom - maxY;
-            const deltaX = maxDX < minDX ? rawDX : Math.min(maxDX, Math.max(minDX, rawDX));
-            const deltaY = maxDY < minDY ? rawDY : Math.min(maxDY, Math.max(minDY, rawDY));
+            // Whole-page moves remain bounded; an individual layer or ID group
+            // is free to cross the paper edge before it is detached on release.
+            const deltaX = drag.dragWholePage
+                ? (maxDX < minDX ? rawDX : Math.min(maxDX, Math.max(minDX, rawDX)))
+                : rawDX;
+            const deltaY = drag.dragWholePage
+                ? (maxDY < minDY ? rawDY : Math.min(maxDY, Math.max(minDY, rawDY)))
+                : rawDY;
             drag.members.forEach(member => {
                 const x = member.startX + deltaX;
                 const y = member.startY + deltaY;
@@ -9653,8 +9857,26 @@ function renderCanvas() {
         });
         const finishDrag = event => {
             if (!validIdActiveDrag || (event && validIdActiveDrag.pointerId !== event.pointerId)) return;
-            const moved = validIdActiveDrag.moved;
+            const drag = validIdActiveDrag;
+            const moved = drag.moved;
+            const pageRect = page.getBoundingClientRect();
+            const releasedOutside = Boolean(event && event.type === 'pointerup' && (
+                event.clientX < pageRect.left || event.clientX > pageRect.right ||
+                event.clientY < pageRect.top || event.clientY > pageRect.bottom
+            ));
+            if (releasedOutside && drag.dragWholePage && drag.detachMembers?.length) {
+                drag.dragWholePage = false;
+                drag.members = drag.detachMembers;
+                drag.groupId = null;
+            }
             validIdActiveDrag = null;
+            page.style.overflow = 'hidden';
+
+            if (moved && !drag.dragWholePage && (drag.outsidePaper || releasedOutside) &&
+                detachValidIdGroupToSeparatePage(drag)) {
+                beginUndoCapture(180);
+                return;
+            }
             if (moved) {
                 renderImageQueue();
                 syncAlignControls();
@@ -9752,25 +9974,1299 @@ reconcileSelectionAndUI = function() {
 };
 
 /* =========================================================
+   CANONICAL VALID ID PAGE / GROUP MODEL
+   Page -> multiple Groups; every real Group contains exactly two layers.
+   Singleton entries are standalone layers, not two-layer groups.
+   ========================================================= */
+
+function getLayerStackIds() {
+    const validIds = new Set(uploadedImages.map(image => image.id));
+    const seen = new Set();
+    const result = [];
+    pages.forEach(page => {
+        getPageLayerIds(page).forEach(id => {
+            if (validIds.has(id) && !seen.has(id)) {
+                seen.add(id);
+                result.push(id);
+            }
+        });
+    });
+    uploadedImages.forEach(image => {
+        if (validIds.has(image.id) && !seen.has(image.id)) {
+            seen.add(image.id);
+            result.push(image.id);
+        }
+    });
+    return result;
+}
+
+function normalizePageGroups(page) {
+    if (!page) return [];
+
+    const validIds = new Set(uploadedImages.map(image => image.id));
+    const sourceGroups = Array.isArray(page.groups) ? page.groups : null;
+    const sourceIds = Array.isArray(page.imageIds) ? page.imageIds : [page.imageId];
+    const groupIds = sourceGroups ? sourceGroups.flatMap(group => Array.isArray(group?.imageIds) ? group.imageIds : []) : [];
+    const rawIds = [...new Set([...sourceIds, ...groupIds].filter(id => id && validIds.has(id)))];
+    const rawSet = new Set(rawIds);
+    const used = new Set();
+    const groups = [];
+
+    const appendInPairs = (entry, ids, fallbackName) => {
+        const cleanIds = [...new Set((ids || []).filter(id => rawSet.has(id) && !used.has(id)))];
+        for (let offset = 0; offset < cleanIds.length; offset += 2) {
+            const pairIds = cleanIds.slice(offset, offset + 2);
+            if (!pairIds.length) continue;
+            pairIds.forEach(id => used.add(id));
+            const firstChunk = offset === 0;
+            const isPair = pairIds.length === 2;
+            groups.push({
+                ...(entry || {}),
+                id: firstChunk && entry?.id ? entry.id : makeLayerGroupId(),
+                name: isPair
+                    ? (firstChunk ? (entry?.name || fallbackName || `Group ${groups.length + 1}`) : `Group ${groups.length + 1}`)
+                    : 'Layer',
+                imageIds: pairIds,
+                visible: entry?.visible !== false
+            });
+        }
+    };
+
+    if (sourceGroups && sourceGroups.length) {
+        sourceGroups.forEach((entry, index) => {
+            if (!entry || !Array.isArray(entry.imageIds)) return;
+            appendInPairs(entry, entry.imageIds, entry.name || `Group ${index + 1}`);
+        });
+    } else {
+        // Migrate legacy pages that stored multiple layer IDs directly on the
+        // page into separate two-layer groups instead of one oversized group.
+        appendInPairs(null, rawIds, 'Group 1');
+    }
+
+    // Restore any valid page layer that was missing from the group metadata.
+    rawIds.forEach(id => {
+        if (used.has(id)) return;
+        used.add(id);
+        groups.push({ id: makeLayerGroupId(), name: 'Layer', imageIds: [id], visible: true });
+    });
+
+    page.groups = groups;
+    const flattened = groups.flatMap(group => group.imageIds);
+    page.imageId = flattened[0] || null;
+    page.imageIds = flattened.length > 1 ? flattened : undefined;
+    return groups;
+}
+
+function getPageGroups(page) {
+    return normalizePageGroups(page);
+}
+
+function getPageLayerIds(page) {
+    if (!page) return [];
+    return getPageGroups(page).flatMap(group => group.imageIds);
+}
+
+function findLayerGroup(groupId) {
+    if (!groupId) return null;
+    for (let index = 0; index < pages.length; index++) {
+        const page = pages[index];
+        const group = getPageGroups(page).find(item => item.id === groupId);
+        if (group) return { page, group, pageIndex: index };
+    }
+    return null;
+}
+
+function getLayerGroupForImage(page, imageId) {
+    return page ? getPageGroups(page).find(group => group.imageIds.includes(imageId)) || null : null;
+}
+
+function buildPageFromGroups(groups, extra = {}) {
+    const prepared = (groups || []).filter(group => group && Array.isArray(group.imageIds) && group.imageIds.length)
+        .map((group, index) => ({
+            ...group,
+            id: group.id || makeLayerGroupId(),
+            name: group.name || (group.imageIds.length === 2 ? `Group ${index + 1}` : 'Layer'),
+            imageIds: group.imageIds.slice(),
+            visible: group.visible !== false
+        }));
+    const ids = prepared.flatMap(group => group.imageIds);
+    const page = {
+        ...extra,
+        id: newPageId(),
+        imageId: ids[0] || null,
+        imageIds: ids.length > 1 ? ids : undefined,
+        groups: prepared,
+        visible: extra.visible !== false
+    };
+    normalizePageGroups(page);
+    return page;
+}
+
+function rebuildPageFromGroups(page, groups) {
+    if (!page) return [];
+    page.groups = (groups || []).filter(group => group && Array.isArray(group.imageIds) && group.imageIds.length)
+        .map(group => ({ ...group, imageIds: group.imageIds.slice() }));
+    // Clear the flattened legacy fields before normalization; otherwise IDs
+    // removed from a group would be re-imported from the old page.imageIds.
+    const remainingIds = page.groups.flatMap(group => group.imageIds);
+    page.imageId = remainingIds[0] || null;
+    page.imageIds = remainingIds.length > 1 ? remainingIds : undefined;
+    normalizePageGroups(page);
+    return getPageLayerIds(page);
+}
+
+function getValidIdSheets() {
+    const validIds = new Set(uploadedImages.map(image => image.id));
+    const assigned = new Set();
+    const sheets = [];
+
+    pages.forEach(page => {
+        const ids = getPageLayerIds(page).filter(id => validIds.has(id) && !assigned.has(id));
+        if (!ids.length) return;
+        ids.forEach(id => assigned.add(id));
+        page.imageId = ids[0];
+        page.imageIds = ids.length > 1 ? ids : undefined;
+        sheets.push({ id: page.id, ids, isGroup: getPageGroups(page).some(group => group.imageIds.length === 2), page });
+    });
+
+    // A layer without a page record is recovered as its own standalone page.
+    uploadedImages.forEach(image => {
+        if (!validIds.has(image.id) || assigned.has(image.id)) return;
+        assigned.add(image.id);
+        sheets.push({ id: `layer-page-${image.id}`, ids: [image.id], isGroup: false, layerId: image.id });
+    });
+
+    return sheets.length ? sheets : [{ id: 'empty-page', ids: [], isGroup: false }];
+}
+
+function splitPage(page) {
+    if (!page) return;
+    const pageIndex = pages.indexOf(page);
+    if (pageIndex < 0) return;
+    const groups = getPageGroups(page);
+    if (groups.length > 1) {
+        recordUndoSnapshot(captureStateSnapshot());
+        const replacementPages = groups.map(group => {
+            if (group.imageIds.length === 1) return { id: newPageId(), imageId: group.imageIds[0] };
+            return buildPageFromGroups([{ ...group, imageIds: group.imageIds.slice() }]);
+        });
+        pages.splice(pageIndex, 1, ...replacementPages);
+        selectedGroupPageId = replacementPages[0]?.id || null;
+        selectedLayerGroupId = replacementPages[0]?.groups?.[0]?.id || null;
+        selectedImageIds = new Set(replacementPages[0] ? getPageLayerIds(replacementPages[0]) : []);
+        activeImageId = [...selectedImageIds][0] || null;
+        activePageIndex = pageIndex;
+        activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
+        reconcileSelectionAndUI();
+        return;
+    }
+    if (groups.length === 1 && groups[0].imageIds.length === 2) {
+        ungroupLayerGroup(groups[0].id);
+        return;
+    }
+    const ids = getPageLayerIds(page);
+    if (ids.length > 1) {
+        recordUndoSnapshot(captureStateSnapshot());
+        pages.splice(pageIndex, 1, ...ids.map(id => ({ id: newPageId(), imageId: id })));
+        selectedGroupPageId = null;
+        selectedLayerGroupId = null;
+        selectedImageIds = new Set(ids);
+        activeImageId = ids[0] || null;
+        activePageIndex = pageIndex;
+        activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
+        reconcileSelectionAndUI();
+    }
+}
+
+function ungroupLayerGroup(groupId) {
+    const found = findLayerGroup(groupId);
+    if (!found || found.group.imageIds.length !== 2) return;
+
+    const { page, group, pageIndex } = found;
+    recordUndoSnapshot(captureStateSnapshot());
+    const ids = group.imageIds.slice();
+    const remainingGroups = getPageGroups(page)
+        .filter(item => item.id !== group.id)
+        .map(item => ({ ...item, imageIds: item.imageIds.slice() }));
+
+    if (remainingGroups.length) {
+        rebuildPageFromGroups(page, remainingGroups);
+        pages.splice(pageIndex + 1, 0, ...ids.map(id => ({ id: newPageId(), imageId: id })));
+    } else {
+        pages.splice(pageIndex, 1, ...ids.map(id => ({ id: newPageId(), imageId: id })));
+    }
+
+    collapsedGroupIds.delete(group.id);
+    selectedGroupPageId = null;
+    selectedLayerGroupId = null;
+    selectedImageIds = new Set(ids);
+    activeImageId = ids[0] || null;
+    activePageIndex = pageIndex;
+    activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
+    reconcileSelectionAndUI();
+}
+
+function toggleGroupSelection() {
+    const selected = new Set([...selectedImageIds].filter(id => uploadedImages.some(image => image.id === id)));
+    if (!selected.size) return;
+
+    const selectedPage = pages.find(page => {
+        const ids = getPageLayerIds(page);
+        return ids.length > 1 && ids.length === selected.size && ids.every(id => selected.has(id));
+    });
+    if (selectedPage && getPageGroups(selectedPage).length > 1) {
+        splitPage(selectedPage);
+        return;
+    }
+
+    const selectedGroup = pages.flatMap(page => getPageGroups(page).map(group => ({ page, group })))
+        .find(({ group }) => group.imageIds.length === 2 && group.imageIds.length === selected.size &&
+            group.imageIds.every(id => selected.has(id)));
+    if (selectedGroup) {
+        ungroupLayerGroup(selectedGroup.group.id);
+        return;
+    }
+    groupImages([...selected]);
+}
+
+function groupImages(ids) {
+    const requested = new Set(ids || []);
+    const selectedIds = getLayerStackIds().filter(id => requested.has(id) && uploadedImages.some(image => image.id === id));
+    if (selectedIds.length < 2) return;
+
+    const selectedSet = new Set(selectedIds);
+    const allGroups = pages.flatMap(page => getPageGroups(page).map(group => ({ page, group })));
+    const partialGroup = allGroups.some(({ group }) => {
+        if (group.imageIds.length !== 2) return false;
+        const count = group.imageIds.filter(id => selectedSet.has(id)).length;
+        return count > 0 && count < 2;
+    });
+    if (partialGroup) {
+        showAlert('Select the Whole Group', 'Select both layers in a group before combining it with another group.');
+        return;
+    }
+
+    const selectedGroups = allGroups.filter(({ group }) => group.imageIds.length === 2 &&
+        group.imageIds.every(id => selectedSet.has(id)));
+    const consumedIds = new Set(selectedGroups.flatMap(({ group }) => group.imageIds));
+    const looseIds = selectedIds.filter(id => !consumedIds.has(id));
+
+    // A new group is always exactly two layers. Existing complete groups can
+    // be combined onto one page without merging their layer memberships.
+    if (looseIds.length !== 0 && looseIds.length !== 2) {
+        showAlert('Groups Need Two Layers', 'Select exactly two standalone layers to create a group. To build a page with several groups, create each two-layer group first, then select the groups together.');
+        return;
+    }
+    if (!selectedGroups.length && looseIds.length !== 2) return;
+    if (selectedGroups.length === 1 && looseIds.length === 0) return;
+
+    const segments = selectedGroups.map(({ group }) => ({ ...group, imageIds: group.imageIds.slice() }));
+    if (looseIds.length === 2) {
+        segments.push({
+            id: makeLayerGroupId(),
+            name: `Group ${segments.length + 1}`,
+            imageIds: looseIds.slice(),
+            visible: true
+        });
+    }
+
+    const maxGroups = Number.isFinite(VALID_ID_MAX_PER_PAGE) ? VALID_ID_MAX_PER_PAGE : 5;
+    if (segments.length > maxGroups || selectedIds.length > maxGroups * 2) {
+        showAlert('Page Limit Reached', `A page can contain up to ${maxGroups} two-layer groups.`);
+        return;
+    }
+
+    recordUndoSnapshot(captureStateSnapshot());
+    const selectedPageIndexes = pages
+        .map((page, index) => ({ page, index }))
+        .filter(({ page }) => getPageLayerIds(page).some(id => selectedSet.has(id)))
+        .map(item => item.index);
+    const insertAt = selectedPageIndexes.length ? Math.min(...selectedPageIndexes) : pages.length;
+
+    // Remove only the selected layers from their old page containers. All
+    // non-selected groups remain grouped on their original pages.
+    pages = pages.flatMap(page => {
+        const groups = getPageGroups(page);
+        if (!groups.length) return [page];
+        const remainingGroups = groups.map(group => ({
+            ...group,
+            imageIds: group.imageIds.filter(id => !selectedSet.has(id))
+        })).filter(group => group.imageIds.length);
+        if (!remainingGroups.length) return [];
+        rebuildPageFromGroups(page, remainingGroups);
+        return [page];
+    });
+
+    segments.sort((a, b) => {
+        const firstA = Math.min(...a.imageIds.map(id => selectedIds.indexOf(id)));
+        const firstB = Math.min(...b.imageIds.map(id => selectedIds.indexOf(id)));
+        return firstA - firstB;
+    });
+    const newPage = buildPageFromGroups(segments, { canvasAlignH: 'center', canvasAlignV: 'top' });
+    pages.splice(Math.max(0, Math.min(insertAt, pages.length)), 0, newPage);
+
+    activePageIndex = pages.indexOf(newPage);
+    activeImageId = selectedIds[0];
+    selectedImageIds = new Set(selectedIds);
+    selectedGroupPageId = newPage.id;
+    const newGroups = getPageGroups(newPage);
+    selectedLayerGroupId = newGroups.length === 1 && newGroups[0].imageIds.length === 2 ? newGroups[0].id : null;
+    activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
+
+    ensureValidIdCardPositions();
+    applyGroupedPageAutoLayout(newPage);
+    reconcileSelectionAndUI();
+}
+
+function updateGroupButton() {
+    const button = document.getElementById('groupLayersBtn');
+    if (!button) return;
+
+    const selected = new Set([...selectedImageIds].filter(id => uploadedImages.some(image => image.id === id)));
+    const selectedPage = pages.find(page => {
+        const ids = getPageLayerIds(page);
+        return ids.length > 1 && ids.length === selected.size && ids.every(id => selected.has(id));
+    });
+    const pageGroups = selectedPage ? getPageGroups(selectedPage) : [];
+    const isSplitPage = Boolean(selectedPage && pageGroups.length > 1);
+
+    const allGroups = pages.flatMap(page => getPageGroups(page).map(group => ({ page, group })));
+    const exactGroup = allGroups.find(({ group }) => group.imageIds.length === 2 &&
+        group.imageIds.length === selected.size && group.imageIds.every(id => selected.has(id)));
+    const partialGroup = allGroups.some(({ group }) => {
+        if (group.imageIds.length !== 2) return false;
+        const count = group.imageIds.filter(id => selected.has(id)).length;
+        return count > 0 && count < 2;
+    });
+
+    const selectedGroups = allGroups.filter(({ group }) => group.imageIds.length === 2 &&
+        group.imageIds.every(id => selected.has(id)));
+    const consumed = new Set(selectedGroups.flatMap(({ group }) => group.imageIds));
+    const selectedIds = [...selected];
+    const looseIds = selectedIds.filter(id => !consumed.has(id));
+    const segmentCount = selectedGroups.length + (looseIds.length === 2 ? 1 : 0);
+    const canCreateOrCombine = !partialGroup && (
+        (selectedGroups.length === 0 && looseIds.length === 2) ||
+        (selectedGroups.length >= 2 && looseIds.length === 0) ||
+        (selectedGroups.length >= 1 && looseIds.length === 2)
+    ) && segmentCount <= (Number.isFinite(VALID_ID_MAX_PER_PAGE) ? VALID_ID_MAX_PER_PAGE : 5);
+
+    const isUngroup = Boolean(!isSplitPage && exactGroup);
+    button.style.display = uploadedImages.length >= 2 ? 'inline-flex' : 'none';
+    button.textContent = isSplitPage ? 'Split Page' : (isUngroup ? 'Ungroup' : 'Group');
+    button.title = isSplitPage
+        ? 'Split this page back into its original groups'
+        : isUngroup
+            ? 'Ungroup this two-layer group'
+            : 'Group two layers, or combine complete two-layer groups onto one page';
+    button.disabled = isSplitPage || isUngroup ? false : !canCreateOrCombine;
+}
+
+/* =========================================================
+   PAGE INSERTION + NESTED GROUP FIX
+   A page can hold multiple groups; each group is exactly two layers.
+   Uploading while a page/group header is explicitly selected adds layers
+   inside that page as standalone rows, ready to be paired into a group.
+   ========================================================= */
+let validIdInsertionPageId = null;
+let validIdInsertionPageExplicit = false;
+
+// Selecting a Page header explicitly establishes the page that new uploads
+// should be added to. The selection stays independent from the target context.
+const _selectPageLayersWithInsertionTarget = selectPageLayers;
+selectPageLayers = function(page) {
+    if (page?.id) {
+        validIdInsertionPageId = page.id;
+        validIdInsertionPageExplicit = true;
+    }
+    return _selectPageLayersWithInsertionTarget(page);
+};
+
+const _selectLayerGroupWithInsertionTarget = selectLayerGroup;
+selectLayerGroup = function(page, group, event) {
+    if (page?.id && !(event?.ctrlKey || event?.metaKey)) {
+        validIdInsertionPageId = page.id;
+        validIdInsertionPageExplicit = true;
+    } else if (page?.id && !validIdInsertionPageId) {
+        validIdInsertionPageId = page.id;
+        validIdInsertionPageExplicit = true;
+    }
+    return _selectLayerGroupWithInsertionTarget(page, group, event);
+};
+
+const _selectLayerWithInsertionTarget = selectLayer;
+selectLayer = function(id, index, event) {
+    if (!(event?.ctrlKey || event?.metaKey || event?.shiftKey)) {
+        const owner = pages.find(page => getPageLayerIds(page).includes(id));
+        if (owner) {
+            validIdInsertionPageId = owner.id;
+            // A normal layer-row click is a useful context for grouping two
+            // layers already on that page, but is not an explicit upload target.
+            validIdInsertionPageExplicit = false;
+        }
+    }
+    return _selectLayerWithInsertionTarget(id, index, event);
+};
+
+// Preserve the selected Page destination when uploading one or more new layers.
+// The original uploader still handles decoding, undo, and progress feedback;
+// this wrapper only moves the new records from their temporary pages into the
+// explicitly selected page as individual layer rows.
+const _handleFilesWithPageInsertion = handleFiles;
+handleFiles = async function(files) {
+    const targetId = validIdInsertionPageExplicit ? validIdInsertionPageId : null;
+    const beforeIds = new Set(uploadedImages.map(image => image.id));
+    await _handleFilesWithPageInsertion(files);
+
+    const newImages = uploadedImages.filter(image => !beforeIds.has(image.id));
+    if (!targetId || !newImages.length) return;
+
+    const targetPage = pages.find(page => page.id === targetId);
+    if (!targetPage) {
+        validIdInsertionPageId = null;
+        validIdInsertionPageExplicit = false;
+        return;
+    }
+
+    const maxLayers = (Number.isFinite(VALID_ID_MAX_PER_PAGE) ? VALID_ID_MAX_PER_PAGE : 5) * 2;
+    const currentCount = getPageLayerIds(targetPage).length;
+    if (currentCount + newImages.length > maxLayers) {
+        showAlert('Page Limit Reached', `A page can contain up to ${maxLayers} layers (${maxLayers / 2} two-layer groups). The new images were left on separate pages.`);
+        validIdInsertionPageId = targetPage.id;
+        validIdInsertionPageExplicit = true;
+        return;
+    }
+
+    // The original uploader has made one temporary page per image. Detach those
+    // records, then append them as standalone children of the selected page.
+    newImages.forEach(image => detachImageFromPage(image.id));
+    const targetStillExists = pages.find(page => page.id === targetId);
+    if (!targetStillExists) return;
+    const groups = getPageGroups(targetStillExists).map(group => ({
+        ...group,
+        imageIds: group.imageIds.slice()
+    }));
+    newImages.forEach(image => groups.push({
+        id: makeLayerGroupId(),
+        name: 'Layer',
+        imageIds: [image.id],
+        visible: true
+    }));
+    rebuildPageFromGroups(targetStillExists, groups);
+
+    validIdInsertionPageId = targetStillExists.id;
+    validIdInsertionPageExplicit = true;
+    activePageIndex = pages.indexOf(targetStillExists);
+    activeValidIdSheetIndex = activePageIndex;
+    activeImageId = newImages[0].id;
+    selectedImageIds = new Set(newImages.map(image => image.id));
+    selectedGroupPageId = null;
+    selectedLayerGroupId = null;
+    ensureValidIdCardPositions();
+    reconcileSelectionAndUI();
+};
+
+// Creating a pair now groups it inside an existing destination page whenever
+// the user selected that page, selected a complete group on that page, or the
+// two standalone layers already belong to the same page. Only otherwise is a
+// new page created.
+function groupImages(ids) {
+    const requested = new Set(ids || []);
+    const selectedIds = getLayerStackIds().filter(id => requested.has(id) &&
+        uploadedImages.some(image => image.id === id));
+    if (selectedIds.length < 2) return;
+
+    const selectedSet = new Set(selectedIds);
+    const allEntries = pages.flatMap(page => getPageGroups(page).map(group => ({ page, group })));
+    const partialGroup = allEntries.some(({ group }) => {
+        if (group.imageIds.length !== 2) return false;
+        const count = group.imageIds.filter(id => selectedSet.has(id)).length;
+        return count > 0 && count < 2;
+    });
+    if (partialGroup) {
+        showAlert('Select the Whole Group', 'Select both layers in a group before combining it with another group.');
+        return;
+    }
+
+    const selectedGroups = allEntries.filter(({ group }) => group.imageIds.length === 2 &&
+        group.imageIds.every(id => selectedSet.has(id)));
+    const consumedIds = new Set(selectedGroups.flatMap(({ group }) => group.imageIds));
+    const looseIds = selectedIds.filter(id => !consumedIds.has(id));
+    if (looseIds.length !== 0 && looseIds.length !== 2) {
+        showAlert('Groups Need Two Layers', 'A new group must contain exactly two standalone layers. Select two layers, or select complete groups to combine them onto one page.');
+        return;
+    }
+    if (!selectedGroups.length && looseIds.length !== 2) return;
+    if (selectedGroups.length === 1 && looseIds.length === 0) return;
+
+    const selectedGroupPages = [...new Set(selectedGroups.map(entry => entry.page))];
+    const looseOwnerPages = [...new Set(looseIds
+        .map(id => pages.find(page => getPageLayerIds(page).includes(id)))
+        .filter(Boolean))];
+
+    let targetPage = validIdInsertionPageExplicit
+        ? pages.find(page => page.id === validIdInsertionPageId) || null
+        : null;
+    if (!targetPage && selectedGroups.length && selectedGroupPages.length === 1 && looseIds.length === 2) {
+        targetPage = selectedGroupPages[0];
+    }
+    if (!targetPage && selectedGroups.length === 0 && looseIds.length === 2 && looseOwnerPages.length === 1 &&
+        looseIds.every(id => getPageLayerIds(looseOwnerPages[0]).includes(id))) {
+        targetPage = looseOwnerPages[0];
+    }
+
+    // Selecting several groups already on the same page is not a request to
+    // create another page. The Page header is the explicit Split Page action.
+    if (!targetPage && selectedGroups.length >= 2 && looseIds.length === 0 && selectedGroupPages.length === 1) {
+        return;
+    }
+
+    const newGroup = looseIds.length === 2 ? {
+        id: makeLayerGroupId(),
+        name: 'Group',
+        imageIds: looseIds.slice(),
+        visible: true,
+        styleOverride: { gapV: Number(appConfig.gapV) || 0 }
+    } : null;
+    const maxGroups = Number.isFinite(VALID_ID_MAX_PER_PAGE) ? VALID_ID_MAX_PER_PAGE : 5;
+
+    if (targetPage) {
+        const currentTargetGroups = getPageGroups(targetPage);
+        const selectedGroupIds = new Set(selectedGroups.map(entry => entry.group.id));
+        const groupsAlreadyInTarget = currentTargetGroups.filter(group => selectedGroupIds.has(group.id)).length;
+        const groupsMovingIn = selectedGroups.filter(entry => entry.page.id !== targetPage.id).length;
+        const resultingGroupCount = currentTargetGroups.length - groupsAlreadyInTarget -
+            currentTargetGroups.filter(group => group.imageIds.some(id => looseIds.includes(id))).length +
+            groupsAlreadyInTarget + groupsMovingIn + (newGroup ? 1 : 0);
+        const resultingLayerCount = getPageLayerIds(targetPage).length -
+            looseIds.filter(id => getPageLayerIds(targetPage).includes(id)).length +
+            selectedGroups.filter(entry => entry.page.id !== targetPage.id)
+                .reduce((sum, entry) => sum + entry.group.imageIds.length, 0) +
+            (newGroup ? newGroup.imageIds.length : 0);
+        if (resultingGroupCount > maxGroups || resultingLayerCount > maxGroups * 2) {
+            showAlert('Page Limit Reached', `A page can contain up to ${maxGroups} two-layer groups.`);
+            return;
+        }
+
+        recordUndoSnapshot(captureStateSnapshot());
+        const targetId = targetPage.id;
+        // Keep the destination page intact except for the two loose layers being
+        // converted into a group. Selected groups from other pages are moved in.
+        pages = pages.filter(page => {
+            const groups = getPageGroups(page);
+            const removeSet = page.id === targetId ? new Set(looseIds) : selectedSet;
+            const remaining = groups.map(group => ({
+                ...group,
+                imageIds: group.imageIds.filter(id => !removeSet.has(id))
+            })).filter(group => group.imageIds.length);
+            if (page.id !== targetId && !remaining.length) return false;
+            rebuildPageFromGroups(page, remaining);
+            return true;
+        });
+
+        const liveTarget = pages.find(page => page.id === targetId);
+        if (!liveTarget) return;
+        const targetGroups = getPageGroups(liveTarget).map(group => ({
+            ...group,
+            imageIds: group.imageIds.slice()
+        }));
+        selectedGroups.filter(entry => entry.page.id !== targetId).forEach(entry => {
+            targetGroups.push({ ...entry.group, imageIds: entry.group.imageIds.slice() });
+        });
+        if (newGroup) targetGroups.push(newGroup);
+        rebuildPageFromGroups(liveTarget, targetGroups);
+
+        activePageIndex = pages.indexOf(liveTarget);
+        activeValidIdSheetIndex = activePageIndex;
+        activeImageId = newGroup ? newGroup.imageIds[0] : (selectedGroups[0]?.group.imageIds[0] || selectedIds[0]);
+        selectedImageIds = new Set(newGroup ? newGroup.imageIds : selectedIds);
+        selectedGroupPageId = null;
+        selectedLayerGroupId = newGroup ? newGroup.id : null;
+        validIdInsertionPageId = liveTarget.id;
+        validIdInsertionPageExplicit = true;
+        ensureValidIdCardPositions();
+        applyGroupedPageAutoLayout(liveTarget);
+        reconcileSelectionAndUI();
+        return;
+    }
+
+    const segments = selectedGroups.map(entry => ({
+        ...entry.group,
+        imageIds: entry.group.imageIds.slice()
+    }));
+    if (newGroup) segments.push(newGroup);
+    if (!segments.length) return;
+    if (segments.length > maxGroups || selectedIds.length > maxGroups * 2) {
+        showAlert('Page Limit Reached', `A page can contain up to ${maxGroups} two-layer groups.`);
+        return;
+    }
+
+    recordUndoSnapshot(captureStateSnapshot());
+    const sourceIndexes = pages.map((page, index) => ({ page, index }))
+        .filter(({ page }) => getPageLayerIds(page).some(id => selectedSet.has(id)))
+        .map(item => item.index);
+    const insertAt = sourceIndexes.length ? Math.min(...sourceIndexes) : pages.length;
+
+    pages = pages.filter(page => {
+        const remaining = getPageGroups(page).map(group => ({
+            ...group,
+            imageIds: group.imageIds.filter(id => !selectedSet.has(id))
+        })).filter(group => group.imageIds.length);
+        if (!remaining.length) return false;
+        rebuildPageFromGroups(page, remaining);
+        return true;
+    });
+
+    const newPage = buildPageFromGroups(segments, { canvasAlignH: 'center', canvasAlignV: 'top' });
+    pages.splice(Math.max(0, Math.min(insertAt, pages.length)), 0, newPage);
+    activePageIndex = pages.indexOf(newPage);
+    activeValidIdSheetIndex = activePageIndex;
+    activeImageId = newGroup ? newGroup.imageIds[0] : selectedIds[0];
+    selectedImageIds = new Set(newGroup ? newGroup.imageIds : selectedIds);
+    selectedGroupPageId = null;
+    selectedLayerGroupId = newGroup ? newGroup.id : null;
+    validIdInsertionPageId = newPage.id;
+    validIdInsertionPageExplicit = true;
+
+    ensureValidIdCardPositions();
+    applyGroupedPageAutoLayout(newPage);
+    reconcileSelectionAndUI();
+}
+
+// Ungrouping removes only the group wrapper. Both layers remain on their
+// current page as standalone rows, so they can be grouped again or paired with
+// other layers without unexpectedly creating extra pages.
+function ungroupLayerGroup(groupId) {
+    const found = findLayerGroup(groupId);
+    if (!found || found.group.imageIds.length !== 2) return;
+    const { page, group } = found;
+    recordUndoSnapshot(captureStateSnapshot());
+
+    const replacement = group.imageIds.map(id => ({
+        id: makeLayerGroupId(),
+        name: 'Layer',
+        imageIds: [id],
+        visible: true
+    }));
+    const nextGroups = getPageGroups(page).flatMap(item => item.id === group.id
+        ? replacement
+        : [{ ...item, imageIds: item.imageIds.slice() }]);
+    rebuildPageFromGroups(page, nextGroups);
+
+    collapsedGroupIds.delete(group.id);
+    selectedGroupPageId = null;
+    selectedLayerGroupId = null;
+    selectedImageIds = new Set(group.imageIds);
+    activeImageId = group.imageIds[0] || null;
+    activePageIndex = pages.indexOf(page);
+    activeValidIdSheetIndex = activePageIndex;
+    validIdInsertionPageId = page.id;
+    validIdInsertionPageExplicit = true;
+    reconcileSelectionAndUI();
+}
+
+function toggleGroupSelection() {
+    const selected = new Set([...selectedImageIds].filter(id => uploadedImages.some(image => image.id === id)));
+    if (!selected.size) return;
+
+    const selectedPage = pages.find(page => {
+        const ids = getPageLayerIds(page);
+        return ids.length > 1 && ids.length === selected.size && ids.every(id => selected.has(id));
+    });
+    if (selectedPage && selectedGroupPageId === selectedPage.id && getPageGroups(selectedPage).length > 1) {
+        splitPage(selectedPage);
+        return;
+    }
+
+    const selectedGroup = pages.flatMap(page => getPageGroups(page).map(group => ({ page, group })))
+        .find(({ group }) => group.imageIds.length === 2 && group.imageIds.length === selected.size &&
+            group.imageIds.every(id => selected.has(id)));
+    if (selectedGroup) {
+        ungroupLayerGroup(selectedGroup.group.id);
+        return;
+    }
+    groupImages([...selected]);
+}
+
+function updateGroupButton() {
+    const button = document.getElementById('groupLayersBtn');
+    if (!button) return;
+    const selected = new Set([...selectedImageIds].filter(id => uploadedImages.some(image => image.id === id)));
+    const selectedPage = pages.find(page => {
+        const ids = getPageLayerIds(page);
+        return ids.length > 1 && ids.length === selected.size && ids.every(id => selected.has(id));
+    });
+    const splitPageMode = Boolean(selectedPage && selectedGroupPageId === selectedPage.id &&
+        getPageGroups(selectedPage).length > 1);
+
+    const allEntries = pages.flatMap(page => getPageGroups(page).map(group => ({ page, group })));
+    const exactGroup = allEntries.find(({ group }) => group.imageIds.length === 2 &&
+        group.imageIds.length === selected.size && group.imageIds.every(id => selected.has(id)));
+    const partialGroup = allEntries.some(({ group }) => {
+        if (group.imageIds.length !== 2) return false;
+        const count = group.imageIds.filter(id => selected.has(id)).length;
+        return count > 0 && count < 2;
+    });
+    const selectedGroups = allEntries.filter(({ group }) => group.imageIds.length === 2 &&
+        group.imageIds.every(id => selected.has(id)));
+    const consumed = new Set(selectedGroups.flatMap(({ group }) => group.imageIds));
+    const looseIds = [...selected].filter(id => !consumed.has(id));
+    const selectedGroupPages = [...new Set(selectedGroups.map(entry => entry.page))];
+    const hasPair = looseIds.length === 2;
+    const hasMultiPageGroups = selectedGroups.length >= 2 && selectedGroupPages.length > 1;
+    const hasExplicitMove = validIdInsertionPageExplicit && selectedGroups.some(entry => entry.page.id !== validIdInsertionPageId);
+    const canGroup = !partialGroup && (
+        (selectedGroups.length === 0 && hasPair) ||
+        (selectedGroups.length >= 1 && hasPair) ||
+        (looseIds.length === 0 && hasMultiPageGroups) ||
+        (looseIds.length === 0 && hasExplicitMove)
+    );
+
+    button.style.display = uploadedImages.length >= 2 ? 'inline-flex' : 'none';
+    button.textContent = splitPageMode ? 'Split Page' : (exactGroup ? 'Ungroup' : 'Group');
+    button.title = splitPageMode
+        ? 'Split this page into separate pages, keeping each group intact'
+        : exactGroup
+            ? 'Remove the two-layer group wrapper but keep both layers on this page'
+            : 'Group two layers inside the current page, or combine complete groups onto one page';
+    button.disabled = splitPageMode || exactGroup ? false : (!canGroup || selected.size < 2);
+}
+
+
+/* =========================================================
+   DETACH A DRAGGED ID TO A NEW PRINT PAGE
+   A page may contain several ID groups. Dragging one group beyond the paper
+   edge and releasing it moves that complete Front/Back pair to its own page.
+   ========================================================= */
+function detachValidIdGroupToSeparatePage(drag) {
+    if (!drag || drag.dragWholePage || !drag.sourcePageId || !drag.sourceGroupId) return false;
+
+    const sourcePageIndex = pages.findIndex(page => page.id === drag.sourcePageId);
+    if (sourcePageIndex < 0) return false;
+    const sourcePage = pages[sourcePageIndex];
+    const sourceGroups = getPageGroups(sourcePage).map(group => ({
+        ...group,
+        imageIds: (group.imageIds || []).slice()
+    }));
+    const movingGroup = sourceGroups.find(group => group.id === drag.sourceGroupId);
+    if (!movingGroup) return false;
+
+    // A page that already contains only this ID is already a separate sheet.
+    if (sourceGroups.length <= 1) {
+        movingGroup.imageIds.forEach(id => {
+            const image = uploadedImages.find(item => item.id === id);
+            if (image) image.manualPosition = false;
+        });
+        sourcePage.validIdFlowLayoutSignature = null;
+        ensureValidIdCardPositions();
+        renderCanvas();
+        return true;
+    }
+
+    const movingIds = movingGroup.imageIds.slice();
+    const remainingGroups = sourceGroups.filter(group => group.id !== movingGroup.id);
+    const pageStyle = sourcePage.styleOverride && typeof sourcePage.styleOverride === 'object'
+        ? { ...sourcePage.styleOverride } : undefined;
+    const newPage = buildPageFromGroups([movingGroup], {
+        styleOverride: pageStyle,
+        canvasAlignH: 'center',
+        canvasAlignV: 'center'
+    });
+    newPage.transformXMM = 0;
+    newPage.transformYMM = 0;
+    newPage.validIdFlowLayoutSignature = null;
+
+    // Reset the detached ID's coordinates so its new sheet receives a clean,
+    // centered one-ID layout instead of inheriting the old page's position.
+    movingIds.forEach(id => {
+        const image = uploadedImages.find(item => item.id === id);
+        if (image) image.manualPosition = false;
+    });
+
+    if (remainingGroups.length) {
+        rebuildPageFromGroups(sourcePage, remainingGroups);
+        sourcePage.validIdFlowLayoutSignature = null;
+        sourcePage.transformXMM = 0;
+        sourcePage.transformYMM = 0;
+        // Keep the remaining multi-ID page first and place the detached ID
+        // immediately after it.
+        pages.splice(sourcePageIndex + 1, 0, newPage);
+    } else {
+        // When the last group is pulled out, replace the empty page rather
+        // than leaving a blank sheet behind.
+        pages.splice(sourcePageIndex, 1, newPage);
+    }
+
+    selectedGroupPageId = null;
+    selectedLayerGroupId = newPage.groups?.[0]?.id || null;
+    selectedImageIds = new Set(movingIds);
+    activeImageId = movingIds[0] || drag.draggedImageId || null;
+    activePageIndex = pages.indexOf(newPage);
+    activeValidIdSheetIndex = getValidIdSheetIndexForImage(activeImageId);
+
+    reconcileSelectionAndUI();
+    ensureValidIdCardPositions();
+    renderCanvas();
+    renderImageQueue();
+    updatePagerUI();
+    syncSpacingBorderControls(activeImageId);
+    syncAlignControls();
+    return true;
+}
+
+/* =========================================================
+   ID FLOW LAYOUT
+   Horizontal: fronts share the top row; backs share the bottom row.
+   Vertical: each front sits beside its matching back, with ID pairs stacked.
+   Horizontal is limited to two IDs so the original card dimensions remain
+   printable. Vertical supports up to five complete ID pairs on one sheet.
+   ========================================================= */
+function getValidIdPagePadding(page = null) {
+    const base = getValidIdPadding();
+    const custom = page?.validIdFlowPadding;
+    if (!custom || typeof custom !== 'object') return base;
+    return {
+        top: Math.max(0, Number(custom.top ?? base.top) || 0),
+        bottom: Math.max(0, Number(custom.bottom ?? base.bottom) || 0),
+        left: Math.max(0, Number(custom.left ?? base.left) || 0),
+        right: Math.max(0, Number(custom.right ?? base.right) || 0)
+    };
+}
+
+function ensureValidIdFlowPageDefaults(sheet) {
+    const page = sheet?.page;
+    if (!page) return;
+    const images = (sheet.ids || [])
+        .map(id => uploadedImages.find(image => image.id === id))
+        .filter(Boolean);
+    const idCount = getValidIdIdCountFromImages(images);
+    if (idCount < 2 || idCount > VALID_ID_MAX_PER_PAGE) return;
+
+    // These values are expressed in the UI's px units and stored as mm.
+    // Refresh only when the number of IDs changes; user-edited values remain
+    // intact for the same page count.
+    // Preset version 2 updates the four-ID vertical gap to 10 px while
+    // retaining the existing 2-, 3-, and 5-ID defaults. Re-apply once to
+    // pages created with the previous preset version; later manual edits stay.
+    if (page.validIdAutoGapCount !== idCount || page.validIdAutoGapPresetVersion !== 2) {
+        const preset = idCount === 2 ? { h: 25, v: 40 }
+            : idCount === 3 ? { h: 20, v: 25 }
+            : idCount === 4 ? { h: 20, v: 10 }
+            : { h: 20, v: 7 };
+        const gapH = preset.h * PX_TO_MM;
+        const gapV = preset.v * PX_TO_MM;
+        page.styleOverride = { ...(page.styleOverride || {}), gapH, gapV };
+        getPageGroups(page).forEach(group => {
+            group.styleOverride = { ...(group.styleOverride || {}), gapH, gapV };
+        });
+        page.validIdAutoGapCount = idCount;
+        page.validIdAutoGapPresetVersion = 2;
+        page.validIdFlowLayoutSignature = null;
+    }
+
+    if (idCount >= 4 && page.validIdAutoPaddingCount !== idCount) {
+        const current = getValidIdPadding();
+        const verticalInset = 25 * PX_TO_MM;
+        page.validIdFlowPadding = {
+            top: verticalInset,
+            bottom: verticalInset,
+            left: current.left,
+            right: current.right
+        };
+        page.canvasAlignH = 'center';
+        page.canvasAlignV = 'center';
+        page.validIdAutoPaddingCount = idCount;
+        page.validIdFlowLayoutSignature = null;
+    } else if (idCount < 4 && page.validIdAutoPaddingCount !== idCount) {
+        // The special 25 px top/bottom inset is only for four- and five-ID sheets.
+        if (page.validIdAutoPaddingCount >= 4) delete page.validIdFlowPadding;
+        page.validIdAutoPaddingCount = idCount;
+        page.validIdFlowLayoutSignature = null;
+    }
+}
+
+function getValidIdFlowForSheet(sheet) {
+    const images = (sheet?.ids || [])
+        .map(id => uploadedImages.find(image => image.id === id))
+        .filter(Boolean);
+    const idCount = getValidIdIdCountFromImages(images);
+    if (idCount > 2) return 'vertical';
+    return sheet?.page?.validIdFlow === 'vertical' ? 'vertical' : 'horizontal';
+}
+
+function getValidIdFlowLayoutSignature(sheet, flow) {
+    const paper = getValidIdPaper();
+    const page = sheet?.page || {};
+    const padding = getValidIdPagePadding(page);
+    const images = (sheet?.ids || [])
+        .map(id => uploadedImages.find(image => image.id === id))
+        .filter(Boolean);
+    const first = images[0];
+    const style = first ? getLayerStyle(first.id) : appConfig;
+    const groups = Array.isArray(page.groups) ? page.groups : [];
+    const groupSignature = groups.map(group => {
+        const override = group?.styleOverride || {};
+        return `${group.id || ''}:${group.imageIds?.join(',') || ''}:${override.gapH ?? ''}:${override.gapV ?? ''}`;
+    }).join(';');
+    return [
+        'id-flow-v2', flow, paper.w, paper.h,
+        VALID_ID_CARD_W_MM, VALID_ID_CARD_H_MM,
+        padding.top, padding.bottom, padding.left, padding.right,
+        Number(page.styleOverride?.gapH ?? style.gapH ?? appConfig.gapH) || 0,
+        Number(page.styleOverride?.gapV ?? style.gapV ?? appConfig.gapV) || 0,
+        page.canvasAlignH || 'center', page.canvasAlignV || 'center',
+        images.map(image => `${image.id}:${image.side || 'front'}`).join('|'),
+        groupSignature
+    ].join('~');
+}
+
+function layoutValidIdPageByFlow(sheet, flowOverride) {
+    if (!sheet) return;
+    const page = sheet.page || null;
+    const paper = getValidIdPaper();
+    const images = (sheet.ids || [])
+        .map(id => uploadedImages.find(image => image.id === id))
+        .filter(Boolean);
+    if (!images.length) return;
+
+    const idCount = getValidIdIdCountFromImages(images);
+    if (!idCount || idCount > VALID_ID_MAX_PER_PAGE || images.length > VALID_ID_MAX_LAYERS_PER_PAGE) return;
+    ensureValidIdFlowPageDefaults(sheet);
+
+    const flow = idCount > 2 ? 'vertical' : (flowOverride || getValidIdFlowForSheet(sheet));
+    if (page && idCount > 2) page.validIdFlow = 'vertical';
+
+    const padding = getValidIdPagePadding(page);
+    const contentW = Math.max(1, paper.w - padding.left - padding.right);
+    const contentH = Math.max(1, paper.h - padding.top - padding.bottom);
+    const firstStyle = getLayerStyle(images[0].id);
+    const gapHRequested = Math.max(0, Number(page?.styleOverride?.gapH ?? firstStyle.gapH ?? appConfig.gapH) || 0);
+    const gapVRequested = Math.max(0, Number(page?.styleOverride?.gapV ?? firstStyle.gapV ?? appConfig.gapV) || 0);
+
+    const fronts = images.filter(image => (image.side || 'front') === 'front');
+    const backs = images.filter(image => image.side === 'back');
+    const hasBothSides = fronts.length > 0 && backs.length > 0;
+    const alignX = page?.canvasAlignH || 'center';
+    const alignY = page?.canvasAlignV || 'center';
+
+    const getLeft = width => {
+        if (width > contentW) return (paper.w - width) / 2;
+        if (alignX === 'left') return padding.left;
+        if (alignX === 'right') return paper.w - padding.right - width;
+        return padding.left + (contentW - width) / 2;
+    };
+    const getTop = height => {
+        if (height > contentH) return (paper.h - height) / 2;
+        if (alignY === 'top') return padding.top;
+        if (alignY === 'bottom') return paper.h - padding.bottom - height;
+        return padding.top + (contentH - height) / 2;
+    };
+    const fitGap = (requested, available, itemSize, intervals) => {
+        if (intervals <= 0) return requested;
+        const maxGap = Math.max(0, (available - itemSize) / intervals);
+        return Math.min(requested, maxGap);
+    };
+    const placeRow = (items, y, gapH) => {
+        if (!items.length) return;
+        const rowWidth = items.length * VALID_ID_CARD_W_MM + Math.max(0, items.length - 1) * gapH;
+        const left = getLeft(rowWidth);
+        items.forEach((image, index) => {
+            image.xMM = left + index * (VALID_ID_CARD_W_MM + gapH);
+            image.yMM = y;
+            image.manualPosition = true;
+        });
+    };
+
+    if (idCount === 1 && hasBothSides) {
+        const gapV = fitGap(gapVRequested, contentH, VALID_ID_CARD_H_MM * 2, 1);
+        const blockH = VALID_ID_CARD_H_MM * 2 + gapV;
+        const x = getLeft(VALID_ID_CARD_W_MM);
+        const y = getTop(blockH);
+        fronts[0].xMM = x;
+        fronts[0].yMM = y;
+        backs[0].xMM = x;
+        backs[0].yMM = y + VALID_ID_CARD_H_MM + gapV;
+        [...fronts, ...backs].forEach(image => { image.manualPosition = true; });
+    } else if (flow === 'horizontal' && idCount <= 2) {
+        // Two-ID horizontal flow: fronts share the top row, backs share the bottom row.
+        const gapH = fitGap(gapHRequested, contentW, VALID_ID_CARD_W_MM * Math.max(fronts.length, backs.length, 1), Math.max(0, Math.max(fronts.length, backs.length, 1) - 1));
+        const gapV = fitGap(gapVRequested, contentH, VALID_ID_CARD_H_MM * (hasBothSides ? 2 : 1), hasBothSides ? 1 : 0);
+        const blockH = hasBothSides ? VALID_ID_CARD_H_MM * 2 + gapV : VALID_ID_CARD_H_MM;
+        const top = getTop(blockH);
+        placeRow(fronts, top, gapH);
+        if (backs.length) placeRow(backs, top + VALID_ID_CARD_H_MM + gapV, gapH);
+    } else if (hasBothSides) {
+        // Build rows by each explicit layer group first. This keeps each ID's
+        // front and back paired, even when page/group order is interleaved.
+        const rows = [];
+        const used = new Set();
+        const groups = page ? getPageGroups(page) : [];
+        groups.forEach(group => {
+            const members = (group.imageIds || [])
+                .map(id => images.find(image => image.id === id))
+                .filter(Boolean);
+            const front = members.find(image => (image.side || 'front') === 'front' && !used.has(image.id));
+            const back = members.find(image => image.side === 'back' && !used.has(image.id));
+            // Only complete Front/Back groups form a row here. A one-layer
+            // group is left for the ordered fallback below, where fronts and
+            // backs are paired by their page order instead of creating extra
+            // rows that can push a five-ID sheet off the bottom.
+            if (front && back) {
+                rows.push({ front, back });
+                used.add(front.id);
+                used.add(back.id);
+            }
+        });
+
+        // Include any ungrouped or extra layers in stable page order.
+        const remainingFronts = fronts.filter(image => !used.has(image.id));
+        const remainingBacks = backs.filter(image => !used.has(image.id));
+        const remainingCount = Math.max(remainingFronts.length, remainingBacks.length);
+        for (let index = 0; index < remainingCount; index++) {
+            rows.push({
+                front: remainingFronts[index] || null,
+                back: remainingBacks[index] || null
+            });
+        }
+
+        // Five ID pairs must occupy five distinct rows. Reduce only the gaps
+        // when a custom card size or padding would otherwise exceed the sheet.
+        const rowCount = Math.max(1, rows.length);
+        const gapH = fitGap(gapHRequested, contentW, VALID_ID_CARD_W_MM * 2, 1);
+        const gapV = fitGap(gapVRequested, contentH, rowCount * VALID_ID_CARD_H_MM, rowCount - 1);
+        const blockW = VALID_ID_CARD_W_MM * 2 + gapH;
+        const blockH = rowCount * VALID_ID_CARD_H_MM + Math.max(0, rowCount - 1) * gapV;
+        const left = getLeft(blockW);
+        const top = getTop(blockH);
+
+        rows.forEach((pair, index) => {
+            const y = top + index * (VALID_ID_CARD_H_MM + gapV);
+            if (pair.front) {
+                pair.front.xMM = left;
+                pair.front.yMM = y;
+                pair.front.manualPosition = true;
+            }
+            if (pair.back) {
+                pair.back.xMM = left + VALID_ID_CARD_W_MM + gapH;
+                pair.back.yMM = y;
+                pair.back.manualPosition = true;
+            }
+        });
+    } else {
+        // Single-sided pages use a centered vertical stack for 3–5 IDs.
+        const sideImages = fronts.length ? fronts : backs;
+        const rowCount = sideImages.length;
+        const gapV = fitGap(gapVRequested, contentH, rowCount * VALID_ID_CARD_H_MM, rowCount - 1);
+        const blockH = rowCount * VALID_ID_CARD_H_MM + Math.max(0, rowCount - 1) * gapV;
+        const x = getLeft(VALID_ID_CARD_W_MM);
+        const top = getTop(blockH);
+        sideImages.forEach((image, index) => {
+            image.xMM = x;
+            image.yMM = top + index * (VALID_ID_CARD_H_MM + gapV);
+            image.manualPosition = true;
+        });
+    }
+
+    // Apply the page-specific safe area only after all positions are calculated.
+    // This never reuses the same row coordinate for different IDs.
+    images.forEach(image => {
+        const minX = padding.left;
+        const maxX = Math.max(minX, paper.w - padding.right - VALID_ID_CARD_W_MM);
+        const minY = padding.top;
+        const maxY = Math.max(minY, paper.h - padding.bottom - VALID_ID_CARD_H_MM);
+        image.xMM = Math.min(maxX, Math.max(minX, Number(image.xMM) || 0));
+        image.yMM = Math.min(maxY, Math.max(minY, Number(image.yMM) || 0));
+        image.manualPosition = true;
+    });
+
+    if (page) {
+        page.transformXMM = 0;
+        page.transformYMM = 0;
+        page.validIdFlowLayoutSignature = getValidIdFlowLayoutSignature(sheet, flow);
+    }
+}
+
+function ensureValidIdCardPositions() {
+    getValidIdSheets().forEach(sheet => {
+        const images = (sheet.ids || [])
+            .map(id => uploadedImages.find(image => image.id === id))
+            .filter(Boolean);
+        if (!images.length) return;
+        const idCount = getValidIdIdCountFromImages(images);
+        if (!idCount || idCount > VALID_ID_MAX_PER_PAGE || images.length > VALID_ID_MAX_LAYERS_PER_PAGE) return;
+        ensureValidIdFlowPageDefaults(sheet);
+        const flow = getValidIdFlowForSheet(sheet);
+        const signature = getValidIdFlowLayoutSignature(sheet, flow);
+        const needsPosition = images.some(image =>
+            !Number.isFinite(Number(image.xMM)) || !Number.isFinite(Number(image.yMM))
+        );
+        if (!sheet.page || sheet.page.validIdFlowLayoutSignature !== signature || needsPosition) {
+            layoutValidIdPageByFlow(sheet, flow);
+        }
+    });
+}
+
+function syncValidIdFlowControls() {
+    const horizontal = document.getElementById('validIdFlowHorizontalBtn');
+    const vertical = document.getElementById('validIdFlowVerticalBtn');
+    if (!horizontal || !vertical) return;
+
+    const sheet = getValidIdActiveSheet();
+    const idCount = getValidIdIdCountFromImages(sheet?.ids || []);
+    const flow = getValidIdFlowForSheet(sheet);
+    const hasEditablePage = Boolean(sheet?.page && idCount >= 2);
+
+    horizontal.classList.toggle('active', flow === 'horizontal');
+    vertical.classList.toggle('active', flow === 'vertical');
+    horizontal.setAttribute('aria-pressed', String(flow === 'horizontal'));
+    vertical.setAttribute('aria-pressed', String(flow === 'vertical'));
+    horizontal.disabled = !hasEditablePage || idCount > 2;
+    vertical.disabled = !hasEditablePage;
+    horizontal.title = idCount > 2
+        ? 'Horizontal flow is available for up to 2 IDs. Use vertical flow for 3–5 IDs.'
+        : 'Horizontal flow: both fronts across the top, backs across the bottom';
+    vertical.title = 'Vertical flow: each front is beside its matching back';
+}
+
+function setValidIdFlow(flow) {
+    if (flow !== 'horizontal' && flow !== 'vertical') return;
+    const sheet = getValidIdActiveSheet();
+    if (!sheet?.page) return;
+    const idCount = getValidIdIdCountFromImages(sheet.ids || []);
+    if (idCount < 2) return;
+    if (flow === 'horizontal' && idCount > 2) return;
+    if (getValidIdFlowForSheet(sheet) === flow) return;
+
+    recordUndoSnapshot(captureStateSnapshot());
+    sheet.page.validIdFlow = flow;
+    sheet.page.validIdFlowLayoutSignature = null;
+    sheet.page.transformXMM = 0;
+    sheet.page.transformYMM = 0;
+    sheet.ids.forEach(id => {
+        const image = uploadedImages.find(item => item.id === id);
+        if (image) image.manualPosition = false;
+    });
+    layoutValidIdPageByFlow(sheet, flow);
+    renderCanvas();
+    updateUndoButton();
+}
+
+// The original group auto-layout still sets the page's user-facing padding
+// and alignment. Reapply the selected flow afterward so a multi-group page
+// never collapses back into overlapping per-group front/back stacks.
+const _applyGroupedPageAutoLayoutBeforeFlow = applyGroupedPageAutoLayout;
+applyGroupedPageAutoLayout = function(page) {
+    _applyGroupedPageAutoLayoutBeforeFlow(page);
+    const sheet = getValidIdSheets().find(item => item.id === page?.id);
+    if (!sheet) return;
+    page.validIdFlowLayoutSignature = null;
+    layoutValidIdPageByFlow(sheet, getValidIdFlowForSheet(sheet));
+    syncValidIdFlowControls();
+};
+
+// Use the page-flow layout as the single automatic placement source.
+const _renderCanvasBeforeFlowControls = renderCanvas;
+renderCanvas = function() {
+    _renderCanvasBeforeFlowControls();
+    syncValidIdFlowControls();
+};
+
+/* =========================================================
+   ID COUNT SPACING + PADDING PRESETS
+   ========================================================= */
+const _syncSpacingBorderControlsBeforeIdCountPresets = syncSpacingBorderControls;
+syncSpacingBorderControls = function(imageId = activeImageId) {
+    _syncSpacingBorderControlsBeforeIdCountPresets(imageId);
+    const page = getValidIdMultiIdPageForImage(imageId);
+    if (!page) return;
+    const sheet = getValidIdSheets().find(item => item.page === page);
+    if (!sheet) return;
+    ensureValidIdFlowPageDefaults(sheet);
+
+    // Display the page's own spacing values (the UI uses px; layout stores mm).
+    const gapH = Number(page.styleOverride?.gapH ?? appConfig.gapH) || 0;
+    const gapV = Number(page.styleOverride?.gapV ?? appConfig.gapV) || 0;
+    const gapHInput = document.getElementById('numGapH');
+    const gapVInput = document.getElementById('numGapV');
+    if (gapHInput) gapHInput.value = String(Math.round(gapH * MM_TO_PX));
+    if (gapVInput) gapVInput.value = String(Math.round(gapV * MM_TO_PX));
+
+    const padding = getValidIdIdCountFromImages(sheet.ids) >= 4
+        ? getValidIdPagePadding(page) : getValidIdPadding();
+    [['numPaddingT', padding.top], ['numPaddingB', padding.bottom],
+     ['numPaddingL', padding.left], ['numPaddingR', padding.right]].forEach(([id, value]) => {
+        const input = document.getElementById(id);
+        if (input) input.value = String(Math.round(value * MM_TO_PX));
+    });
+};
+
+const _updateSettingsBeforeIdCountPresets = updateSettings;
+updateSettings = function() {
+    const sheet = getValidIdActiveSheet();
+    const page = sheet?.page && getValidIdIdCountFromImages(sheet.ids || []) >= 2
+        ? sheet.page : null;
+    if (page) ensureValidIdFlowPageDefaults(sheet);
+
+    const isFourOrFive = Boolean(page && getValidIdIdCountFromImages(sheet.ids || []) >= 4);
+    const globalPaddingBefore = isFourOrFive ? {
+        paddingTop: appConfig.paddingTop,
+        paddingBottom: appConfig.paddingBottom,
+        paddingLeft: appConfig.paddingLeft,
+        paddingRight: appConfig.paddingRight,
+        margin: appConfig.margin
+    } : null;
+
+    _updateSettingsBeforeIdCountPresets();
+
+    if (page && isFourOrFive) {
+        const readPx = id => Math.max(0, Number.parseFloat(document.getElementById(id)?.value) || 0);
+        page.validIdFlowPadding = {
+            top: readPx('numPaddingT') * PX_TO_MM,
+            bottom: readPx('numPaddingB') * PX_TO_MM,
+            left: readPx('numPaddingL') * PX_TO_MM,
+            right: readPx('numPaddingR') * PX_TO_MM
+        };
+        // Keep these page-specific insets from leaking into other sheets.
+        Object.assign(appConfig, globalPaddingBefore);
+        page.canvasAlignH = page.canvasAlignH || 'center';
+        page.canvasAlignV = page.canvasAlignV || 'center';
+        page.validIdFlowLayoutSignature = null;
+        layoutValidIdPageByFlow(sheet, getValidIdFlowForSheet(sheet));
+        renderCanvas();
+    } else if (page) {
+        // Any manual spacing edit is retained for this ID count. A new count
+        // will receive that count's requested preset automatically.
+        page.validIdAutoGapCount = getValidIdIdCountFromImages(sheet.ids || []);
+        page.validIdFlowLayoutSignature = null;
+    }
+};
+
+/* =========================================================
    INIT
    ========================================================= */
-installUndoHistory();
-updateUndoButton();
-loadUIPreferences();
-bindUIPreferencePersistence();
-loadConfig();
-bindWholeNumberStepControls();
-setPaperSize(currentPaper);
-reconcileSelectionAndUI();
+try {
+    installUndoHistory();
+    updateUndoButton();
+    loadUIPreferences();
+    bindUIPreferencePersistence();
+    loadConfig();
+    bindWholeNumberStepControls();
+    setPaperSize(currentPaper);
+    reconcileSelectionAndUI();
+} catch (startupError) {
+    // Report the real initialization issue to the console, but do not trap the
+    // user behind a permanent loading overlay.
+    console.error('Valid ID startup failed:', startupError);
+} finally {
+    validIdStartupComplete = true;
+    window.clearTimeout(validIdStartupFailSafe);
+    stopCreep();
+    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+}
 
 window.addEventListener('load', () => {
-    // Keep the shared Rush-style startup label visible until the overlay fades.
-    // Other operations may still replace it through showLoading().
     hideLoading();
-});
-setTimeout(() => {
-    if (!loadingOverlay.classList.contains('hidden')) hideLoading();
-}, 4000);
+}, { once: true });
 </script>
 </body>
 </html>
