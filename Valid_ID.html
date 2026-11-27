@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Valid ID</title>
+<title>Valid ID | B2B</title>
 <link rel="icon" type="image/png" sizes="192x192" href="favicon_io/favicon_dark.ico">
 <style>
 :root {
@@ -179,6 +179,12 @@ details > summary:hover { color: var(--text-main); }
   background: var(--bg-workspace); padding: 8px; border-radius: 4px;
   border: 1px solid var(--border); cursor: pointer;
 }
+.auto-layout-divider { margin: 12px 0 10px; }
+.auto-layout-toggle {
+  margin: 0; padding: 2px 0 4px; border: 0; border-radius: 0;
+  background: transparent; color: var(--text-main);
+}
+.auto-layout-toggle:hover { background: transparent; color: var(--text-main); }
 .toggle-label input[type="checkbox"] {
   appearance: none; -webkit-appearance: none;
   width: 14px; height: 14px;
@@ -318,7 +324,7 @@ details > summary:hover { color: var(--text-main); }
 .auto-layout-preset-row { margin-top: 14px; }
 .auto-layout-preset-row .setting-label, .auto-layout-dimension-row > .setting-label { color: var(--text-main); }
 .auto-layout-preset-row .select-wrapper { width: 100%; min-width: 0; }
-.auto-layout-preset-row select { width: 100%; height: 30px; color: var(--text-muted) !important; }
+.auto-layout-preset-row select { width: 100%; height: 30px; color: var(--text-muted) !important; font-size: .7rem; }
 .auto-layout-dimension-fields { display: flex; align-items: center; gap: 5px; width: 150px; min-width: 0; }
 .auto-layout-dimension-fields label { display: flex; align-items: center; gap: 4px; min-width: 0; flex: 1 1 0; }
 .auto-layout-dimension-fields label span { color: var(--text-muted); font-size: .68rem; font-weight: 700; }
@@ -417,14 +423,28 @@ details > summary:hover { color: var(--text-main); }
   border: 1px solid transparent;
 }
 .layer-slot:hover { background: var(--hover-bg); }
+/* Print Grid-style thumbnail: the edit action only appears over the image on hover/focus. */
 .layer-slot .layer-thumb {
-  width: 34px; height: 22px;
-  border-radius: 3px; overflow: hidden;
-  background: #eee; flex-shrink: 0;
+  width: 42px; height: 30px;
+  border-radius: 4px; overflow: hidden;
+  background: #fff; flex: 0 0 42px;
   display: flex; align-items: center; justify-content: center;
   position: relative;
 }
 .layer-slot .layer-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.layer-slot .layer-thumb-overlay {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: rgba(15,23,42,.62); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; z-index: 2;
+  cursor: pointer; transition: opacity .15s, background .15s;
+}
+.layer-slot:hover .layer-thumb-overlay,
+.layer-slot:focus-within .layer-thumb-overlay { opacity: 1; pointer-events: auto; }
+.layer-slot .layer-thumb-overlay:hover { background: rgba(15,23,42,.82); color: #fff; }
+.layer-slot .layer-thumb-overlay:focus-visible { outline: 2px solid #fff; outline-offset: -3px; opacity: 1; pointer-events: auto; }
+.layer-slot .layer-thumb-overlay svg { width: 15px; height: 15px; display: block; }
 .layer-slot .layer-name {
   flex: 1; min-width: 0;
   font-size: .7rem; font-weight: 500;
@@ -434,10 +454,8 @@ details > summary:hover { color: var(--text-main); }
 .layer-slot.is-hidden .layer-name { text-decoration: line-through; opacity: .5; }
 .layer-slot.is-hidden .layer-thumb img { opacity: .35; }
 .layer-slot .layer-actions {
-  display: flex; gap: 1px; flex-shrink: 0;
-  opacity: 0; transition: opacity .12s;
+  display: flex; gap: 1px; flex-shrink: 0; align-items: center;
 }
-.layer-slot:hover .layer-actions { opacity: 1; }
 .layer-slot .layer-btn {
   width: 22px; height: 22px; border: 0; background: transparent;
   color: var(--text-muted); cursor: pointer; border-radius: 3px;
@@ -447,6 +465,9 @@ details > summary:hover { color: var(--text-main); }
 .layer-slot .layer-btn:hover { background: var(--border); color: var(--text-main); }
 .layer-slot .layer-btn.delete-btn:hover { background: var(--danger); color: #fff; }
 .layer-slot .layer-btn svg { width: 13px; height: 13px; }
+/* Hide toggle appears on hover; trash always visible (Print Grid style) */
+.layer-slot .layer-btn.hide-btn { opacity: 0; pointer-events: none; transition: opacity .15s; }
+.layer-slot:hover .layer-btn.hide-btn { opacity: 1; pointer-events: auto; }
 .page-empty-hint {
   font-size: .65rem; color: var(--text-muted);
   padding: 8px 6px; font-style: italic; text-align: center;
@@ -486,6 +507,8 @@ details > summary:hover { color: var(--text-main); }
   display: flex; align-items: center; gap: 5px;
 }
 .layout-menu button:hover { background: var(--hover-bg); color: var(--text-main); }
+.layout-menu button:disabled { opacity: .32; cursor: not-allowed; }
+.layout-menu button:disabled:hover { background: transparent; color: var(--text-muted); }
 .layout-menu button.active {
   background: var(--primary); color: #fff;
   box-shadow: 0 2px 8px rgba(37,99,235,.35);
@@ -650,6 +673,10 @@ details > summary:hover { color: var(--text-main); }
 .modal-msg { font-size: .82rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5; white-space: pre-wrap; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .modal-actions .btn { padding: 8px 14px; }
+
+/* =========================================================
+   EDIT MODAL — Print Grid visual language, adapted for Valid ID slots
+   ========================================================= */
 .edit-modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,.75);
   display: flex; justify-content: center; align-items: center;
@@ -659,95 +686,193 @@ details > summary:hover { color: var(--text-main); }
 .edit-modal-overlay.active { opacity: 1; visibility: visible; }
 .edit-modal {
   background: var(--bg-panel); color: var(--text-main);
-  border-radius: 12px; border: 1px solid var(--border);
-  padding: 20px; width: min(94vw, 900px); max-height: 92vh;
-  display: flex; flex-direction: column; gap: 16px;
-  overflow: auto; transform: translateY(20px); transition: transform .2s;
-  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  border-radius: 14px; border: 1px solid var(--border);
+  box-shadow: 0 24px 72px rgba(0,0,0,.58);
+  width: min(98vw, 1360px); max-height: 97vh;
+  padding: 28px; display: flex; flex-direction: column; gap: 24px;
+  overflow: hidden; transform: translateY(20px); transition: transform .2s;
 }
 .edit-modal-overlay.active .edit-modal { transform: translateY(0); }
 .edit-modal-head {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  gap: 16px; flex-shrink: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 16px; flex-shrink: 0; min-height: 34px;
 }
-.edit-modal-head h3 { font-size: 1rem; font-weight: 700; margin: 0; }
-.edit-modal-sub { font-size: .72rem; color: var(--text-muted); margin-top: 4px; }
+.edit-modal-head h3 { font-size: 1.02rem; font-weight: 650; margin: 0; letter-spacing: -.015em; }
+.edit-modal-sub { font-size: .72rem; color: var(--text-muted); margin-top: 6px; font-weight: 500; line-height: 1.45; }
 .edit-modal-close {
   width: 32px; height: 32px; border: 0; background: transparent;
-  color: var(--text-muted); cursor: pointer;
-  border-radius: 6px; font-size: 18px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  color: var(--text-muted); cursor: pointer; border-radius: 6px;
+  font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: all .2s;
 }
 .edit-modal-close:hover { background: var(--hover-bg); color: var(--text-main); }
 .edit-modal-body {
-  display: grid; grid-template-columns: minmax(0, 1fr) 260px;
-  gap: 22px; min-height: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 28px; min-height: 0; flex: 1 1 auto;
 }
 .edit-preview-wrap {
-  background: var(--bg-workspace); border: 1px solid var(--border);
-  border-radius: 10px; padding: 24px;
-  display: flex; align-items: center; justify-content: center;
-  min-height: 300px; overflow: hidden; cursor: grab; touch-action: none;
+  min-width: 0; min-height: 380px; height: min(65vh, 590px);
+  display: flex; justify-content: center; align-items: center;
+  background: #17191d; border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px 20px 68px; overflow: hidden;
+  cursor: default; touch-action: none; user-select: none;
+  position: relative;
 }
-.edit-preview-wrap:active { cursor: grabbing; }
+.edit-view-zoom-toolbar {
+  position: absolute; left: 14px; bottom: 12px; z-index: 12;
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 9px; border-radius: 8px;
+  background: rgba(18,20,24,.94); border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 4px 18px rgba(0,0,0,.32); backdrop-filter: blur(8px);
+}
+.edit-view-zoom-toolbar .icon-btn {
+  width: 28px; height: 28px; flex: 0 0 28px;
+  background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.16); color: #F9FAFB;
+}
+.edit-view-zoom-toolbar .icon-btn:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.3); color: #fff; }
+.edit-view-zoom-toolbar .edit-slider { width: 116px; min-width: 74px; margin: 0; }
+.edit-view-zoom-toolbar .edit-control-value { min-width: 42px; color: #E5E7EB; }
+.edit-view-zoom-toolbar .reset-btn { color: #D1D5DB; }
+.edit-view-zoom-toolbar .reset-btn:hover { color: #fff; background: rgba(255,255,255,.12); }
 .edit-preview {
-  width: 100%; max-width: 420px;
-  background: #0a0a0a; border-radius: 4px; overflow: hidden;
-  position: relative; box-shadow: 0 4px 24px rgba(0,0,0,.35); flex-shrink: 0;
+  position: relative; flex: 0 0 auto; overflow: hidden;
+  background: #111827; border: 1px solid rgba(255,255,255,.72); border-radius: 3px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.42), 0 0 0 1px rgba(0,0,0,.55);
+  cursor: crosshair; touch-action: none; transform-origin: center center;
+  will-change: transform;
 }
+.edit-preview.view-pan-mode { cursor: grab; }
+.edit-preview.view-pan-mode:active { cursor: grabbing; }
 .edit-preview img {
-  display: block; width: 100%; height: 100%;
-  object-fit: cover; transform-origin: center center;
-  pointer-events: none; -webkit-user-drag: none;
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%;
+  max-width: none; max-height: none; object-fit: fill;
+  pointer-events: none; -webkit-user-drag: none; user-select: none;
 }
+.edit-crop-frame {
+  position: absolute; z-index: 3; box-sizing: border-box;
+  border: 2px solid #fff; box-shadow: 0 0 0 9999px rgba(0,0,0,.58);
+  cursor: move; touch-action: none;
+  background-image:
+    linear-gradient(to right, transparent calc(33.333% - .5px), rgba(255,255,255,.78) calc(33.333% - .5px), rgba(255,255,255,.78) calc(33.333% + .5px), transparent calc(33.333% + .5px)),
+    linear-gradient(to right, transparent calc(66.666% - .5px), rgba(255,255,255,.78) calc(66.666% - .5px), rgba(255,255,255,.78) calc(66.666% + .5px), transparent calc(66.666% + .5px)),
+    linear-gradient(to bottom, transparent calc(33.333% - .5px), rgba(255,255,255,.78) calc(33.333% - .5px), rgba(255,255,255,.78) calc(33.333% + .5px), transparent calc(33.333% + .5px)),
+    linear-gradient(to bottom, transparent calc(66.666% - .5px), rgba(255,255,255,.78) calc(66.666% - .5px), rgba(255,255,255,.78) calc(66.666% + .5px), transparent calc(66.666% + .5px));
+}
+.edit-crop-frame[data-mode="preset"] .edit-crop-handle.n,
+.edit-crop-frame[data-mode="preset"] .edit-crop-handle.e,
+.edit-crop-frame[data-mode="preset"] .edit-crop-handle.s,
+.edit-crop-frame[data-mode="preset"] .edit-crop-handle.w { display: none; }
+.edit-crop-handle {
+  position: absolute; z-index: 4; width: 12px; height: 12px;
+  background: #fff; border: 2px solid var(--brand-blue); border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.55); transform: translate(-50%,-50%);
+}
+.edit-crop-handle.nw { left: 0; top: 0; cursor: nwse-resize; }
+.edit-crop-handle.ne { left: 100%; top: 0; cursor: nesw-resize; }
+.edit-crop-handle.sw { left: 0; top: 100%; cursor: nesw-resize; }
+.edit-crop-handle.se { left: 100%; top: 100%; cursor: nwse-resize; }
+.edit-crop-handle.n { left: 50%; top: 0; cursor: ns-resize; }
+.edit-crop-handle.e { left: 100%; top: 50%; cursor: ew-resize; }
+.edit-crop-handle.s { left: 50%; top: 100%; cursor: ns-resize; }
+.edit-crop-handle.w { left: 0; top: 50%; cursor: ew-resize; }
+.edit-preview.view-pan-mode .edit-crop-frame { pointer-events: none; }
+
 .edit-controls {
-  display: flex; flex-direction: column; gap: 16px;
-  min-width: 0; overflow-y: auto; max-height: 500px; padding-right: 4px;
+  display: flex; flex-direction: column; gap: 14px;
+  min-width: 0; overflow-y: auto; max-height: min(65vh, 590px); padding: 2px 6px 8px 0;
 }
+.edit-mode-label-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.edit-mode-label-row .icon-btn { width: 30px; height: 30px; flex: 0 0 30px; }
+.edit-mode-label-row .icon-btn svg { width: 16px; height: 16px; }
 .edit-controls::-webkit-scrollbar { width: 4px; }
 .edit-controls::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; }
 [data-theme="dark"] .edit-controls::-webkit-scrollbar-thumb { background: #555; }
-.edit-control-label {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: .72rem; color: var(--text-muted);
-  font-weight: 600; margin-bottom: 6px;
+.edit-control-group { display: flex; flex-direction: column; gap: 4px; }
+.edit-control-label-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.edit-control-label { display: block; font-size: .78rem; color: var(--text-muted); font-weight: 500; }
+.edit-control-value-group { display: flex; align-items: center; gap: 6px; }
+.edit-zoom-buttons { display: inline-flex; align-items: center; gap: 4px; }
+.edit-zoom-buttons .icon-btn { width: 25px; height: 25px; border-radius: 5px; }
+.edit-ratio-note { padding: 10px 11px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg-workspace); }
+.edit-ratio-note .edit-ratio-name { color: var(--text-main); font-size: .78rem; font-weight: 650; }
+.edit-ratio-note .edit-ratio-size { color: var(--text-muted); font-size: .69rem; margin-top: 3px; }
+.edit-control-value { color: var(--text-muted); font-variant-numeric: tabular-nums; font-size: .72rem; min-width: 42px; text-align: right; }
+.reset-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 23px; height: 23px; padding: 0; border: 0; border-radius: 5px;
+  background: transparent; color: var(--text-muted); cursor: pointer; flex: 0 0 auto;
+  transition: color .15s, background .15s;
 }
-.edit-control-value { color: var(--text-main); font-variant-numeric: tabular-nums; }
+.reset-btn:hover { color: var(--primary); background: var(--bg-workspace); }
+.reset-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .edit-slider {
-  width: 100%; height: 4px; border-radius: 999px;
-  background: #737987; outline: none;
-  appearance: none; -webkit-appearance: none;
-  cursor: pointer; display: block;
+  --range-progress: 0%; width: 100%; height: 18px; margin: 8px 0 4px;
+  border-radius: 999px; appearance: none; -webkit-appearance: none;
+  background: transparent; outline: none; cursor: pointer; display: block;
 }
+.edit-slider::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 999px;
+  background: linear-gradient(to right, var(--brand-blue) 0 var(--range-progress), #737987 var(--range-progress) 100%);
+}
+.edit-slider::-moz-range-track { height: 4px; border-radius: 999px; background: #737987; }
+.edit-slider::-moz-range-progress { height: 4px; border-radius: 999px; background: var(--brand-blue); }
 .edit-slider::-webkit-slider-thumb {
-  appearance: none; -webkit-appearance: none;
-  width: 14px; height: 14px; border-radius: 50%;
-  background: var(--primary); border: 0; cursor: pointer;
+  appearance: none; -webkit-appearance: none; width: 12px; height: 12px;
+  margin-top: -4px; border-radius: 50%; background: var(--brand-blue); border: 0; cursor: pointer;
 }
 .edit-slider::-moz-range-thumb {
-  width: 14px; height: 14px; border-radius: 50%;
-  background: var(--primary); border: 0; cursor: pointer;
+  width: 12px; height: 12px; border-radius: 50%; background: var(--brand-blue); border: 0; cursor: pointer;
 }
-.edit-rot-grid {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px;
+.edit-select {
+  width: 100%; min-height: 36px; padding: 7px 30px 7px 9px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background-color: var(--bg-workspace); color: var(--text-main);
+  font-size: .78rem; font-weight: 500; outline: none;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23A3A3A3%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8 0-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; background-size: 10px auto;
 }
-.edit-rot-grid button {
-  height: 30px; border: 1px solid var(--border);
-  background: var(--bg-workspace); color: var(--text-muted);
-  border-radius: 5px; font-size: .72rem; font-weight: 700;
-  cursor: pointer; transition: all .12s;
+.edit-select:focus { border-color: var(--primary); }
+.edit-transform-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  margin-top: 0; padding-top: 12px; border-top: 1px solid var(--border);
 }
-.edit-rot-grid button:hover { color: var(--text-main); border-color: var(--primary); }
-.edit-rot-grid button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.edit-transform-group { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.edit-control-label.transform-label { margin-bottom: 0; }
+.icon-btn-group { display: flex; gap: 6px; }
+.icon-btn {
+  width: 32px; height: 32px; border: 1px solid var(--border);
+  background: var(--bg-workspace); color: var(--text-main); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .15s;
+}
+.icon-btn:hover, .icon-btn.active { background: var(--hover-bg); border-color: var(--primary); color: var(--primary); }
+.icon-btn svg { width: 16px; height: 16px; }
 .edit-modal-footer {
-  display: flex; justify-content: flex-end; gap: 8px;
-  padding-top: 12px; border-top: 1px solid var(--border); flex-shrink: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; padding-top: 18px; border-top: 1px solid var(--border); flex-shrink: 0;
 }
-.edit-modal-footer .btn { min-height: 38px; padding: 8px 16px; }
+.footer-right { display: flex; align-items: center; gap: 10px; }
+.edit-modal-footer .btn { min-height: 42px; padding: 9px 16px; font-size: .82rem; }
+.edit-modal-footer .btn svg { width: 16px; height: 16px; }
+.edit-modal-footer .reset-footer-btn { width: 42px; height: 42px; border-radius: 7px; }
+.edit-modal-footer .reset-footer-btn svg { width: 17px; height: 17px; }
+.edit-modal-footer .undo-footer-btn { display: inline-flex; align-items: center; gap: 7px; }
+.edit-modal-footer .undo-footer-btn svg { width: 16px; height: 16px; }
 @media (max-width: 820px) {
-  .edit-modal-body { grid-template-columns: minmax(0, 1fr); }
-  .edit-controls { max-height: 260px; }
-  .edit-modal { padding: 16px; }
+  .edit-modal { width: 96vw; max-height: 97vh; padding: 18px; gap: 18px; overflow: auto; }
+  .edit-modal-body { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .edit-preview-wrap { height: min(42vh, 440px); min-height: 230px; padding: 16px 16px 62px; }
+  .edit-view-zoom-toolbar { left: 10px; bottom: 9px; gap: 5px; padding: 5px 7px; }
+  .edit-view-zoom-toolbar .edit-slider { width: 84px; }
+  .edit-controls { max-height: 34vh; display: flex; gap: 16px; }
+}
+@media (max-width: 480px) {
+  .edit-modal { padding: 14px; }
+  .edit-modal-footer { justify-content: space-between; }
+  .footer-right { flex: 0 0 auto; }
+  .footer-right > .btn { flex: 0 0 auto; }
+  .edit-view-zoom-toolbar .edit-slider { width: 66px; min-width: 56px; }
 }
 @media print {
   body { background: #fff; height: auto; overflow: visible; display: block; }
@@ -805,7 +930,7 @@ details > summary:hover { color: var(--text-main); }
       <a class="back-btn" href="index.html" title="Back">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
       </a>
-      <div class="logo-title"><h1>Valid ID</h1></div>
+      <div class="logo-title"><h1>Valid ID | B2B</h1></div>
     </div>
     <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle theme"></button>
   </div>
@@ -1004,11 +1129,6 @@ details > summary:hover { color: var(--text-main); }
     <details open id="acc-adjust-layout">
       <summary>Adjust Layout</summary>
       <div class="details-content">
-        <label class="toggle-label" style="margin-bottom: 14px;">
-          <input type="checkbox" id="autoLayoutToggle" checked onchange="toggleAutoLayout(this.checked)">
-          Auto-apply preset by layout
-        </label>
-
         <div class="input-group adjust-layout-fit-row" style="margin-bottom:0;">
           <div class="static-label">Image</div>
           <div class="segmented-control fit-control-group">
@@ -1020,17 +1140,22 @@ details > summary:hover { color: var(--text-main); }
           <label class="setting-label" for="validIdDimensionPreset">Preset</label>
           <div class="select-wrapper full">
             <select id="validIdDimensionPreset" aria-label="ID dimension preset" onchange="onValidIdDimensionPresetChange(this.value)">
-              <option value="phil-id" selected>Phil ID</option>
-              <option value="custom">Custom</option>
+              <option value="standard-landscape" selected>Standard ID – Landscape</option>
+              <option value="standard-portrait">Standard ID – Portrait</option>
+              <option value="large-landscape">Large ID – Landscape</option>
+              <option value="large-portrait">Large ID – Portrait</option>
+              <option value="custom-landscape">Custom ID – Landscape</option>
+              <option value="custom-portrait">Custom ID – Portrait</option>
+              <option value="custom">Custom (manual)</option>
             </select>
           </div>
         </div>
         <div class="auto-layout-dimension-row">
           <span class="setting-label">Dimension (in)</span>
           <div class="auto-layout-dimension-fields">
-            <label><span>W</span><input type="number" id="validIdCardWidth" min="0.39" max="8.66" step="0.01" value="3.375" oninput="markValidIdDimensionCustom()" onchange="updateValidIdDimensions()" aria-label="ID width in inches"></label>
+            <label><span>W</span><input type="number" id="validIdCardWidth" min="0.39" max="8.66" step="0.01" value="3.37" oninput="markValidIdDimensionCustom()" onchange="updateValidIdDimensions()" aria-label="ID width in inches"></label>
             <span class="auto-layout-dimension-times">×</span>
-            <label><span>H</span><input type="number" id="validIdCardHeight" min="0.39" max="11.81" step="0.01" value="2.125" oninput="markValidIdDimensionCustom()" onchange="updateValidIdDimensions()" aria-label="ID height in inches"></label>
+            <label><span>H</span><input type="number" id="validIdCardHeight" min="0.39" max="11.81" step="0.01" value="2.13" oninput="markValidIdDimensionCustom()" onchange="updateValidIdDimensions()" aria-label="ID height in inches"></label>
           </div>
         </div>
         <div class="auto-layout-flow-row">
@@ -1074,13 +1199,18 @@ details > summary:hover { color: var(--text-main); }
             </label>
           </div>
         </div>
+        <hr class="divider auto-layout-divider">
+        <label class="toggle-label auto-layout-toggle">
+          <input type="checkbox" id="autoLayoutToggle" checked onchange="toggleAutoLayout(this.checked)">
+          Auto layout
+        </label>
       </div>
     </details>
   </div>
 
   <div class="sidebar-footer">
     <div class="input-group" style="margin-bottom:0;align-items:stretch;">
-      <button class="btn" onclick="exportFile()" style="flex-grow:1;padding:8px;">
+      <button class="btn" onclick="exportFile()" style="flex-grow:1;padding:8px;" title="Export (Ctrl+S)" aria-keyshortcuts="Control+S Meta+S">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         Export
       </button>
@@ -1109,57 +1239,131 @@ details > summary:hover { color: var(--text-main); }
   </div>
 </div>
 
-<div id="editModal" class="edit-modal-overlay">
-  <div class="edit-modal">
+<!-- REFRESHED EDIT MODAL (Print Grid Style) -->
+<div id="editModal" class="edit-modal-overlay" aria-hidden="true">
+  <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
     <div class="edit-modal-head">
       <div>
-        <h3>Edit Image</h3>
-        <div class="edit-modal-sub" id="editModalSub">Adjust rotation, zoom, and color</div>
+        <h3 id="editModalTitle">Edit Image</h3>
       </div>
       <button class="edit-modal-close" onclick="closeEditModal(false)" title="Close">✕</button>
     </div>
     <div class="edit-modal-body">
       <div class="edit-preview-wrap" id="editPreviewWrap">
-        <div class="edit-preview" id="editPreview">
-          <img id="editPreviewImg" alt="" draggable="false">
-        </div>
-      </div>
-      <div class="edit-controls">
-        <div>
-          <div class="edit-control-label"><span>Rotation</span></div>
-          <div class="edit-rot-grid" id="editRotGrid">
-            <button type="button" data-rot="0" onclick="setEditRotation(0)">0°</button>
-            <button type="button" data-rot="90" onclick="setEditRotation(90)">90°</button>
-            <button type="button" data-rot="180" onclick="setEditRotation(180)">180°</button>
-            <button type="button" data-rot="270" onclick="setEditRotation(270)">270°</button>
+        <div class="edit-preview" id="editPreview" data-fit="contain" data-mode="free">
+          <img id="editPreviewImg" alt="Image editing preview" draggable="false">
+          <div class="edit-crop-frame" id="editCropFrame" data-mode="free" aria-label="Crop selection">
+            <span class="edit-crop-handle nw" data-handle="nw"></span>
+            <span class="edit-crop-handle ne" data-handle="ne"></span>
+            <span class="edit-crop-handle sw" data-handle="sw"></span>
+            <span class="edit-crop-handle se" data-handle="se"></span>
+            <span class="edit-crop-handle n" data-handle="n"></span>
+            <span class="edit-crop-handle e" data-handle="e"></span>
+            <span class="edit-crop-handle s" data-handle="s"></span>
+            <span class="edit-crop-handle w" data-handle="w"></span>
           </div>
         </div>
-        <div>
-          <div class="edit-control-label"><span>Zoom</span><span class="edit-control-value" id="editZoomValue">1×</span></div>
-          <input type="range" class="edit-slider" id="editZoom" min="1" max="4" step="0.05" value="1" oninput="onEditSliderChange()">
+        <div class="edit-view-zoom-toolbar" id="editViewZoomGroup" aria-label="Preview view zoom">
+          <button type="button" class="icon-btn" onclick="stepEditViewZoom(-0.1)" title="Zoom view out" aria-label="Zoom view out">−</button>
+          <input type="range" class="edit-slider" id="editViewZoom" min="1" max="4" step="0.05" value="1" oninput="onEditViewZoomChange()" aria-label="Preview zoom">
+          <span class="edit-control-value" id="editViewZoomValue">100%</span>
+          <button type="button" class="icon-btn" onclick="stepEditViewZoom(0.1)" title="Zoom view in" aria-label="Zoom view in">+</button>
+          <button type="button" class="reset-btn" onclick="resetEditViewZoom()" title="Reset preview view" aria-label="Reset preview view"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button>
         </div>
-        <div>
-          <div class="edit-control-label"><span>Brightness</span><span class="edit-control-value" id="editBrightnessValue">100%</span></div>
+      </div>
+      
+      <div class="edit-controls">
+        <div class="edit-control-group">
+          <div class="edit-mode-label-row">
+            <label class="edit-control-label" for="editCropMode">Crop mode</label>
+          </div>
+          <select class="edit-select" id="editCropMode" onchange="setEditCropMode(this.value)">
+            <option value="free" selected>Free Form</option>
+            <option value="preset">Selected ID preset ratio</option>
+          </select>
+        </div>
+
+        <div class="edit-control-group">
+          <div class="edit-control-label-row">
+            <span class="edit-control-label">Brightness</span>
+            <div class="edit-control-value-group">
+              <span class="edit-control-value" id="editBrightnessValue">100%</span>
+              <button type="button" class="reset-btn" onclick="resetEditProp('brightness')" title="Reset Brightness" aria-label="Reset Brightness"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button>
+            </div>
+          </div>
           <input type="range" class="edit-slider" id="editBrightness" min="0" max="200" step="1" value="100" oninput="onEditSliderChange()">
         </div>
-        <div>
-          <div class="edit-control-label"><span>Contrast</span><span class="edit-control-value" id="editContrastValue">100%</span></div>
+
+        <div class="edit-control-group">
+          <div class="edit-control-label-row">
+            <span class="edit-control-label">Contrast</span>
+            <div class="edit-control-value-group">
+              <span class="edit-control-value" id="editContrastValue">100%</span>
+              <button type="button" class="reset-btn" onclick="resetEditProp('contrast')" title="Reset Contrast" aria-label="Reset Contrast"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button>
+            </div>
+          </div>
           <input type="range" class="edit-slider" id="editContrast" min="0" max="200" step="1" value="100" oninput="onEditSliderChange()">
         </div>
-        <div>
-          <div class="edit-control-label"><span>Hue</span><span class="edit-control-value" id="editHueValue">0°</span></div>
+
+        <div class="edit-control-group">
+          <div class="edit-control-label-row">
+            <span class="edit-control-label">Hue</span>
+            <div class="edit-control-value-group">
+              <span class="edit-control-value" id="editHueValue">0°</span>
+              <button type="button" class="reset-btn" onclick="resetEditProp('hue')" title="Reset Hue" aria-label="Reset Hue"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button>
+            </div>
+          </div>
           <input type="range" class="edit-slider" id="editHue" min="0" max="360" step="1" value="0" oninput="onEditSliderChange()">
         </div>
-        <div>
-          <div class="edit-control-label"><span>Saturation</span><span class="edit-control-value" id="editSaturationValue">100%</span></div>
+
+        <div class="edit-control-group">
+          <div class="edit-control-label-row">
+            <span class="edit-control-label">Saturation</span>
+            <div class="edit-control-value-group">
+              <span class="edit-control-value" id="editSaturationValue">100%</span>
+              <button type="button" class="reset-btn" onclick="resetEditProp('saturation')" title="Reset Saturation" aria-label="Reset Saturation"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5V1.8M3 5h3.2M3.2 5.1A5.5 5.5 0 1 1 2.6 9"/></svg></button>
+            </div>
+          </div>
           <input type="range" class="edit-slider" id="editSaturation" min="0" max="200" step="1" value="100" oninput="onEditSliderChange()">
+        </div>
+
+        <div class="edit-transform-row" id="editTransformRow">
+          <div class="edit-transform-group">
+            <span class="edit-control-label">Rotate</span>
+            <div class="icon-btn-group">
+              <button class="icon-btn" onclick="rotateEdit(-90)" title="Rotate Left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              </button>
+              <button class="icon-btn" onclick="rotateEdit(90)" title="Rotate Right">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="edit-transform-group">
+            <span class="edit-control-label">Flip</span>
+            <div class="icon-btn-group">
+              <button class="icon-btn" id="editFlipHBtn" onclick="flipEdit('h')" title="Flip Horizontal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18m-9-9l-6 6 6 6m0-12l6 6-6 6"/></svg>
+              </button>
+              <button class="icon-btn" id="editFlipVBtn" onclick="flipEdit('v')" title="Flip Vertical">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M12 3v18m-9-9l6-6 6 6m-12 0l6 6 6-6"/></svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     <div class="edit-modal-footer">
-      <button class="btn" onclick="resetEditValues()" title="Reset to defaults">Reset</button>
-      <button class="btn" onclick="closeEditModal(false)">Cancel</button>
-      <button class="btn btn-primary" onclick="closeEditModal(true)">Apply Changes</button>
+      <button type="button" class="btn undo-footer-btn" onclick="undoEditChanges()" title="Undo editing changes" aria-label="Undo editing changes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-2"/></svg>
+        Undo
+      </button>
+      <div class="footer-right">
+        <button type="button" class="icon-btn reset-footer-btn" onclick="resetEditAll()" title="Reset all image adjustments" aria-label="Reset all image adjustments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+        <button type="button" class="btn btn-primary" onclick="closeEditModal(true)">Apply Changes</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1220,13 +1424,30 @@ const PAPER = {
   'Legal':  { w: 215.9, h: 330.2 }
 };
 const IN_TO_MM = 25.4;
+const MM_TO_PX = 96 / 25.4;
 const MAX_SLOTS = 10;
+const PORTRAIT_MAX_IDS_PER_PAGE = 3;
+const PORTRAIT_MAX_SLOTS_PER_PAGE = PORTRAIT_MAX_IDS_PER_PAGE * 2;
 
+function isPortraitCardSize() {
+  return Number(state.config.cardHIn) > Number(state.config.cardWIn);
+}
+function getMaxSlotsPerPage() {
+  return isPortraitCardSize() ? PORTRAIT_MAX_SLOTS_PER_PAGE : MAX_SLOTS;
+}
 const LAYOUT_CAPACITY = { '1img': 1, '1': 2, '2': 4, '3': 6, '4': 8, '5': 10 };
-function layoutCapacity(l) { return LAYOUT_CAPACITY[l] || 2; }
+function layoutCapacity(l) { return Math.min(LAYOUT_CAPACITY[l] || 2, getMaxSlotsPerPage()); }
 
-// Layouts that force vertical flow (overflow prevention)
 const FORCED_VERTICAL_LAYOUTS = new Set(['3', '4', '5']);
+
+const CARD_PRESETS = {
+  'standard-landscape': { w: 3.37, h: 2.13, label: 'Standard ID – Landscape' },
+  'standard-portrait':  { w: 2.13, h: 3.37, label: 'Standard ID – Portrait' },
+  'large-landscape':    { w: 3.54, h: 2.36, label: 'Large ID – Landscape' },
+  'large-portrait':     { w: 2.36, h: 3.54, label: 'Large ID – Portrait' },
+  'custom-landscape':   { w: 3.50, h: 2.50, label: 'Custom ID – Landscape' },
+  'custom-portrait':    { w: 2.50, h: 3.50, label: 'Custom ID – Portrait' }
+};
 
 const PAGE_DEFAULTS = {
   flow: 'horizontal',
@@ -1238,55 +1459,19 @@ const PAGE_DEFAULTS = {
   alignV: 'center'
 };
 
-// Auto layout presets per layout
 const AUTO_PRESETS = {
-  '1img': {
-    flow: 'horizontal',
-    padT: 0, padR: 0, padB: 0, padL: 0,
-    gapH: 0, gapV: 0,
-    borderR: 0,
-    alignH: 'center', alignV: 'center'
-  },
-  '1': {
-    flow: 'horizontal',
-    padT: 150, padR: 0, padB: 0, padL: 0,
-    gapH: 20, gapV: 100,
-    borderR: 8,
-    alignH: 'center', alignV: 'top'
-  },
-  '2': {
-    flow: 'horizontal',
-    padT: 0, padR: 0, padB: 0, padL: 0,
-    gapH: 20, gapV: 20,
-    borderR: 0,
-    alignH: 'center', alignV: 'center'
-  },
-  '3': {
-    flow: 'vertical',
-    padT: 0, padR: 0, padB: 0, padL: 0,
-    gapH: 20, gapV: 20,
-    borderR: 0,
-    alignH: 'center', alignV: 'center'
-  },
-  '4': {
-    flow: 'vertical',
-    padT: 0, padR: 0, padB: 0, padL: 0,
-    gapH: 15, gapV: 15,
-    borderR: 0,
-    alignH: 'center', alignV: 'center'
-  },
-  '5': {
-    flow: 'vertical',
-    padT: 10, padR: 10, padB: 10, padL: 10,
-    gapH: 5, gapV: 5,
-    borderR: 0,
-    alignH: 'center', alignV: 'center'
-  }
+  '1img': { flow: 'horizontal', padT: 0, padR: 0, padB: 0, padL: 0, gapH: 0, gapV: 0, borderR: 0, alignH: 'center', alignV: 'center' },
+  '1': { flow: 'horizontal', padT: 150, padR: 0, padB: 0, padL: 0, gapH: 20, gapV: 100, borderR: 8, alignH: 'center', alignV: 'top' },
+  '2': { flow: 'horizontal', padT: 0, padR: 0, padB: 0, padL: 0, gapH: 20, gapV: 20, borderR: 0, alignH: 'center', alignV: 'center' },
+  '3': { flow: 'vertical', padT: 0, padR: 0, padB: 0, padL: 0, gapH: 20, gapV: 20, borderR: 0, alignH: 'center', alignV: 'center' },
+  '4': { flow: 'vertical', padT: 0, padR: 0, padB: 0, padL: 0, gapH: 15, gapV: 15, borderR: 0, alignH: 'center', alignV: 'center' },
+  '5': { flow: 'vertical', padT: 10, padR: 10, padB: 10, padL: 10, gapH: 5, gapV: 5, borderR: 0, alignH: 'center', alignV: 'center' }
 };
 
 const CROP_DEFAULTS = {
   rotation: 0, zoom: 1, brightness: 100, contrast: 100,
-  hue: 0, saturation: 100, offsetX: 0, offsetY: 0
+  hue: 0, saturation: 100, offsetX: 0, offsetY: 0,
+  flipH: false, flipV: false
 };
 
 /* =========================================================
@@ -1299,8 +1484,9 @@ const state = {
   autoLayout: true,
   config: {
     paper: 'A4',
-    cardWIn: 3.375,
-    cardHIn: 2.125,
+    cardWIn: 3.37,
+    cardHIn: 2.13,
+    cardPreset: 'standard-landscape',
     fit: 'cover',
     safeZone: false,
     borderPosition: 'inside'
@@ -1352,6 +1538,7 @@ function updateUndoButton() {
    AUTO LAYOUT
    ========================================================= */
 function getLayoutForCount(n) {
+  n = Math.min(Math.max(0, n), getMaxSlotsPerPage());
   if (n <= 1) return '1img';
   if (n <= 2) return '1';
   if (n <= 4) return '2';
@@ -1372,6 +1559,31 @@ function compactSlots(page) {
   page.slots = filled.concat(empty).slice(0, MAX_SLOTS);
 }
 
+function enforcePortraitPageCapacity() {
+  if (!isPortraitCardSize()) return;
+  const slotLimit = PORTRAIT_MAX_SLOTS_PER_PAGE;
+  const items = state.pages.flatMap(page => page.slots.filter(slot => slot.imageId));
+  const requiredPages = Math.max(1, Math.ceil(items.length / slotLimit));
+  while (state.pages.length < requiredPages) state.pages.push(createPage('1img'));
+
+  state.pages.forEach(page => {
+    page.slots = Array.from({ length: MAX_SLOTS }, () => ({ imageId: null, crop: null, hidden: false }));
+  });
+  items.forEach((slot, index) => {
+    const page = state.pages[Math.floor(index / slotLimit)];
+    if (page) page.slots[index % slotLimit] = slot;
+  });
+
+  state.pages.forEach(page => {
+    const filled = page.slots.slice(0, slotLimit).filter(slot => slot.imageId).length;
+    if (state.autoLayout || ['4', '5'].includes(page.layout) || layoutCapacity(page.layout) < filled) {
+      autoFitLayout(page);
+      if (state.autoLayout) applyLayoutPreset(page);
+    }
+    if (page.layout !== '1img') page.flow = 'vertical';
+  });
+}
+
 function applyLayoutPreset(page) {
   const preset = AUTO_PRESETS[page.layout];
   if (!preset) return;
@@ -1384,8 +1596,14 @@ function applyLayoutPreset(page) {
   page.borderR = preset.borderR;
   page.alignH = preset.alignH;
   page.alignV = preset.alignV;
-  // Force vertical flow for 3+ IDs, otherwise use preset flow
-  page.flow = FORCED_VERTICAL_LAYOUTS.has(page.layout) ? 'vertical' : preset.flow;
+  if (FORCED_VERTICAL_LAYOUTS.has(page.layout)) {
+    page.flow = 'vertical';
+  } else if (page.layout !== '1img') {
+    const isLandscape = state.config.cardWIn >= state.config.cardHIn;
+    page.flow = isLandscape ? 'horizontal' : 'vertical';
+  } else {
+    page.flow = preset.flow;
+  }
 }
 
 /* =========================================================
@@ -1406,6 +1624,140 @@ function createPage(layout = '1') {
 
 function getActivePage() {
   return state.pages.find(p => p.id === state.activePageId) || null;
+}
+
+
+/* =========================================================
+   LAST-USED PREFERENCES (localStorage)
+   Uploaded images and page contents are intentionally not stored here.
+   Auto layout is intentionally excluded and always starts enabled.
+   ========================================================= */
+const PREFERENCES_STORAGE_KEY = 'validId.lastPreferences.v1';
+const ACCORDION_PREFERENCE_IDS = ['acc-paper', 'acc-spacing', 'acc-adjust-layout'];
+let restoredPagePreferences = null;
+
+function getAccordionPreferences() {
+  const preferences = {};
+  ACCORDION_PREFERENCE_IDS.forEach(id => {
+    const accordion = document.getElementById(id);
+    if (accordion) preferences[id] = accordion.open;
+  });
+  return preferences;
+}
+
+function applyAccordionPreferences(preferences) {
+  if (!preferences || typeof preferences !== 'object') return;
+  ACCORDION_PREFERENCE_IDS.forEach(id => {
+    const accordion = document.getElementById(id);
+    if (accordion && typeof preferences[id] === 'boolean') {
+      accordion.open = preferences[id];
+    }
+  });
+}
+
+function setupAccordionPreferenceSaving() {
+  ACCORDION_PREFERENCE_IDS.forEach(id => {
+    const accordion = document.getElementById(id);
+    if (accordion) accordion.addEventListener('toggle', savePreferences);
+  });
+}
+
+function getPagePreferenceSnapshot(page) {
+  if (!page) return null;
+  const keys = [
+    'layout', 'flow', 'gapH', 'gapV', 'padT', 'padR', 'padB', 'padL',
+    'borderW', 'borderR', 'borderStyle', 'borderColor', 'alignH', 'alignV'
+  ];
+  const snapshot = {};
+  keys.forEach(key => { snapshot[key] = page[key]; });
+  return snapshot;
+}
+
+function savePreferences() {
+  try {
+    const page = getActivePage();
+    if (!page) return;
+    const payload = {
+      config: {
+        paper: state.config.paper,
+        cardWIn: state.config.cardWIn,
+        cardHIn: state.config.cardHIn,
+        cardPreset: state.config.cardPreset,
+        fit: state.config.fit,
+        safeZone: state.config.safeZone,
+        borderPosition: state.config.borderPosition
+      },
+      page: getPagePreferenceSnapshot(page),
+      accordions: getAccordionPreferences(),
+      theme: document.body.getAttribute('data-theme') === 'light' ? 'light' : 'dark'
+    };
+    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(payload));
+  } catch (error) {
+    // Storage may be unavailable in private or restricted browser contexts.
+    console.warn('Could not save Valid ID preferences:', error);
+  }
+}
+
+function loadPreferences() {
+  // Auto layout is always enabled on startup and is never restored from storage.
+  state.autoLayout = true;
+  restoredPagePreferences = null;
+  try {
+    const raw = localStorage.getItem(PREFERENCES_STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== 'object') return;
+
+    applyAccordionPreferences(saved.accordions);
+
+    const cfg = saved.config && typeof saved.config === 'object' ? saved.config : {};
+    if (Object.prototype.hasOwnProperty.call(PAPER, cfg.paper)) state.config.paper = cfg.paper;
+    if (Number.isFinite(Number(cfg.cardWIn)) && Number(cfg.cardWIn) > 0 && Number(cfg.cardWIn) <= 12) state.config.cardWIn = Number(cfg.cardWIn);
+    if (Number.isFinite(Number(cfg.cardHIn)) && Number(cfg.cardHIn) > 0 && Number(cfg.cardHIn) <= 12) state.config.cardHIn = Number(cfg.cardHIn);
+    if (typeof cfg.cardPreset === 'string' && (cfg.cardPreset === 'custom' || Object.prototype.hasOwnProperty.call(CARD_PRESETS, cfg.cardPreset))) state.config.cardPreset = cfg.cardPreset;
+    if (cfg.fit === 'cover' || cfg.fit === 'contain') state.config.fit = cfg.fit;
+    if (typeof cfg.safeZone === 'boolean') state.config.safeZone = cfg.safeZone;
+    if (cfg.borderPosition === 'inside' || cfg.borderPosition === 'outside') state.config.borderPosition = cfg.borderPosition;
+
+    const page = saved.page && typeof saved.page === 'object' ? saved.page : null;
+    if (page) {
+      const validLayouts = ['1img', '1', '2', '3', '4', '5'];
+      const validFlows = ['horizontal', 'vertical'];
+      const validAlignH = ['left', 'center', 'right'];
+      const validAlignV = ['top', 'center', 'bottom'];
+      const clean = {};
+      if (validLayouts.includes(page.layout)) clean.layout = page.layout;
+      if (validFlows.includes(page.flow)) clean.flow = page.flow;
+      ['gapH','gapV','padT','padR','padB','padL','borderW','borderR'].forEach(key => {
+        if (Number.isFinite(Number(page[key]))) clean[key] = Math.max(0, Number(page[key]));
+      });
+      if (['solid','dashed','dotted','double'].includes(page.borderStyle)) clean.borderStyle = page.borderStyle;
+      if (typeof page.borderColor === 'string' && /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(page.borderColor)) clean.borderColor = page.borderColor;
+      if (validAlignH.includes(page.alignH)) clean.alignH = page.alignH;
+      if (validAlignV.includes(page.alignV)) clean.alignV = page.alignV;
+      restoredPagePreferences = clean;
+    }
+
+    if (saved.theme === 'light' || saved.theme === 'dark') {
+      document.body.setAttribute('data-theme', saved.theme);
+    }
+  } catch (error) {
+    console.warn('Could not load Valid ID preferences:', error);
+  }
+}
+
+function applyRestoredPagePreferences(page) {
+  if (!page || !restoredPagePreferences) return;
+  const saved = { ...restoredPagePreferences };
+  const requestedLayout = saved.layout;
+  delete saved.layout;
+  if (requestedLayout) page.layout = requestedLayout;
+  if (isPortraitCardSize() && ['4', '5'].includes(page.layout)) page.layout = '3';
+  Object.assign(page, saved);
+  if (FORCED_VERTICAL_LAYOUTS.has(page.layout) || (isPortraitCardSize() && page.layout !== '1img')) {
+    page.flow = 'vertical';
+  }
+  restoredPagePreferences = null;
 }
 
 function addPage() {
@@ -1449,6 +1801,10 @@ function togglePageExpanded(id) {
 }
 
 function changeLayout(layout) {
+  if (isPortraitCardSize() && ['4', '5'].includes(layout)) {
+    showToast('Portrait ID layouts support up to 3 IDs per page');
+    return;
+  }
   const page = getActivePage();
   if (!page || page.layout === layout) return;
   pushUndo();
@@ -1478,21 +1834,32 @@ function getSlotName(page, index) {
    ========================================================= */
 function getGridSpec(page) {
   const cap = layoutCapacity(page.layout);
-  if (page.layout === '1img') {
-    return { cols: 1, rows: 1, order: [0] };
-  }
+  if (page.layout === '1img') return { cols: 1, rows: 1, order: [0] };
+
   const pairs = cap / 2;
-  // Force vertical for 3+ IDs regardless of page.flow
-  const useHorizontal = page.flow === 'horizontal' && !FORCED_VERTICAL_LAYOUTS.has(page.layout);
+  const paper = PAPER[state.config.paper];
+  const pageWpx = paper.w * MM_TO_PX;
+  const cardWpx = state.config.cardWIn * 96;
+  const availW = pageWpx - page.padL - page.padR;
+  const maxCols = Math.max(1, Math.floor((availW + page.gapH) / (cardWpx + page.gapH)));
+
+  const forcedVertical = FORCED_VERTICAL_LAYOUTS.has(page.layout);
+  let useHorizontal = !forcedVertical && page.flow === 'horizontal';
+  if (useHorizontal && pairs > maxCols) useHorizontal = false;
+
   if (useHorizontal) {
+    const cols = Math.min(pairs, maxCols);
     const order = [];
     for (let i = 0; i < cap; i += 2) order.push(i);
     for (let i = 1; i < cap; i += 2) order.push(i);
-    return { cols: pairs, rows: 2, order };
+    const rows = Math.ceil(cap / cols);
+    return { cols, rows, order };
   } else {
+    const cols = Math.min(2, maxCols);
     const order = [];
     for (let i = 0; i < cap; i++) order.push(i);
-    return { cols: 2, rows: pairs, order };
+    const rows = Math.ceil(cap / cols);
+    return { cols, rows, order };
   }
 }
 
@@ -1533,12 +1900,14 @@ async function handleFiles(files, targetPageId = null, targetSlotIndex = null) {
 
   if (targetPageId !== null && targetSlotIndex !== null) {
     const page = state.pages.find(p => p.id === targetPageId);
-    if (page && page.slots[targetSlotIndex]) {
+    if (page && page.slots[targetSlotIndex] && targetSlotIndex < getMaxSlotsPerPage()) {
       page.slots[targetSlotIndex].imageId = loaded[0].id;
       page.slots[targetSlotIndex].crop = null;
       page.slots[targetSlotIndex].hidden = false;
       autoFitLayout(page);
       if (state.autoLayout) applyLayoutPreset(page);
+    } else {
+      autoPlace(loaded[0].id);
     }
     for (let i = 1; i < loaded.length; i++) autoPlace(loaded[i].id);
   } else {
@@ -1548,9 +1917,10 @@ async function handleFiles(files, targetPageId = null, targetSlotIndex = null) {
 }
 
 function autoPlace(imageId) {
+  const slotLimit = getMaxSlotsPerPage();
   const active = getActivePage();
   if (active) {
-    const idx = active.slots.findIndex(s => !s.imageId);
+    const idx = active.slots.findIndex((slot, index) => index < slotLimit && !slot.imageId);
     if (idx >= 0) {
       active.slots[idx].imageId = imageId;
       active.slots[idx].crop = null;
@@ -1562,7 +1932,7 @@ function autoPlace(imageId) {
   }
   for (const p of state.pages) {
     if (p.id === state.activePageId) continue;
-    const idx = p.slots.findIndex(s => !s.imageId);
+    const idx = p.slots.findIndex((slot, index) => index < slotLimit && !slot.imageId);
     if (idx >= 0) {
       p.slots[idx].imageId = imageId;
       p.slots[idx].crop = null;
@@ -1625,12 +1995,19 @@ function renderAll() {
   document.getElementById('pageCountBadge').textContent = state.pages.length;
   updateUndoButton();
   requestAnimationFrame(updatePreviewScale);
+  savePreferences();
 }
 
 function renderLayoutMenu() {
   const page = getActivePage();
   const cur = page ? page.layout : null;
+  const portrait = isPortraitCardSize();
   document.querySelectorAll('#layoutMenu button').forEach(b => {
+    const disallowed = portrait && ['4', '5'].includes(b.dataset.layout);
+    b.disabled = disallowed;
+    b.setAttribute('aria-disabled', disallowed ? 'true' : 'false');
+    if (!b.dataset.defaultTitle) b.dataset.defaultTitle = b.title;
+    b.title = disallowed ? 'Portrait ID layouts support up to 3 IDs per page' : b.dataset.defaultTitle;
     b.classList.toggle('active', b.dataset.layout === cur);
   });
 }
@@ -1680,12 +2057,14 @@ function renderPagesList() {
         layerEl.className = 'layer-slot' + (slot.hidden ? ' is-hidden' : '');
         const img = state.images.get(slot.imageId);
         layerEl.innerHTML = `
-          <div class="layer-thumb">${img ? `<img src="${img.src}" alt="">` : ''}</div>
+          <div class="layer-thumb">
+            ${img ? `<img src="${slot.crop?.croppedSrc || img.src}" alt="">` : ''}
+            <button type="button" class="layer-thumb-overlay" title="Edit image (E)" aria-label="Edit image" aria-keyshortcuts="E">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
+            </button>
+          </div>
           <div class="layer-name">${getSlotName(page, i)}</div>
           <div class="layer-actions">
-            <button class="layer-btn edit-btn" title="Edit image">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
             <button class="layer-btn hide-btn" title="${slot.hidden ? 'Show' : 'Hide'}">
               ${slot.hidden
                 ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
@@ -1693,11 +2072,11 @@ function renderPagesList() {
               }
             </button>
             <button class="layer-btn delete-btn" title="Remove image">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
             </button>
           </div>
         `;
-        layerEl.querySelector('.edit-btn').addEventListener('click', e => {
+        layerEl.querySelector('.layer-thumb-overlay').addEventListener('click', e => {
           e.stopPropagation(); openEditModal(page.id, i);
         });
         layerEl.querySelector('.hide-btn').addEventListener('click', e => {
@@ -1707,7 +2086,7 @@ function renderPagesList() {
           e.stopPropagation(); removeImage(page.id, i);
         });
         layerEl.addEventListener('click', e => {
-          if (e.target.closest('.layer-btn')) return;
+          if (e.target.closest('.layer-btn') || e.target.closest('.layer-thumb-overlay')) return;
           openEditModal(page.id, i);
         });
         layers.appendChild(layerEl);
@@ -1792,10 +2171,11 @@ function createSlotEl(page, index, slot) {
     const img = state.images.get(slot.imageId);
     if (img) {
       const imgEl = document.createElement('img');
-      imgEl.src = img.src;
+      imgEl.src = slot.crop?.croppedSrc || img.src;
       imgEl.alt = img.name || '';
       applyCropStyle(imgEl, slot.crop);
-      if (state.config.fit === 'contain') el.classList.add('fit-contain');
+      if (slot.crop?.mode === 'free') imgEl.style.objectFit = 'fill';
+      else if (state.config.fit === 'contain') el.classList.add('fit-contain');
       inner.appendChild(imgEl);
     }
     el.draggable = true;
@@ -1851,7 +2231,11 @@ function applyCropStyle(imgEl, crop) {
   const c = Object.assign({}, CROP_DEFAULTS, crop || {});
   const rotScale = (c.rotation === 90 || c.rotation === 270) ? 1.5 : 1.0;
   const totalScale = rotScale * c.zoom;
-  imgEl.style.transform = `translate(calc(-50% + ${c.offsetX}%), calc(-50% + ${c.offsetY}%)) rotate(${c.rotation}deg) scale(${totalScale})`;
+  const flipX = c.flipH ? -1 : 1;
+  const flipY = c.flipV ? -1 : 1;
+  imgEl.style.transform =
+    `translate(calc(-50% + ${c.offsetX}%), calc(-50% + ${c.offsetY}%)) ` +
+    `rotate(${c.rotation}deg) scale(${totalScale}) scale(${flipX}, ${flipY})`;
   imgEl.style.filter = `brightness(${c.brightness}%) contrast(${c.contrast}%) hue-rotate(${c.hue}deg) saturate(${c.saturation}%)`;
 }
 
@@ -1888,7 +2272,7 @@ function syncSettingsUI() {
   document.getElementById('fitContainBtn').classList.toggle('active', cfg.fit === 'contain');
   document.getElementById('validIdCardWidth').value = cfg.cardWIn;
   document.getElementById('validIdCardHeight').value = cfg.cardHIn;
-  document.getElementById('validIdDimensionPreset').value = 'custom';
+  document.getElementById('validIdDimensionPreset').value = cfg.cardPreset || 'custom';
   document.getElementById('borderPositionSelect').value = cfg.borderPosition;
   document.getElementById('autoLayoutToggle').checked = state.autoLayout;
 
@@ -1919,7 +2303,6 @@ function syncSettingsUI() {
     document.getElementById('validIdFlowHorizontalBtn').setAttribute('aria-pressed', isHorizontal);
     document.getElementById('validIdFlowVerticalBtn').setAttribute('aria-pressed', !isHorizontal);
 
-    const flowLocked = page.layout === '1img' || FORCED_VERTICAL_LAYOUTS.has(page.layout);
     const horizBtn = document.getElementById('validIdFlowHorizontalBtn');
     const vertBtn = document.getElementById('validIdFlowVerticalBtn');
     horizBtn.disabled = page.layout === '1img' || FORCED_VERTICAL_LAYOUTS.has(page.layout);
@@ -1950,6 +2333,8 @@ function toggleAutoLayout(checked) {
     }
   }
   showToast('Auto layout disabled');
+  // Auto layout is deliberately not saved; it always starts enabled.
+  savePreferences();
 }
 
 function updateSettings() {
@@ -1962,9 +2347,10 @@ function updateSettings() {
   p.padL = Math.max(0, parseInt(document.getElementById('numPaddingL').value) || 0);
   p.padR = Math.max(0, parseInt(document.getElementById('numPaddingR').value) || 0);
   renderCanvas();
+  savePreferences();
 }
-function updateGroupBorderRadius(v) { const p = getActivePage(); if (!p) return; p.borderR = Math.max(0, parseInt(v) || 0); renderCanvas(); }
-function setBorderStyle(v) { const p = getActivePage(); if (!p) return; p.borderStyle = v; renderCanvas(); }
+function updateGroupBorderRadius(v) { const p = getActivePage(); if (!p) return; p.borderR = Math.max(0, parseInt(v) || 0); renderCanvas(); savePreferences(); }
+function setBorderStyle(v) { const p = getActivePage(); if (!p) return; p.borderStyle = v; renderCanvas(); savePreferences(); }
 function setBorderPosition(v) { state.config.borderPosition = v; renderAll(); }
 function onBorderHexInput(v) {
   if (/^#[0-9A-Fa-f]{6}$/.test(v) || /^#[0-9A-Fa-f]{3}$/.test(v)) {
@@ -1972,6 +2358,7 @@ function onBorderHexInput(v) {
     p.borderColor = v;
     document.getElementById('setBorderC').value = v;
     renderCanvas();
+    savePreferences();
   }
 }
 function onBorderHexBlur() {
@@ -1986,6 +2373,7 @@ function onBorderColorPicker(v) {
   p.borderColor = v;
   document.getElementById('hexBorderC').value = v.toUpperCase();
   renderCanvas();
+  savePreferences();
 }
 function resetCurrentStyleOverride() {
   const p = getActivePage(); if (!p) return;
@@ -2006,15 +2394,50 @@ function resetCurrentStyleOverride() {
   showToast('Page style reset');
 }
 function setFit(v) { state.config.fit = v; renderAll(); }
+
 function onValidIdDimensionPresetChange(v) {
-  if (v === 'phil-id') { state.config.cardWIn = 3.375; state.config.cardHIn = 2.125; renderAll(); }
+  if (v === 'custom') { state.config.cardPreset = 'custom'; savePreferences(); return; }
+  const preset = CARD_PRESETS[v];
+  if (!preset) return;
+  state.config.cardPreset = v;
+  state.config.cardWIn = preset.w;
+  state.config.cardHIn = preset.h;
+  if (isPortraitCardSize()) enforcePortraitPageCapacity();
+
+  if (state.autoLayout) {
+    state.pages.forEach(p => applyLayoutPreset(p));
+  } else {
+    const isLandscape = preset.w >= preset.h;
+    state.pages.forEach(p => {
+      if (p.layout !== '1img' && !FORCED_VERTICAL_LAYOUTS.has(p.layout)) {
+        p.flow = isLandscape ? 'horizontal' : 'vertical';
+      }
+    });
+  }
+
+  renderAll();
+  showToast(`${preset.label} · ${preset.w} × ${preset.h} in`);
 }
-function markValidIdDimensionCustom() { document.getElementById('validIdDimensionPreset').value = 'custom'; }
+function markValidIdDimensionCustom() {
+  state.config.cardPreset = 'custom';
+  const sel = document.getElementById('validIdDimensionPreset');
+  if (sel) sel.value = 'custom';
+  savePreferences();
+}
 function updateValidIdDimensions() {
   const w = parseFloat(document.getElementById('validIdCardWidth').value);
   const h = parseFloat(document.getElementById('validIdCardHeight').value);
   if (isFinite(w) && w > 0) state.config.cardWIn = w;
   if (isFinite(h) && h > 0) state.config.cardHIn = h;
+  if (isPortraitCardSize()) enforcePortraitPageCapacity();
+
+  const isLandscape = state.config.cardWIn >= state.config.cardHIn;
+  state.pages.forEach(p => {
+    if (p.layout !== '1img' && !FORCED_VERTICAL_LAYOUTS.has(p.layout)) {
+      p.flow = isLandscape ? 'horizontal' : 'vertical';
+    }
+  });
+
   renderAll();
 }
 function setValidIdFlow(flow) {
@@ -2027,13 +2450,118 @@ function setValidIdFlow(flow) {
 }
 
 /* =========================================================
-   EDIT MODAL
+   EDIT MODAL — free-form or selected-preset crop + view-only zoom
    ========================================================= */
 let editState = { pageId: null, slotIndex: null };
+let lastEditedSlotTarget = null;
 let editCrop = Object.assign({}, CROP_DEFAULTS);
-let isDraggingEdit = false;
-let dragStartX = 0, dragStartY = 0;
-let dragStartOffX = 0, dragStartOffY = 0;
+let originalEditCrop = Object.assign({}, CROP_DEFAULTS);
+let editOriginalSourceSrc = '';
+let editCurrentSourceSrc = '';
+let editNaturalWidth = 0;
+let editNaturalHeight = 0;
+let editCropMode = 'free';
+let editCropBox = null;             // crop rectangle in unscaled preview pixels
+let originalEditCropBox = null;
+let originalEditCropMode = 'free';
+let editViewZoom = 1;               // magnifies the editor view only; never affects crop output
+let editViewPanX = 0;
+let editViewPanY = 0;
+let editInteraction = null;
+let editSpacePan = false;
+
+function getEditRatio() {
+  return Math.max(.1, state.config.cardWIn) / Math.max(.1, state.config.cardHIn);
+}
+
+function getEditOutputSize(sourceW, sourceH) {
+  const ratio = getEditRatio();
+  const maxW = Math.max(1, Math.floor(sourceW));
+  const maxH = Math.max(1, Math.floor(sourceH));
+  let best = null;
+  const searchSpan = Math.min(1800, Math.max(80, Math.floor(maxW * .55)));
+  const minW = Math.max(1, maxW - searchSpan);
+  for (let width = maxW; width >= minW; width--) {
+    const idealHeight = width / ratio;
+    for (const height of new Set([Math.floor(idealHeight), Math.round(idealHeight), Math.ceil(idealHeight)])) {
+      if (height < 1 || height > maxH) continue;
+      const ratioError = Math.abs((width / height) - ratio) / ratio;
+      if (ratioError > .0001) continue;
+      const area = width * height;
+      if (!best || area > best.area) best = { width, height, area };
+    }
+  }
+  if (best) return { width: best.width, height: best.height };
+  const width = Math.min(maxW, Math.max(1, Math.floor(maxH * ratio)));
+  const height = Math.min(maxH, Math.max(1, Math.round(width / ratio)));
+  return { width, height };
+}
+
+function updateEditRatioLabel() {
+  const preset = CARD_PRESETS[state.config.cardPreset];
+  const ratioName = document.getElementById('editRatioName');
+  const ratioSize = document.getElementById('editRatioSize');
+  if (ratioName) ratioName.textContent = preset ? preset.label : 'Custom ID size';
+  if (ratioSize) ratioSize.textContent = `${state.config.cardWIn.toFixed(2)} × ${state.config.cardHIn.toFixed(2)} in · ${getEditRatio().toFixed(3)}:1`;
+}
+
+function getEditStageSize() {
+  const preview = document.getElementById('editPreview');
+  if (!preview) return { width: 0, height: 0 };
+  const style = getComputedStyle(preview);
+  return {
+    // clientWidth/clientHeight are untransformed layout dimensions, so preview
+    // zoom never changes the crop's source-pixel coordinates.
+    width: Math.max(1, preview.clientWidth),
+    height: Math.max(1, preview.clientHeight)
+  };
+}
+
+function initializeEditCropBox() {
+  const { width, height } = getEditStageSize();
+  if (!width || !height) return;
+  if (editCropMode === 'preset') {
+    const ratio = getEditRatio();
+    let w = Math.min(width * .88, height * .88 * ratio);
+    let h = w / ratio;
+    if (h > height * .88) { h = height * .88; w = h * ratio; }
+    editCropBox = { x: (width - w) / 2, y: (height - h) / 2, w, h };
+  } else {
+    const w = width * .84, h = height * .84;
+    editCropBox = { x: (width - w) / 2, y: (height - h) / 2, w, h };
+  }
+  updateEditCropBoxUI();
+}
+
+function setEditSource(src, afterLoad) {
+  const image = document.getElementById('editPreviewImg');
+  if (!image) return;
+  editCurrentSourceSrc = src || editOriginalSourceSrc;
+  image.onload = () => {
+    editNaturalWidth = image.naturalWidth || 1;
+    editNaturalHeight = image.naturalHeight || 1;
+    sizeEditPreview();
+    if (!editCropBox) initializeEditCropBox();
+    updateEditPreview();
+    if (typeof afterLoad === 'function') afterLoad();
+  };
+  image.onerror = () => {
+    editNaturalWidth = 1;
+    editNaturalHeight = 1;
+    sizeEditPreview();
+    if (!editCropBox) initializeEditCropBox();
+    updateEditPreview();
+  };
+  image.src = editCurrentSourceSrc;
+  if (image.complete && image.naturalWidth) {
+    editNaturalWidth = image.naturalWidth;
+    editNaturalHeight = image.naturalHeight;
+    sizeEditPreview();
+    if (!editCropBox) initializeEditCropBox();
+    updateEditPreview();
+    if (typeof afterLoad === 'function') afterLoad();
+  }
+}
 
 function openEditModal(pageId, slotIndex) {
   const page = state.pages.find(p => p.id === pageId);
@@ -2044,86 +2572,427 @@ function openEditModal(pageId, slotIndex) {
   if (!img) return;
 
   editState = { pageId, slotIndex };
-  editCrop = Object.assign({}, CROP_DEFAULTS, slot.crop || {});
-  document.getElementById('editPreviewImg').src = img.src;
-  const preview = document.getElementById('editPreview');
-  preview.style.aspectRatio = `${state.config.cardWIn} / ${state.config.cardHIn}`;
-  document.getElementById('editZoom').value = editCrop.zoom;
-  document.getElementById('editBrightness').value = editCrop.brightness;
-  document.getElementById('editContrast').value = editCrop.contrast;
-  document.getElementById('editHue').value = editCrop.hue;
-  document.getElementById('editSaturation').value = editCrop.saturation;
-  updateEditPreview();
-  updateEditRotButtons();
-  document.getElementById('editModal').classList.add('active');
+  lastEditedSlotTarget = { pageId, slotIndex, imageId: slot.imageId };
+  editCrop = Object.assign({}, CROP_DEFAULTS);
+  originalEditCrop = Object.assign({}, editCrop);
+  editCropMode = 'free';
+  editCropBox = null;
+  originalEditCropBox = null;
+  originalEditCropMode = 'free';
+  editViewZoom = 1;
+  editViewPanX = 0;
+  editViewPanY = 0;
+  editInteraction = null;
+  editOriginalSourceSrc = (slot.crop && slot.crop.croppedSrc) || img.src;
+  document.getElementById('editCropMode').value = 'free';
+  updateEditRatioLabel();
+  applyEditViewTransform();
+
+  const modal = document.getElementById('editModal');
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  syncEditInputs();
+  setEditSource(editOriginalSourceSrc, () => {
+    originalEditCropBox = editCropBox ? { ...editCropBox } : null;
+  });
 }
 
 function closeEditModal(save) {
   if (save) {
     const page = state.pages.find(p => p.id === editState.pageId);
-    if (page && page.slots[editState.slotIndex]) {
+    const slot = page && page.slots[editState.slotIndex];
+    const preview = document.getElementById('editPreview');
+    const image = document.getElementById('editPreviewImg');
+    if (slot && preview && image && image.complete && image.naturalWidth && editCropBox) {
+      const { width: stageW, height: stageH } = getEditStageSize();
+      const sx = Math.max(0, Math.min(editNaturalWidth - 1, (editCropBox.x / stageW) * editNaturalWidth));
+      const sy = Math.max(0, Math.min(editNaturalHeight - 1, (editCropBox.y / stageH) * editNaturalHeight));
+      const sw = Math.max(1, Math.min(editNaturalWidth - sx, (editCropBox.w / stageW) * editNaturalWidth));
+      const sh = Math.max(1, Math.min(editNaturalHeight - sy, (editCropBox.h / stageH) * editNaturalHeight));
+      const outputSize = editCropMode === 'preset'
+        ? getEditOutputSize(sw, sh)
+        : { width: Math.max(1, Math.round(sw)), height: Math.max(1, Math.round(sh)) };
+      const canvas = document.createElement('canvas');
+      canvas.width = outputSize.width;
+      canvas.height = outputSize.height;
+      const ctx = canvas.getContext('2d');
+      ctx.filter = `brightness(${editCrop.brightness}%) contrast(${editCrop.contrast}%) hue-rotate(${editCrop.hue}deg) saturate(${editCrop.saturation}%)`;
+      ctx.drawImage(image, sx, sy, sw, sh, 0, 0, outputSize.width, outputSize.height);
+
       pushUndo();
-      page.slots[editState.slotIndex].crop = Object.assign({}, editCrop);
+      slot.crop = Object.assign({}, CROP_DEFAULTS, {
+        croppedSrc: canvas.toDataURL('image/png'),
+        mode: editCropMode
+      });
     }
   }
-  document.getElementById('editModal').classList.remove('active');
+  const modal = document.getElementById('editModal');
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden', 'true');
+  editState = { pageId: null, slotIndex: null };
+  editInteraction = null;
+  editSpacePan = false;
   if (save) renderAll();
 }
 
-function setEditRotation(deg) {
-  editCrop.rotation = deg;
+function sizeEditPreview() {
+  const modal = document.getElementById('editModal');
+  if (!modal || !modal.classList.contains('active')) return;
+  const wrap = document.getElementById('editPreviewWrap');
+  const preview = document.getElementById('editPreview');
+  if (!wrap || !preview || !editNaturalWidth || !editNaturalHeight) return;
+  const oldSize = getEditStageSize();
+  const availableW = Math.max(100, wrap.clientWidth - 44);
+  const availableH = Math.max(100, wrap.clientHeight - 100);
+  const ratio = editNaturalWidth / editNaturalHeight;
+  let w = availableW;
+  let h = w / ratio;
+  if (h > availableH) { h = availableH; w = h * ratio; }
+  w = Math.max(80, Math.round(w));
+  h = Math.max(80, Math.round(h));
+  preview.style.width = `${w}px`;
+  preview.style.height = `${h}px`;
+  if (editCropBox && oldSize.width && oldSize.height) {
+    const next = getEditStageSize();
+    const sx = w / oldSize.width, sy = h / oldSize.height;
+    editCropBox = { x: editCropBox.x * sx, y: editCropBox.y * sy, w: editCropBox.w * sx, h: editCropBox.h * sy };
+  }
+  updateEditRatioLabel();
   updateEditPreview();
-  updateEditRotButtons();
 }
-function onEditSliderChange() {
-  editCrop.zoom = parseFloat(document.getElementById('editZoom').value);
-  editCrop.brightness = parseInt(document.getElementById('editBrightness').value);
-  editCrop.contrast = parseInt(document.getElementById('editContrast').value);
-  editCrop.hue = parseInt(document.getElementById('editHue').value);
-  editCrop.saturation = parseInt(document.getElementById('editSaturation').value);
+
+function updateEditModeControls() {
+  // Crop mode is communicated by the selection handles and fixed/free frame behavior.
+  // Keep the editor free of persistent helper text so the controls have more room.
+}
+
+function setEditCropMode(mode) {
+  editCropMode = mode === 'preset' ? 'preset' : 'free';
+  const select = document.getElementById('editCropMode');
+  if (select) select.value = editCropMode;
+  const { width, height } = getEditStageSize();
+  if (!width || !height) return;
+  if (!editCropBox) { initializeEditCropBox(); return; }
+  if (editCropMode === 'preset') {
+    const ratio = getEditRatio();
+    const cx = editCropBox.x + editCropBox.w / 2;
+    const cy = editCropBox.y + editCropBox.h / 2;
+    let w = Math.min(width * .94, height * .94 * ratio);
+    let h = w / ratio;
+    if (h > height * .94) { h = height * .94; w = h * ratio; }
+    editCropBox = {
+      x: Math.max(0, Math.min(width - w, cx - w / 2)),
+      y: Math.max(0, Math.min(height - h, cy - h / 2)), w, h
+    };
+  }
   updateEditPreview();
 }
+
+function getEditStagePoint(clientX, clientY) {
+  const preview = document.getElementById('editPreview');
+  const rect = preview.getBoundingClientRect();
+  return {
+    x: Math.max(0, Math.min(getEditStageSize().width, (clientX - rect.left) / editViewZoom)),
+    y: Math.max(0, Math.min(getEditStageSize().height, (clientY - rect.top) / editViewZoom))
+  };
+}
+
+function updateEditCropBoxUI() {
+  const frame = document.getElementById('editCropFrame');
+  if (!frame || !editCropBox) return;
+  frame.style.left = `${editCropBox.x}px`;
+  frame.style.top = `${editCropBox.y}px`;
+  frame.style.width = `${editCropBox.w}px`;
+  frame.style.height = `${editCropBox.h}px`;
+  frame.dataset.mode = editCropMode;
+}
+
+function clampCropRect(rect) {
+  const { width, height } = getEditStageSize();
+  const minSize = 18;
+  rect.w = Math.max(minSize, Math.min(width, rect.w));
+  rect.h = Math.max(minSize, Math.min(height, rect.h));
+  rect.x = Math.max(0, Math.min(width - rect.w, rect.x));
+  rect.y = Math.max(0, Math.min(height - rect.h, rect.y));
+  return rect;
+}
+
+function updateCropRectDuringInteraction(point) {
+  if (!editInteraction) return;
+  const drag = editInteraction;
+  const dx = (point.x - drag.startPoint.x);
+  const dy = (point.y - drag.startPoint.y);
+  const { width: stageW, height: stageH } = getEditStageSize();
+  const minSize = 18;
+  let next = { ...drag.startRect };
+
+  if (drag.mode === 'move') {
+    next.x = Math.max(0, Math.min(stageW - next.w, drag.startRect.x + dx));
+    next.y = Math.max(0, Math.min(stageH - next.h, drag.startRect.y + dy));
+  } else if (drag.mode === 'draw') {
+    let x2 = Math.max(0, Math.min(stageW, drag.startPoint.x + dx));
+    let y2 = Math.max(0, Math.min(stageH, drag.startPoint.y + dy));
+    let x1 = drag.startPoint.x, y1 = drag.startPoint.y;
+    if (editCropMode === 'preset') {
+      const ratio = getEditRatio();
+      const signX = x2 >= x1 ? 1 : -1;
+      const signY = y2 >= y1 ? 1 : -1;
+      const rawW = Math.abs(x2 - x1), rawH = Math.abs(y2 - y1);
+      const w = Math.max(minSize, Math.min(rawW, rawH * ratio));
+      const h = w / ratio;
+      x2 = x1 + signX * w; y2 = y1 + signY * h;
+    }
+    next = { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1) };
+  } else {
+    const handle = drag.handle;
+    let left = drag.startRect.x, right = left + drag.startRect.w;
+    let top = drag.startRect.y, bottom = top + drag.startRect.h;
+    if (editCropMode === 'free') {
+      if (handle.includes('w')) left = Math.max(0, Math.min(right - minSize, left + dx));
+      if (handle.includes('e')) right = Math.min(stageW, Math.max(left + minSize, right + dx));
+      if (handle.includes('n')) top = Math.max(0, Math.min(bottom - minSize, top + dy));
+      if (handle.includes('s')) bottom = Math.min(stageH, Math.max(top + minSize, bottom + dy));
+    } else {
+      const ratio = getEditRatio();
+      const isLeft = handle.includes('w'), isRight = handle.includes('e');
+      const isTop = handle.includes('n'), isBottom = handle.includes('s');
+      let newW = drag.startRect.w;
+      if (isLeft || isRight) {
+        const candidateW = drag.startRect.w + (isLeft ? -dx : dx);
+        newW = candidateW;
+      }
+      if (isTop || isBottom) {
+        const candidateW = (drag.startRect.h + (isTop ? -dy : dy)) * ratio;
+        if (!isLeft && !isRight || Math.abs(candidateW - drag.startRect.w) > Math.abs(newW - drag.startRect.w)) newW = candidateW;
+      }
+      const maxW = isLeft ? right : (isRight ? stageW - left : Math.min(stageW - left, right));
+      const maxH = isTop ? bottom : (isBottom ? stageH - top : Math.min(stageH - top, bottom));
+      newW = Math.max(minSize, Math.min(newW, maxW, maxH * ratio));
+      const newH = newW / ratio;
+      if (isLeft) left = right - newW; else if (isRight) right = left + newW;
+      else { const cx = (left + right) / 2; left = cx - newW / 2; right = cx + newW / 2; }
+      if (isTop) top = bottom - newH; else if (isBottom) bottom = top + newH;
+      else { const cy = (top + bottom) / 2; top = cy - newH / 2; bottom = cy + newH / 2; }
+      left = Math.max(0, left); top = Math.max(0, top);
+      right = Math.min(stageW, right); bottom = Math.min(stageH, bottom);
+    }
+    next = { x: left, y: top, w: right - left, h: bottom - top };
+  }
+  if (next.w >= minSize && next.h >= minSize) {
+    editCropBox = clampCropRect(next);
+    updateEditCropBoxUI();
+  }
+}
+
+function applyEditViewTransform() {
+  const preview = document.getElementById('editPreview');
+  const slider = document.getElementById('editViewZoom');
+  const value = document.getElementById('editViewZoomValue');
+  if (preview) preview.style.transform = `translate(${editViewPanX}px, ${editViewPanY}px) scale(${editViewZoom})`;
+  if (slider) slider.value = editViewZoom;
+  if (value) value.textContent = `${Math.round(editViewZoom * 100)}%`;
+  updateEditRangeProgress(slider);
+}
+
+function stepEditViewZoom(delta) {
+  editViewZoom = Math.max(1, Math.min(4, Math.round((editViewZoom + delta) * 100) / 100));
+  applyEditViewTransform();
+}
+function onEditViewZoomChange() {
+  editViewZoom = Math.max(1, Math.min(4, parseFloat(document.getElementById('editViewZoom').value) || 1));
+  applyEditViewTransform();
+}
+function resetEditViewZoom() {
+  editViewZoom = 1; editViewPanX = 0; editViewPanY = 0;
+  applyEditViewTransform();
+}
+
 function updateEditPreview() {
-  applyCropStyle(document.getElementById('editPreviewImg'), editCrop);
-  document.getElementById('editZoomValue').textContent = editCrop.zoom.toFixed(2) + '×';
+  const preview = document.getElementById('editPreview');
+  const previewImg = document.getElementById('editPreviewImg');
+  if (!preview || !previewImg || !editNaturalWidth || !editNaturalHeight) return;
+  preview.dataset.mode = editCropMode;
+  previewImg.style.left = '0px';
+  previewImg.style.top = '0px';
+  previewImg.style.width = '100%';
+  previewImg.style.height = '100%';
+  previewImg.style.objectFit = 'fill';
+  previewImg.style.filter = `brightness(${editCrop.brightness}%) contrast(${editCrop.contrast}%) hue-rotate(${editCrop.hue}deg) saturate(${editCrop.saturation}%)`;
   document.getElementById('editBrightnessValue').textContent = editCrop.brightness + '%';
   document.getElementById('editContrastValue').textContent = editCrop.contrast + '%';
   document.getElementById('editHueValue').textContent = editCrop.hue + '°';
   document.getElementById('editSaturationValue').textContent = editCrop.saturation + '%';
+  ['editBrightness', 'editContrast', 'editHue', 'editSaturation'].forEach(id => updateEditRangeProgress(document.getElementById(id)));
+  updateEditCropBoxUI();
+  updateEditModeControls();
+  applyEditViewTransform();
 }
-function updateEditRotButtons() {
-  document.querySelectorAll('#editRotGrid button').forEach(b => {
-    b.classList.toggle('active', parseInt(b.dataset.rot) === editCrop.rotation);
-  });
+
+function rotateEdit(deg) {
+  editCrop.rotation = (editCrop.rotation + deg + 360) % 360;
+  editCropBox = null;
+  rebuildEditTransformedSource();
 }
-function resetEditValues() {
-  editCrop = Object.assign({}, CROP_DEFAULTS);
-  document.getElementById('editZoom').value = editCrop.zoom;
+
+function flipEdit(axis) {
+  if (axis === 'h') editCrop.flipH = !editCrop.flipH;
+  else editCrop.flipV = !editCrop.flipV;
+  updateEditFlipButtons();
+  editCropBox = null;
+  rebuildEditTransformedSource();
+}
+
+function rebuildEditTransformedSource() {
+  const source = new Image();
+  source.onload = () => {
+    const rotation = ((editCrop.rotation % 360) + 360) % 360;
+    const rotated = rotation === 90 || rotation === 270;
+    const canvas = document.createElement('canvas');
+    canvas.width = rotated ? source.naturalHeight : source.naturalWidth;
+    canvas.height = rotated ? source.naturalWidth : source.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(rotation * Math.PI / 180);
+    ctx.scale(editCrop.flipH ? -1 : 1, editCrop.flipV ? -1 : 1);
+    ctx.drawImage(source, -source.naturalWidth / 2, -source.naturalHeight / 2);
+    setEditSource(canvas.toDataURL('image/png'));
+  };
+  source.onerror = () => setEditSource(editOriginalSourceSrc);
+  source.src = editOriginalSourceSrc;
+}
+
+function resetEditProp(prop) {
+  if (!(prop in CROP_DEFAULTS)) return;
+  editCrop[prop] = CROP_DEFAULTS[prop];
+  const inputIds = { brightness: 'editBrightness', contrast: 'editContrast', hue: 'editHue', saturation: 'editSaturation' };
+  if (inputIds[prop]) document.getElementById(inputIds[prop]).value = CROP_DEFAULTS[prop];
+  updateEditPreview();
+}
+
+function onEditSliderChange() {
+  editCrop.brightness = parseInt(document.getElementById('editBrightness').value, 10);
+  editCrop.contrast = parseInt(document.getElementById('editContrast').value, 10);
+  editCrop.hue = parseInt(document.getElementById('editHue').value, 10);
+  editCrop.saturation = parseInt(document.getElementById('editSaturation').value, 10);
+  updateEditPreview();
+}
+
+function updateEditRangeProgress(input) {
+  if (!input) return;
+  const min = parseFloat(input.min) || 0;
+  const max = parseFloat(input.max) || 100;
+  const val = parseFloat(input.value) || 0;
+  const pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
+  input.style.setProperty('--range-progress', `${Math.max(0, Math.min(100, pct))}%`);
+}
+
+function updateEditFlipButtons() {
+  const h = document.getElementById('editFlipHBtn');
+  const v = document.getElementById('editFlipVBtn');
+  if (h) h.classList.toggle('active', !!editCrop.flipH);
+  if (v) v.classList.toggle('active', !!editCrop.flipV);
+}
+
+function syncEditInputs() {
   document.getElementById('editBrightness').value = editCrop.brightness;
   document.getElementById('editContrast').value = editCrop.contrast;
   document.getElementById('editHue').value = editCrop.hue;
   document.getElementById('editSaturation').value = editCrop.saturation;
+  updateEditRatioLabel();
   updateEditPreview();
-  updateEditRotButtons();
+  updateEditFlipButtons();
 }
+
+function undoEditChanges() {
+  editCrop = Object.assign({}, originalEditCrop);
+  editCropMode = originalEditCropMode;
+  editCropBox = null;
+  document.getElementById('editCropMode').value = editCropMode;
+  resetEditViewZoom();
+  syncEditInputs();
+  rebuildEditTransformedSource();
+}
+
+function resetEditAll() {
+  editCrop = Object.assign({}, CROP_DEFAULTS);
+  editCropMode = 'free';
+  editCropBox = null;
+  document.getElementById('editCropMode').value = 'free';
+  resetEditViewZoom();
+  syncEditInputs();
+  setEditSource(editOriginalSourceSrc);
+}
+
 function setupEditModalDrag() {
-  const wrap = document.getElementById('editPreviewWrap');
-  wrap.addEventListener('mousedown', e => {
-    if (!editState.pageId) return;
-    isDraggingEdit = true;
-    dragStartX = e.clientX; dragStartY = e.clientY;
-    dragStartOffX = editCrop.offsetX; dragStartOffY = editCrop.offsetY;
+  const preview = document.getElementById('editPreview');
+  const modal = document.getElementById('editModal');
+  if (!preview || !modal) return;
+
+  preview.addEventListener('pointerdown', e => {
+    if (!editState.pageId || (e.button !== 0 && e.button !== 1)) return;
+    const point = getEditStagePoint(e.clientX, e.clientY);
+    if (e.button === 1 || editSpacePan) {
+      editInteraction = { mode: 'view-pan', startClientX: e.clientX, startClientY: e.clientY, panX: editViewPanX, panY: editViewPanY };
+    } else {
+      const handle = e.target.closest('.edit-crop-handle');
+      const frame = e.target.closest('.edit-crop-frame');
+      if (handle) {
+        editInteraction = { mode: 'resize', handle: handle.dataset.handle, startPoint: point, startRect: { ...editCropBox } };
+      } else if (frame) {
+        editInteraction = { mode: 'move', startPoint: point, startRect: { ...editCropBox } };
+      } else {
+        editInteraction = { mode: 'draw', startPoint: point, startRect: { ...editCropBox } };
+        editCropBox = { x: point.x, y: point.y, w: 1, h: 1 };
+        updateEditCropBoxUI();
+      }
+    }
+    preview.setPointerCapture(e.pointerId);
     e.preventDefault();
   });
-  window.addEventListener('mousemove', e => {
-    if (!isDraggingEdit) return;
-    const preview = document.getElementById('editPreview');
-    const w = preview.clientWidth || 1, h = preview.clientHeight || 1;
-    editCrop.offsetX = dragStartOffX + ((e.clientX - dragStartX) / w) * 100;
-    editCrop.offsetY = dragStartOffY + ((e.clientY - dragStartY) / h) * 100;
-    updateEditPreview();
+
+  preview.addEventListener('pointermove', e => {
+    if (!editInteraction) return;
+    if (editInteraction.mode === 'view-pan') {
+      editViewPanX = editInteraction.panX + (e.clientX - editInteraction.startClientX);
+      editViewPanY = editInteraction.panY + (e.clientY - editInteraction.startClientY);
+      applyEditViewTransform();
+      return;
+    }
+    updateCropRectDuringInteraction(getEditStagePoint(e.clientX, e.clientY));
   });
-  window.addEventListener('mouseup', () => { isDraggingEdit = false; });
+
+  const endDrag = () => { editInteraction = null; };
+  preview.addEventListener('pointerup', endDrag);
+  preview.addEventListener('pointercancel', endDrag);
+  preview.addEventListener('lostpointercapture', endDrag);
+
+  preview.addEventListener('wheel', e => {
+    if (!editState.pageId) return;
+    e.preventDefault();
+    stepEditViewZoom(e.deltaY > 0 ? -.1 : .1);
+  }, { passive: false });
+
+  modal.addEventListener('click', e => {
+    if (e.target === modal) closeEditModal(false);
+  });
+  window.addEventListener('keydown', e => {
+    if (e.code === 'Space' && editState.pageId && !e.repeat && !e.target.closest('input,select,textarea,button')) {
+      editSpacePan = true;
+      preview.classList.add('view-pan-mode');
+      e.preventDefault();
+    }
+  });
+  window.addEventListener('keyup', e => {
+    if (e.code === 'Space') {
+      editSpacePan = false;
+      preview.classList.remove('view-pan-mode');
+    }
+  });
+  window.addEventListener('blur', () => {
+    editSpacePan = false;
+    preview.classList.remove('view-pan-mode');
+  });
+  window.addEventListener('resize', sizeEditPreview);
 }
 
 /* =========================================================
@@ -2194,11 +3063,12 @@ function resetAll() {
   showConfirm('Reset everything', 'This will clear all pages and uploaded images. Continue?').then(ok => {
     if (!ok) return;
     pushUndo();
+    state.autoLayout = true;
     state.pages = [createPage('1')];
     state.activePageId = state.pages[0].id;
     state.images.clear();
     state.config = {
-      paper: 'A4', cardWIn: 3.375, cardHIn: 2.125,
+      paper: 'A4', cardWIn: 3.37, cardHIn: 2.13, cardPreset: 'standard-landscape',
       fit: 'cover', safeZone: false, borderPosition: 'inside'
     };
     renderAll();
@@ -2213,6 +3083,7 @@ function toggleTheme() {
   const body = document.body;
   body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
   updateThemeIcon();
+  savePreferences();
 }
 function updateThemeIcon() {
   const dark = document.body.getAttribute('data-theme') === 'dark';
@@ -2290,16 +3161,82 @@ function setupCanvasDrop() {
   });
 }
 
+function openLastEditedSlot() {
+  // Prefer the image most recently edited, but validate it in case the layer
+  // was moved or deleted since the modal was last used.
+  if (lastEditedSlotTarget) {
+    const page = state.pages.find(p => p.id === lastEditedSlotTarget.pageId);
+    const slotIndex = page
+      ? page.slots.findIndex(slot => slot.imageId === lastEditedSlotTarget.imageId)
+      : -1;
+    if (page && slotIndex >= 0) {
+      openEditModal(page.id, slotIndex);
+      return;
+    }
+    lastEditedSlotTarget = null;
+  }
+
+  // On first use, E edits the first populated slot on the active page.
+  const activePage = getActivePage();
+  if (activePage) {
+    const slotIndex = activePage.slots.findIndex(slot => slot.imageId);
+    if (slotIndex >= 0) openEditModal(activePage.id, slotIndex);
+  }
+}
+
 function setupKeyboard() {
   document.addEventListener('keydown', e => {
-    if (e.target.matches('input, textarea, select')) return;
-    if (e.key === 'Escape') {
-      if (document.getElementById('editModal').classList.contains('active')) closeEditModal(false);
-      else closeModal(false);
+    const target = e.target;
+    const isTyping = !!target?.closest?.('input, textarea, select, [contenteditable="true"]');
+    const mod = e.ctrlKey || e.metaKey;
+    const key = e.key.toLowerCase();
+    const editModalOpen = document.getElementById('editModal').classList.contains('active');
+
+    // Ctrl/Cmd + S exports even when a numeric setting field has focus.
+    if (mod && !e.altKey && !e.shiftKey && key === 's') {
+      e.preventDefault();
+      exportFile();
+      return;
     }
-    if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undoAction(); }
-    if ((e.ctrlKey || e.metaKey) && e.key === 'p') { e.preventDefault(); triggerPrint(); }
-    if (!e.ctrlKey && !e.metaKey) {
+
+    // Shift + Up/Down changes numeric fields by ten normal increments,
+    // matching the accelerated numeric-input behavior common in design tools.
+    const numberInput = target?.matches?.('input[type="number"]') ? target : null;
+    if (numberInput && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey &&
+        (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      const current = Number(numberInput.value || 0);
+      const rawStep = numberInput.getAttribute('step');
+      const step = rawStep && rawStep !== 'any' ? Math.abs(Number(rawStep)) : 1;
+      const multiplier = e.key === 'ArrowUp' ? 10 : -10;
+      const min = numberInput.min !== '' ? Number(numberInput.min) : -Infinity;
+      const max = numberInput.max !== '' ? Number(numberInput.max) : Infinity;
+      const decimals = Math.min(6, (String(step).split('.')[1] || '').length);
+      const next = Math.min(max, Math.max(min, current + step * multiplier));
+      numberInput.value = Number(next.toFixed(decimals)).toString();
+      numberInput.dispatchEvent(new Event('input', { bubbles: true }));
+      numberInput.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      if (editModalOpen) closeEditModal(false);
+      else closeModal(false);
+      return;
+    }
+
+    // E edits the last edited layer (or the first populated slot on the
+    // active page). It does not fire while typing or while a modal is open.
+    if (!mod && !e.altKey && !e.shiftKey && key === 'e' && !isTyping && !editModalOpen) {
+      e.preventDefault();
+      openLastEditedSlot();
+      return;
+    }
+
+    if (isTyping) return;
+    if (mod && key === 'z') { e.preventDefault(); undoAction(); }
+    if (mod && key === 'p') { e.preventDefault(); triggerPrint(); }
+    if (!mod && !e.altKey) {
       if (e.key === '1') changeLayout('1img');
       if (e.key === '2') changeLayout('1');
       if (e.key === '3') changeLayout('2');
@@ -2314,8 +3251,12 @@ function setupKeyboard() {
    BOOT
    ========================================================= */
 function boot() {
+  loadPreferences();
+  setupAccordionPreferenceSaving();
   updateThemeIcon();
-  const initial = createPage('1');
+  const initialLayout = restoredPagePreferences?.layout || '1';
+  const initial = createPage(initialLayout);
+  applyRestoredPagePreferences(initial);
   state.pages.push(initial);
   state.activePageId = initial.id;
   setupUploadZone();

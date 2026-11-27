@@ -28,7 +28,7 @@ const cardsData = [
         href: "Print_Grid.html"
     },
     {
-        title: "Valid ID",
+        title: "Valid ID | B2B",
         subtitle: "Created Nov 25, 2026",
         description: "Create a photocopy-style valid ID layout with its front and back arranged on a single page, ready for printing.",
         category: "Photocopy",
