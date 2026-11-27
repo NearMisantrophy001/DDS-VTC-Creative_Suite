@@ -1153,9 +1153,9 @@ details > summary:hover { color: var(--text-main); }
         <div class="auto-layout-dimension-row">
           <span class="setting-label">Dimension (in)</span>
           <div class="auto-layout-dimension-fields">
-            <label><span>W</span><input type="number" id="validIdCardWidth" min="0.39" max="8.66" step="0.01" value="3.37" oninput="markValidIdDimensionCustom()" onchange="updateValidIdDimensions()" aria-label="ID width in inches"></label>
+            <label><span>W</span><input type="number" id="validIdCardWidth" min="0.39" max="8.66" step="0.01" value="3.37" oninput="onValidIdDimensionInput('w')" onchange="updateValidIdDimensions()" aria-label="ID width in inches"></label>
             <span class="auto-layout-dimension-times">×</span>
-            <label><span>H</span><input type="number" id="validIdCardHeight" min="0.39" max="11.81" step="0.01" value="2.13" oninput="markValidIdDimensionCustom()" onchange="updateValidIdDimensions()" aria-label="ID height in inches"></label>
+            <label><span>H</span><input type="number" id="validIdCardHeight" min="0.39" max="11.81" step="0.01" value="2.13" oninput="onValidIdDimensionInput('h')" onchange="updateValidIdDimensions()" aria-label="ID height in inches"></label>
           </div>
         </div>
         <div class="auto-layout-flow-row">
@@ -1538,8 +1538,9 @@ function updateUndoButton() {
    AUTO LAYOUT
    ========================================================= */
 function getLayoutForCount(n) {
+  // Auto layout counts front/back image slots as one physical ID.
+  // One uploaded side should still select the 1 ID layout, not 1 image.
   n = Math.min(Math.max(0, n), getMaxSlotsPerPage());
-  if (n <= 1) return '1img';
   if (n <= 2) return '1';
   if (n <= 4) return '2';
   if (n <= 6) return '3';
@@ -1564,7 +1565,7 @@ function enforcePortraitPageCapacity() {
   const slotLimit = PORTRAIT_MAX_SLOTS_PER_PAGE;
   const items = state.pages.flatMap(page => page.slots.filter(slot => slot.imageId));
   const requiredPages = Math.max(1, Math.ceil(items.length / slotLimit));
-  while (state.pages.length < requiredPages) state.pages.push(createPage('1img'));
+  while (state.pages.length < requiredPages) state.pages.push(createPage('1'));
 
   state.pages.forEach(page => {
     page.slots = Array.from({ length: MAX_SLOTS }, () => ({ imageId: null, crop: null, hidden: false }));
@@ -1942,7 +1943,7 @@ function autoPlace(imageId) {
       return;
     }
   }
-  const page = createPage('1img');
+  const page = createPage('1');
   page.slots[0].imageId = imageId;
   state.pages.push(page);
   state.activePageId = page.id;
@@ -2424,6 +2425,58 @@ function markValidIdDimensionCustom() {
   if (sel) sel.value = 'custom';
   savePreferences();
 }
+
+// Custom landscape/portrait dimensions scale proportionally, like resizing a
+// Figma frame from a corner. The ratio comes from the selected custom orientation.
+function onValidIdDimensionInput(axis) {
+  const presetSelect = document.getElementById('validIdDimensionPreset');
+  const presetKey = presetSelect ? presetSelect.value : state.config.cardPreset;
+  const ratioPreset = (presetKey === 'custom-landscape' || presetKey === 'custom-portrait')
+    ? CARD_PRESETS[presetKey]
+    : null;
+
+  if (!ratioPreset) {
+    markValidIdDimensionCustom();
+    return;
+  }
+
+  const widthInput = document.getElementById('validIdCardWidth');
+  const heightInput = document.getElementById('validIdCardHeight');
+  const ratio = ratioPreset.w / ratioPreset.h;
+  const minW = Number(widthInput.min) || 0.39;
+  const maxW = Number(widthInput.max) || 8.66;
+  const minH = Number(heightInput.min) || 0.39;
+  const maxH = Number(heightInput.max) || 11.81;
+  const round2 = value => Math.round(value * 100) / 100;
+  // Keep both dimensions inside their input limits without ever breaking the ratio.
+  const minRatioWidth = Math.max(minW, minH * ratio);
+  const maxRatioWidth = Math.min(maxW, maxH * ratio);
+  const minRatioHeight = Math.max(minH, minW / ratio);
+  const maxRatioHeight = Math.min(maxH, maxW / ratio);
+
+  if (axis === 'w') {
+    const typedWidth = parseFloat(widthInput.value);
+    if (!Number.isFinite(typedWidth) || typedWidth <= 0) return;
+    const width = round2(Math.min(maxRatioWidth, Math.max(minRatioWidth, typedWidth)));
+    const height = round2(width / ratio);
+    widthInput.value = width.toFixed(2);
+    heightInput.value = height.toFixed(2);
+  } else {
+    const typedHeight = parseFloat(heightInput.value);
+    if (!Number.isFinite(typedHeight) || typedHeight <= 0) return;
+    const height = round2(Math.min(maxRatioHeight, Math.max(minRatioHeight, typedHeight)));
+    const width = round2(height * ratio);
+    heightInput.value = height.toFixed(2);
+    widthInput.value = width.toFixed(2);
+  }
+
+  // Keep the custom orientation selected so subsequent edits use the same ratio.
+  state.config.cardPreset = presetKey;
+  state.config.cardWIn = parseFloat(widthInput.value);
+  state.config.cardHIn = parseFloat(heightInput.value);
+  savePreferences();
+}
+
 function updateValidIdDimensions() {
   const w = parseFloat(document.getElementById('validIdCardWidth').value);
   const h = parseFloat(document.getElementById('validIdCardHeight').value);
@@ -3005,8 +3058,17 @@ function triggerPrint() {
   window.print();
 }
 
+function generateFilename(ext) {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const stamp = `${pad(now.getDate())}${pad(now.getMonth() + 1)}${now.getFullYear()}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `IDB2B_${stamp}_${rand}.${ext}`;
+}
+
 async function exportFile() {
   const format = document.getElementById('exportFormat').value;
+  const filename = generateFilename(format === 'jpg' ? 'jpg' : format);
   if (state.pages.every(p => p.slots.every(s => !s.imageId))) {
     showToast('Nothing to export'); return;
   }
@@ -3039,13 +3101,13 @@ async function exportFile() {
         pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, paper.w, paper.h);
         paintProgress(20 + Math.round(((i + 1) / sheets.length) * 70));
       }
-      pdf.save('valid-id.pdf');
+      pdf.save(filename);
     } else {
       const activeSheet = document.querySelector('.paper-page.active-page');
       if (!activeSheet) { showToast('No active page'); return; }
       const canvas = await html2canvas(activeSheet, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false, onclone: hideExtrasInClone });
       const link = document.createElement('a');
-      link.download = 'valid-id.' + (format === 'jpg' ? 'jpg' : 'png');
+      link.download = filename;
       link.href = canvas.toDataURL(format === 'jpg' ? 'image/jpeg' : 'image/png', 0.95);
       link.click();
     }
