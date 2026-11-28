@@ -947,7 +947,7 @@ details > summary:hover { color: var(--text-main); }
         <div class="pages-title">Pages <span id="pageCountBadge">0</span></div>
       </div>
       <div class="pages-list" id="pagesList"></div>
-      <button class="add-page-btn" id="addPageBtn" onclick="addPage()">+ Add Page</button>
+      <button class="add-page-btn" id="addPageBtn" onclick="addPage()" title="Add new page (F)" aria-keyshortcuts="F">+ Add Page</button>
     </div>
   </div>
 </aside>
@@ -3051,8 +3051,14 @@ function setupEditModalDrag() {
 /* =========================================================
    PRINT & EXPORT
    ========================================================= */
+function pageHasVisibleImages(page) {
+  return !!page && page.slots.some(slot =>
+    slot.imageId && !slot.hidden && state.images.has(slot.imageId)
+  );
+}
+
 function triggerPrint() {
-  if (state.pages.every(p => p.slots.every(s => !s.imageId))) {
+  if (!state.pages.some(pageHasVisibleImages)) {
     showToast('Add images before printing'); return;
   }
   window.print();
@@ -3069,9 +3075,17 @@ function generateFilename(ext) {
 async function exportFile() {
   const format = document.getElementById('exportFormat').value;
   const filename = generateFilename(format === 'jpg' ? 'jpg' : format);
-  if (state.pages.every(p => p.slots.every(s => !s.imageId))) {
+  const exportablePages = state.pages.filter(pageHasVisibleImages);
+  if (!exportablePages.length) {
     showToast('Nothing to export'); return;
   }
+
+  // PNG/JPG export the currently selected page only. Do not create a blank image
+  // when the selected page is empty but another page contains placed images.
+  if (format !== 'pdf' && !pageHasVisibleImages(getActivePage())) {
+    showToast('Active page is empty'); return;
+  }
+
   showLoading('Rendering…');
   paintProgress(20);
 
@@ -3088,7 +3102,17 @@ async function exportFile() {
       const { jsPDF } = window.jspdf;
       const paper = PAPER[state.config.paper];
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [paper.w, paper.h] });
-      const sheets = document.querySelectorAll('.paper-page');
+      const sheetsByPageId = new Map(
+        Array.from(document.querySelectorAll('.paper-page'), sheet => [sheet.dataset.pageId, sheet])
+      );
+      const sheets = exportablePages.map(page => sheetsByPageId.get(page.id)).filter(Boolean);
+      if (!sheets.length) {
+        stage.style.transform = prevTransform;
+        hideLoading();
+        showToast('Nothing to export');
+        return;
+      }
+
       let first = true;
       for (let i = 0; i < sheets.length; i++) {
         const sheet = sheets[i];
@@ -3253,6 +3277,7 @@ function setupKeyboard() {
     const mod = e.ctrlKey || e.metaKey;
     const key = e.key.toLowerCase();
     const editModalOpen = document.getElementById('editModal').classList.contains('active');
+    const standardModalOpen = !!document.querySelector('.modal-overlay.active');
 
     // Ctrl/Cmd + S exports even when a numeric setting field has focus.
     if (mod && !e.altKey && !e.shiftKey && key === 's') {
@@ -3292,6 +3317,14 @@ function setupKeyboard() {
     if (!mod && !e.altKey && !e.shiftKey && key === 'e' && !isTyping && !editModalOpen) {
       e.preventDefault();
       openLastEditedSlot();
+      return;
+    }
+
+    // F adds a new page. Ignore repeats, typing, and open modals.
+    if (!mod && !e.altKey && !e.shiftKey && key === 'f' && !e.repeat &&
+        !isTyping && !editModalOpen && !standardModalOpen) {
+      e.preventDefault();
+      addPage();
       return;
     }
 
