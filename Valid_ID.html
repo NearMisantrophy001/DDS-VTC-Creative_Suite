@@ -3328,6 +3328,16 @@ function setupKeyboard() {
       return;
     }
 
+    // G deletes the active page through the existing confirmation flow.
+    // Ignore repeats, typing, and open modals to prevent accidental deletion.
+    if (!mod && !e.altKey && !e.shiftKey && key === 'g' && !e.repeat &&
+        !isTyping && !editModalOpen && !standardModalOpen) {
+      e.preventDefault();
+      const activePage = getActivePage();
+      if (activePage) deletePage(activePage.id);
+      return;
+    }
+
     if (isTyping) return;
     if (mod && key === 'z') { e.preventDefault(); undoAction(); }
     if (mod && key === 'p') { e.preventDefault(); triggerPrint(); }
@@ -3358,7 +3368,7 @@ function boot() {
   setupCanvasDrop();
   setupKeyboard();
   setupEditModalDrag();
-  setLoadingText('Building workspace…');
+  setLoadingText('Loading workspace…');
   paintProgress(50);
   renderAll();
   setTimeout(() => {
